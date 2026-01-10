@@ -16,7 +16,7 @@ public class SimplexNoise : INoiseGenerator
 
         for(var i = 0; i < 512; i++)
         {
-            _perm[i] = p[i % 255];
+            _perm[i] = p[i & 255];
         }
     }
 

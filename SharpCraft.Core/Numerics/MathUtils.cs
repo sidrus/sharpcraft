@@ -11,7 +11,7 @@ public static class MathUtils
         new(0,1), new(0,-1), new(0,1), new(0,-1)
     ];
 
-    public static int FastFloor(float x) => x > 0 ? (int)x : (int)x - 1;
+    public static int FastFloor(float x) => (int)x - (x < (int)x ? 1 : 0);
 
     public static float Dot(int g, float x, float y)
     {
