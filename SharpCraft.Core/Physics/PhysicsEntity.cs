@@ -82,6 +82,6 @@ public sealed class PhysicsEntity(Transform transform, IPhysicsSystem physics)
         if (Math.Abs(_transform.Position.Y - (oldY + preCollisionVelocity.Y * deltaTime)) > 0.001f) Velocity.Y = 0;
         if (Math.Abs(_transform.Position.Z - (oldZ + preCollisionVelocity.Z * deltaTime)) > 0.001f) Velocity.Z = 0;
 
-        IsGrounded = _transform.Position.Y > (oldY + preCollisionVelocity.Y * deltaTime + 0.0001f) && preCollisionVelocity.Y <= 0;
+        IsGrounded = _transform.Position.Y > oldY + preCollisionVelocity.Y * deltaTime + 0.0001f && preCollisionVelocity.Y <= 0;
     }
 }

@@ -115,7 +115,7 @@ public class Chunk(Vector2<int> coord)
                     var isTransparent = block.IsTransparent;
                     var vList = isTransparent ? transparentVerts : opaqueVerts;
                     var iList = isTransparent ? transparentIndices : opaqueIndices;
-                    ref var offset = ref (isTransparent ? ref transparentIndexOffset : ref opaqueIndexOffset);
+                    ref var offset = ref isTransparent ? ref transparentIndexOffset : ref opaqueIndexOffset;
 
                     if (ShouldRenderFace(world, x, y, z - 1, isTransparent)) // North (-Z)
                         AddFace(vList, iList, ref offset, x, y, z, Direction.North, block.Type);
@@ -254,8 +254,8 @@ public class Chunk(Vector2<int> coord)
 
         const float atlasSize = 16f;
         const float tileSize = 1f / atlasSize;
-        var tx = (tileIndex % 16) * tileSize;
-        var ty = (tileIndex / 16) * tileSize;
+        var tx = tileIndex % 16 * tileSize;
+        var ty = tileIndex / 16 * tileSize;
 
         Span<float> uvs = stackalloc float[8];
         uvs[0] = tx; uvs[1] = ty + tileSize;
