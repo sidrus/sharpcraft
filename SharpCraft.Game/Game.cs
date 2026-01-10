@@ -99,7 +99,9 @@ public partial class Game : IDisposable
             AoMapStrength: _hudManager.Settings.AoMapStrength,
             UseSpecularMap: _hudManager.Settings.UseSpecularMap,
             SpecularMapStrength: _hudManager.Settings.SpecularMapStrength,
-            PointLights: lights
+            PointLights: lights,
+            Exposure: _hudManager.Settings.Exposure,
+            Gamma: _hudManager.Settings.Gamma
         );
 
         _renderPipeline.Execute(_world, context);

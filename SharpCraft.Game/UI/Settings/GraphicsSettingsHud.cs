@@ -14,6 +14,8 @@ public class GraphicsSettingsHud
     public float AoMapStrength = 0.5f;
     public bool UseSpecularMap = true;
     public float SpecularMapStrength = 0.5f;
+    public float Gamma = 2.2f;
+    public float Exposure = 1.0f;
 
     public float FogNearFactor = 0.3f;
     public float FogFarFactor = 0.95f;
@@ -41,6 +43,8 @@ public class GraphicsSettingsHud
                 ImGui.SliderFloat("Ambient Occlusion Strength", ref AoMapStrength, 0.0f, 10.0f);
                 ImGui.Checkbox("Enable Specular Mapping", ref UseSpecularMap);
                 ImGui.SliderFloat("Specular Strength", ref SpecularMapStrength, 0.0f, 10.0f);
+                ImGui.SliderFloat("Gamma Correction", ref Gamma, 0.0f, 4.0f);
+                ImGui.SliderFloat("Exposure", ref Exposure, 0.0f, 10.0f);
             });
 
             Gui.Panel("Atmospherics", () =>
