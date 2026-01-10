@@ -12,6 +12,7 @@ using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
+using Steamworks;
 
 namespace SharpCraft.Game;
 
@@ -24,7 +25,7 @@ public partial class Game : IDisposable
     private readonly ILogger<Game> _logger;
     private InputManager? _input;
     private HudManager? _hudManager;
-    private LightingSystem _lightSystem = new();
+    private readonly LightingSystem _lightSystem = new();
     private IRenderPipeline? _renderPipeline;
     private ICamera? _camera;
     private LocalPlayerController? _playerController;
@@ -42,6 +43,7 @@ public partial class Game : IDisposable
         _window.Update += OnUpdate;
         _window.Render += OnRender;
         _window.Resize += OnResize;
+        _window.Closing += Dispose;
     }
 
     private void OnResize(Vector2D<int> size)
@@ -49,18 +51,40 @@ public partial class Game : IDisposable
         _gl?.Viewport(0, 0, (uint)size.X, (uint)size.Y);
     }
 
-    private void OnLoad()
+    // This is just a quick wrapper to get us from a void method to an
+    // awaitable Task method.
+    private async void OnLoad()
+    {
+        try
+        {
+            await OnLoadAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to load game");
+            Exit();
+        }
+    }
+
+    private async Task OnLoadAsync()
     {
         LogCreatingOpenglContext();
         _gl = _window.CreateOpenGL();
 
+        if (SteamClient.IsValid)
+        {
+            SteamFriends.SetRichPresence("status", "Exploring SharpCraft");
+        }
+
         InitializeGraphicsState();
-        InitializeSystems();
+        await InitializeSystems();
         RegisterInputHandlers();
     }
 
     private void OnUpdate(double deltaTime)
     {
+        SteamClient.RunCallbacks();
+
         if (_input?.Mouse.Cursor.CursorMode == CursorMode.Raw)
         {
             _playerController?.Update((float)deltaTime, _input.Keyboard);
@@ -116,7 +140,7 @@ public partial class Game : IDisposable
         _gl.ClearColor(0.53f, 0.81f, 0.92f, 1.0f);
     }
 
-    private void InitializeSystems()
+    private async Task InitializeSystems()
     {
         if (_gl == null || _window == null) return;
 
@@ -124,6 +148,7 @@ public partial class Game : IDisposable
         _input = new InputManager(inputContext);
         _hudManager = new HudManager(_gl, _window, inputContext);
         _hudManager.OnCursorModeChanged += () => _playerController?.ResetMouse();
+        await _hudManager.InitializeAsync();
 
         var physics = new PhysicsSystem(_world);
         var entity = new PhysicsEntity(new Transform { Position = new Vector3(0, 80, 0) }, physics);
@@ -195,6 +220,8 @@ public partial class Game : IDisposable
 
     public void Run() => _window?.Run();
 
+    public void Exit() => _window?.Close();
+
     public void Dispose()
     {
         Dispose(true);
@@ -207,10 +234,26 @@ public partial class Game : IDisposable
         {
             if (disposing)
             {
+                // Ensure OpenGL context is current during disposal
+                // but only if the window still has a valid context
+                if (_window?.GLContext != null)
+                {
+                    try
+                    {
+                        _window.MakeCurrent();
+                    }
+                    catch
+                    {
+                        // Ignore errors during MakeCurrent in disposal
+                    }
+                }
+
+                _renderPipeline?.Dispose();
                 _hudManager?.Dispose();
                 _input?.Dispose();
-                _window?.Dispose();
-                _renderPipeline?.Dispose();
+                
+                // We do NOT dispose _window here because it's owned by Program.cs
+                // and managed via a using block there.
             }
 
             _disposed = true;

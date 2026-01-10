@@ -18,6 +18,7 @@ public class GraphicsSettingsHud : Hud
     public float AoMapStrength = 0.5f;
     public bool UseSpecularMap = true;
     public float SpecularMapStrength = 0.5f;
+    public bool VSync = false;
     public float Gamma = 1.6f;
     public float Exposure = 1.0f;
 
@@ -47,6 +48,7 @@ public class GraphicsSettingsHud : Hud
                 ImGui.SliderFloat("Ambient Occlusion Strength", ref AoMapStrength, 0.0f, 10.0f);
                 ImGui.Checkbox("Enable Specular Mapping", ref UseSpecularMap);
                 ImGui.SliderFloat("Specular Strength", ref SpecularMapStrength, 0.0f, 10.0f);
+                ImGui.Checkbox("VSync", ref VSync);
                 ImGui.SliderFloat("Gamma Correction", ref Gamma, 0.0f, 4.0f);
                 ImGui.SliderFloat("Exposure", ref Exposure, 0.0f, 10.0f);
             });

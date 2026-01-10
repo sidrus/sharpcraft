@@ -67,10 +67,7 @@ public class WaterRenderer(GL gl, ChunkRenderCache cache) : IRenderer
 
         _frustum.Update(context.ViewProjection);
 
-        var chunks = world.GetLoadedChunks().ToArray();
-        cache.Update(chunks);
-
-        foreach (var chunk in chunks)
+        foreach (var chunk in world.GetLoadedChunks())
         {
             if (!_frustum.IsBoxInFrustum(chunk.WorldPosition, chunk.WorldPosition + new Vector3(16, 256, 16)))
                 continue;
@@ -101,7 +98,6 @@ public class WaterRenderer(GL gl, ChunkRenderCache cache) : IRenderer
                 _normalMap.Dispose();
                 _aoMap.Dispose();
                 _specularMap.Dispose();
-                cache.Dispose();
             }
 
             gl.DeleteVertexArray(_vao);

@@ -13,6 +13,8 @@ namespace SharpCraft.Game.UI;
 public class HudManager : IDisposable
 {
     private readonly ImGuiController _controller;
+    private readonly GL _gl;
+    private readonly IWindow _window;
     private readonly IInputContext _input;
     private bool _disposed;
     private readonly Dictionary<string, IHud> _huds = [];
@@ -22,17 +24,24 @@ public class HudManager : IDisposable
 
     public HudManager(GL gl, IWindow window, IInputContext input)
     {
+        _gl = gl;
+        _window = window;
         _input = input;
         _controller = new ImGuiController(gl, window, input);
+        input.Keyboards[0].KeyUp += OnKeyUp;
+    }
 
+    public async Task InitializeAsync()
+    {
         RegisterHud(new DebugHud());
-        RegisterHud(new MainHud());
+
+        var mainHud = new MainHud(_window, _gl);
+        await mainHud.LoadSteamAvatar();
+        RegisterHud(mainHud);
 
         var graphicsSettingsHud = new GraphicsSettingsHud();
         graphicsSettingsHud.OnVisibilityChanged += UpdateCursorMode;
         RegisterHud(graphicsSettingsHud);
-
-        input.Keyboards[0].KeyUp += OnKeyUp;
     }
 
     private void RegisterHud(Hud hud)
@@ -80,7 +89,30 @@ public class HudManager : IDisposable
 
     public void Update(double deltaTime)
     {
+        if (Settings != null)
+        {
+            if (_window.VSync != Settings.VSync)
+            {
+                _window.VSync = Settings.VSync;
+                System.Console.WriteLine($"[DEBUG_LOG] VSync changed to: {_window.VSync}");
+            }
+
+            if (!Settings.VSync)
+            {
+                if (_window.FramesPerSecond != 0 || _window.UpdatesPerSecond != 0)
+                {
+                    _window.FramesPerSecond = 0;
+                    _window.UpdatesPerSecond = 0;
+                    System.Console.WriteLine("[DEBUG_LOG] FPS/UPS uncapped (set to 0)");
+                }
+            }
+        }
+
         _controller.Update((float)deltaTime);
+        foreach (var hud in _huds.Values)
+        {
+            hud.Update(deltaTime);
+        }
     }
 
     public void Render(float deltaTime, World world, LocalPlayerController? player)
@@ -96,6 +128,12 @@ public class HudManager : IDisposable
     {
         if (!_disposed)
         {
+            var disposableHuds = _huds.Values.OfType<IDisposable>();
+            foreach (var disposableHud in disposableHuds)
+            {
+                disposableHud.Dispose();
+            }
+            
             _controller.Dispose();
             _disposed = true;
         }
