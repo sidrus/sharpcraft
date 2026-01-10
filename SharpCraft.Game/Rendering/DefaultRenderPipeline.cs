@@ -10,12 +10,27 @@ public class DefaultRenderPipeline : IRenderPipeline
     private readonly WaterRenderer _waterRenderer;
     private readonly ChunkRenderCache _cache;
 
+    private World? _world;
+    private RenderContext? _context;
+
     public DefaultRenderPipeline(GL gl)
     {
         _gl = gl;
         _cache = new ChunkRenderCache(gl);
         _terrainRenderer = new TerrainRenderer(gl, _cache);
         _waterRenderer = new WaterRenderer(gl, _cache);
+    }
+
+    public void OnRender(double deltaTime)
+    {
+        if (_world == null || !_context.HasValue) return;
+        Execute(_world, _context.Value);
+    }
+
+    public void SetContext(World world, RenderContext context)
+    {
+        _world = world;
+        _context = context;
     }
 
     public void Execute(World world, RenderContext context)

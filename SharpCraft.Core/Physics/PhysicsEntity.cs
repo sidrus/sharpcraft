@@ -30,13 +30,15 @@ public sealed class PhysicsEntity(Transform transform, IPhysicsSystem physics)
         var oldY = _transform.Position.Y;
         var oldZ = _transform.Position.Z;
 
+        var preCollisionVelocity = Velocity;
+
         _transform.Position = physics.MoveAndResolve(_transform.Position, Velocity * deltaTime, Size);
 
         // Reset velocity for axes that were blocked by a wall/floor
-        if (Math.Abs(_transform.Position.X - (oldX + Velocity.X * deltaTime)) > 0.001f) Velocity.X = 0;
-        if (Math.Abs(_transform.Position.Y - (oldY + Velocity.Y * deltaTime)) > 0.001f) Velocity.Y = 0;
-        if (Math.Abs(_transform.Position.Z - (oldZ + Velocity.Z * deltaTime)) > 0.001f) Velocity.Z = 0;
+        if (Math.Abs(_transform.Position.X - (oldX + preCollisionVelocity.X * deltaTime)) > 0.001f) Velocity.X = 0;
+        if (Math.Abs(_transform.Position.Y - (oldY + preCollisionVelocity.Y * deltaTime)) > 0.001f) Velocity.Y = 0;
+        if (Math.Abs(_transform.Position.Z - (oldZ + preCollisionVelocity.Z * deltaTime)) > 0.001f) Velocity.Z = 0;
 
-        IsGrounded = _transform.Position.Y > oldY + (Velocity.Y * deltaTime) && Velocity.Y <= 0;
+        IsGrounded = _transform.Position.Y > (oldY + preCollisionVelocity.Y * deltaTime + 0.0001f) && preCollisionVelocity.Y <= 0;
     }
 }

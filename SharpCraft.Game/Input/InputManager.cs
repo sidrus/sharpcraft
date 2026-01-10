@@ -1,9 +1,10 @@
 ﻿using System.Numerics;
+using SharpCraft.Core;
 using Silk.NET.Input;
 
 namespace SharpCraft.Game.Input;
 
-public class InputManager : IDisposable
+public class InputManager : ILifecycle, IDisposable
 {
     private readonly IInputContext _input;
 
@@ -30,7 +31,17 @@ public class InputManager : IDisposable
         };
     }
 
+    public void OnUpdate(double deltaTime)
+    {
+        // Reserved for future use if needed
+    }
+
     public void PostUpdate() => MouseDelta = Vector2.Zero;
+
+    public void OnDestroy()
+    {
+        Dispose();
+    }
 
     public void Dispose()
     {

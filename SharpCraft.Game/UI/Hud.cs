@@ -7,7 +7,7 @@ public abstract class Hud : IHud
 {
     public abstract string Name { get; }
 
-    public virtual void Update(double deltaTime)
+    public virtual void OnUpdate(double deltaTime)
     {
     }
 

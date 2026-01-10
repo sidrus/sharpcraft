@@ -1,4 +1,5 @@
-﻿using SharpCraft.Core;
+﻿using Microsoft.Extensions.Logging;
+using SharpCraft.Core;
 using SharpCraft.Game.Controllers;
 using SharpCraft.Game.UI.Debug;
 using SharpCraft.Game.UI.Main;
@@ -10,25 +11,37 @@ using Silk.NET.Windowing;
 
 namespace SharpCraft.Game.UI;
 
-public class HudManager : IDisposable
+public partial class HudManager : ILifecycle, IDisposable
 {
-    private readonly ImGuiController _controller;
+    private ImGuiController _controller;
     private readonly GL _gl;
     private readonly IWindow _window;
     private readonly IInputContext _input;
+    private readonly ILogger<HudManager> _logger;
     private bool _disposed;
     private readonly Dictionary<string, IHud> _huds = [];
 
     public GraphicsSettingsHud? Settings => GetHud<GraphicsSettingsHud>();
     public DebugHud? Debug => GetHud<DebugHud>();
 
-    public HudManager(GL gl, IWindow window, IInputContext input)
+    public HudManager(GL gl, IWindow window, IInputContext input, ILogger<HudManager> logger)
     {
         _gl = gl;
         _window = window;
         _input = input;
+        _logger = logger;
         _controller = new ImGuiController(gl, window, input);
         input.Keyboards[0].KeyUp += OnKeyUp;
+
+        if (Settings != null)
+        {
+            Settings.OnVisibilityChanged += UpdateCursorMode;
+        }
+    }
+
+    public void OnAwake()
+    {
+        _controller = new ImGuiController(_gl, _window, _input);
     }
 
     public async Task InitializeAsync()
@@ -87,41 +100,55 @@ public class HudManager : IDisposable
         .OfType<T>()
         .FirstOrDefault();
 
-    public void Update(double deltaTime)
+    public void OnUpdate(double deltaTime)
     {
         if (Settings != null)
         {
-            if (_window.VSync != Settings.VSync)
-            {
-                _window.VSync = Settings.VSync;
-                System.Console.WriteLine($"[DEBUG_LOG] VSync changed to: {_window.VSync}");
-            }
-
+            _window.VSync = Settings.VSync;
             if (!Settings.VSync)
             {
-                if (_window.FramesPerSecond != 0 || _window.UpdatesPerSecond != 0)
-                {
-                    _window.FramesPerSecond = 0;
-                    _window.UpdatesPerSecond = 0;
-                    System.Console.WriteLine("[DEBUG_LOG] FPS/UPS uncapped (set to 0)");
-                }
+                _window.FramesPerSecond = 0;
+                _window.UpdatesPerSecond = 0;
+                LogFpsUpsUncapped();
             }
         }
 
         _controller.Update((float)deltaTime);
         foreach (var hud in _huds.Values)
         {
-            hud.Update(deltaTime);
+            hud.OnUpdate(deltaTime);
         }
+    }
+
+    private World? _world;
+    private LocalPlayerController? _player;
+
+    public void SetContext(World world, LocalPlayerController? player)
+    {
+        _world = world;
+        _player = player;
+    }
+
+    public void OnRender(double deltaTime)
+    {
+        if (_world == null) return;
+
+        foreach (var hud in _huds)
+        {
+            hud.Value.Draw(deltaTime, _world, _player);
+        }
+        _controller.Render();
     }
 
     public void Render(float deltaTime, World world, LocalPlayerController? player)
     {
-        foreach (var hud in _huds)
-        {
-            hud.Value.Draw(deltaTime, world, player);
-        }
-        _controller.Render();
+        SetContext(world, player);
+        OnRender(deltaTime);
+    }
+
+    public void OnDestroy()
+    {
+        Dispose();
     }
 
     public void Dispose()
@@ -148,4 +175,10 @@ public class HudManager : IDisposable
             _disposed = true;
         }
     }
+
+    [LoggerMessage(LogLevel.Debug, "VSync changed to: {vSync}")]
+    private partial void LogVsyncChanged(bool vSync);
+
+    [LoggerMessage(LogLevel.Debug, "FPS/UPS uncapped (set to 0)")]
+    private partial void LogFpsUpsUncapped();
 }

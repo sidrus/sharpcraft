@@ -9,7 +9,7 @@ using Silk.NET.Input;
 
 namespace SharpCraft.Game.Controllers;
 
-public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World world)
+public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World world) : ILifecycle
 {
     public PhysicsEntity Entity => entity;
     public const float WalkSpeed = 10f;
@@ -24,11 +24,19 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     private const float Sensitivity = 0.1f;
     private float _yaw;
 
-    public void Update(double deltaTime, IKeyboard? keyboard)
+    private IKeyboard? _keyboard;
+
+    public void OnFixedUpdate(double fixedDeltaTime)
     {
+        Update((float)fixedDeltaTime, _keyboard);
+    }
+
+    public void Update(float deltaTime, IKeyboard? keyboard)
+    {
+        _keyboard = keyboard;
         if (keyboard is null) return;
 
-        var dt = (float)deltaTime;
+        var dt = deltaTime;
         var pos = entity.Position;
 
         // 1. SENSE: Detect surroundings
@@ -42,8 +50,14 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
             (int)Math.Floor(pos.Y + entity.Size.Y - 0.2f), // Head level
             (int)Math.Floor(pos.Z));
 
+        var blockAtWaist = world.GetBlock(
+            (int)Math.Floor(pos.X),
+            (int)Math.Floor(pos.Y + entity.Size.Y * 0.5f),
+            (int)Math.Floor(pos.Z));
+
         IsUnderwater = BlockAbove.Type == BlockType.Water;
-        IsSwimming = BlockBelow.Type == BlockType.Water || IsUnderwater;
+        IsSwimming = IsUnderwater || blockAtWaist.Type == BlockType.Water;
+        var isOnWaterSurface = BlockBelow.Type == BlockType.Water && !IsSwimming;
 
         // 2. DECIDE: Determine physics constants based on state
         var gravity = -9.81f;
@@ -53,7 +67,7 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
         var canJump = entity.IsGrounded && BlockBelow.IsSolid;
         Friction = canJump ? BlockBelow.Friction : 0.05f;
 
-        if (IsSwimming)
+        if (IsSwimming || isOnWaterSurface)
         {
             gravity = -2.0f;          // Buoyancy
             terminalVelocity = -2.0f; // Sinking cap
@@ -77,6 +91,12 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
             {
                 // Swim up: Max prevents stacking with existing upward momentum
                 entity.Velocity.Y = Math.Max(entity.Velocity.Y, 3.0f);
+            }
+            else if (isOnWaterSurface)
+            {
+                // On surface but not swimming: maybe a small paddle? 
+                // Let's allow it but not as strong as a jump
+                entity.Velocity.Y = Math.Max(entity.Velocity.Y, 1.5f);
             }
             else if (canJump)
             {

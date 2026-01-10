@@ -23,6 +23,7 @@ public partial class Game : IDisposable
     private GL? _gl;
 
     private readonly ILogger<Game> _logger;
+    private readonly ILoggerFactory _loggerFactory;
     private InputManager? _input;
     private HudManager? _hudManager;
     private readonly LightingSystem _lightSystem = new();
@@ -36,6 +37,7 @@ public partial class Game : IDisposable
     public Game(IWindow window, World world, ILoggerFactory loggerFactory)
     {
         _world = world;
+        _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger<Game>();
 
         _window = window;
@@ -90,7 +92,7 @@ public partial class Game : IDisposable
             _playerController?.Update((float)deltaTime, _input.Keyboard);
         }
 
-        _hudManager?.Update((float)deltaTime);
+        _hudManager?.OnUpdate(deltaTime);
         _input?.PostUpdate();
     }
 
@@ -146,7 +148,7 @@ public partial class Game : IDisposable
 
         var inputContext = _window.CreateInput();
         _input = new InputManager(inputContext);
-        _hudManager = new HudManager(_gl, _window, inputContext);
+        _hudManager = new HudManager(_gl, _window, inputContext, _loggerFactory.CreateLogger<HudManager>());
         _hudManager.OnCursorModeChanged += () => _playerController?.ResetMouse();
         await _hudManager.InitializeAsync();
 
