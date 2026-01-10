@@ -22,6 +22,7 @@ public partial class HudManager : ILifecycle, IDisposable
 
     public GraphicsSettingsHud? Settings => GetHud<GraphicsSettingsHud>();
     public DebugHud? Debug => GetHud<DebugHud>();
+    public DeveloperHud? Developer => GetHud<DeveloperHud>();
 
     public HudManager(GL gl, IWindow window, IInputContext input, ILogger<HudManager> logger)
     {
@@ -53,6 +54,10 @@ public partial class HudManager : ILifecycle, IDisposable
         var graphicsSettingsHud = new GraphicsSettingsHud();
         graphicsSettingsHud.OnVisibilityChanged += UpdateCursorMode;
         RegisterHud(graphicsSettingsHud);
+
+        var developerHud = new DeveloperHud();
+        developerHud.OnVisibilityChanged += UpdateCursorMode;
+        RegisterHud(developerHud);
     }
 
     private void RegisterHud(Hud hud)
@@ -68,6 +73,15 @@ public partial class HudManager : ILifecycle, IDisposable
             UpdateCursorMode();
         }
 
+        if (key == Key.F4)
+        {
+            if (Developer != null)
+            {
+                Developer.IsVisible = !Developer.IsVisible;
+                UpdateCursorMode();
+            }
+        }
+
         if (key == Key.AltLeft)
         {
             UpdateCursorMode();
@@ -79,7 +93,8 @@ public partial class HudManager : ILifecycle, IDisposable
         var mouse = _input.Mice[0];
 
         // If menu is open, always show cursor. Otherwise toggle based on Raw mode.
-        if (Settings?.IsVisible ?? false)
+        var isAnyMenuVisible = (Settings?.IsVisible ?? false) || (Developer?.IsVisible ?? false);
+        if (isAnyMenuVisible)
         {
             mouse.Cursor.CursorMode = CursorMode.Normal;
         }

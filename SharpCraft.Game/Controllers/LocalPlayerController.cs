@@ -18,6 +18,7 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     public Block BlockAbove { get; private set; }
     public bool IsSwimming { get; private set; }
     public bool IsUnderwater { get; private set; }
+    public bool IsFlying { get; set; }
 
     private Vector2 _lastMousePos;
     private bool _firstMouseMove = true;
@@ -59,14 +60,14 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
         var isOnWaterSurface = BlockBelow.Type == BlockType.Water && !IsSwimming;
 
         // 2. DECIDE: Determine physics constants based on state
-        var gravity = -9.81f;
-        var terminalVelocity = -50f;
-        var currentWalkSpeed = WalkSpeed;
+        var gravity = IsFlying ? 0f : -9.81f;
+        var terminalVelocity = IsFlying ? -100f : -50f;
+        var currentWalkSpeed = IsFlying ? WalkSpeed * 2.5f : WalkSpeed;
 
         var canJump = entity.IsGrounded && BlockBelow.IsSolid;
-        Friction = canJump ? BlockBelow.Friction : 0.05f;
+        Friction = (canJump || IsFlying) ? (IsFlying ? 0.15f : BlockBelow.Friction) : 0.05f;
 
-        if (IsSwimming || isOnWaterSurface)
+        if (!IsFlying && (IsSwimming || isOnWaterSurface))
         {
             gravity = -2.0f;          // Buoyancy
             terminalVelocity = -2.0f; // Sinking cap
@@ -80,11 +81,19 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
         if (keyboard.IsKeyPressed(Key.S)) moveDir -= entity.Forward;
         if (keyboard.IsKeyPressed(Key.A)) moveDir -= entity.Right;
         if (keyboard.IsKeyPressed(Key.D)) moveDir += entity.Right;
-        moveDir.Y = 0;
+
+        if (!IsFlying)
+            moveDir.Y = 0;
 
         if (moveDir.LengthSquared() > 0) moveDir = Vector3.Normalize(moveDir);
 
-        if (keyboard.IsKeyPressed(Key.Space))
+        if (IsFlying)
+        {
+            if (keyboard.IsKeyPressed(Key.Space)) entity.Velocity.Y = MathUtils.Lerp(entity.Velocity.Y, currentWalkSpeed, deltaTime * 10f);
+            else if (keyboard.IsKeyPressed(Key.ShiftLeft)) entity.Velocity.Y = MathUtils.Lerp(entity.Velocity.Y, -currentWalkSpeed, deltaTime * 10f);
+            else entity.Velocity.Y = MathUtils.Lerp(entity.Velocity.Y, 0, deltaTime * 10f);
+        }
+        else if (keyboard.IsKeyPressed(Key.Space))
         {
             if (IsSwimming)
             {
