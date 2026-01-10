@@ -105,5 +105,10 @@ public class WaterRenderer(GL gl, ChunkRenderCache cache) : IRenderer
         }
     }
 
+    ~WaterRenderer()
+    {
+        Dispose(false);
+    }
+
     private bool _disposed;
 }

@@ -107,5 +107,10 @@ public class TerrainRenderer(GL gl, ChunkRenderCache cache) : IRenderer
         }
     }
 
+    ~TerrainRenderer()
+    {
+        Dispose(false);
+    }
+
     private bool _disposed;
 }

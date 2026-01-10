@@ -39,8 +39,24 @@ public class DefaultRenderPipeline : IRenderPipeline
 
     public void Dispose()
     {
-        _cache.Dispose();
-        _terrainRenderer.Dispose();
-        _waterRenderer.Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                _cache.Dispose();
+                _terrainRenderer.Dispose();
+                _waterRenderer.Dispose();
+            }
+
+            _disposed = true;
+        }
+    }
+
+    private bool _disposed;
 }

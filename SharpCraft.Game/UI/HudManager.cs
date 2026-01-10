@@ -126,17 +126,26 @@ public class HudManager : IDisposable
 
     public void Dispose()
     {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
         if (!_disposed)
         {
-            var disposableHuds = _huds.Values.OfType<IDisposable>();
-            foreach (var disposableHud in disposableHuds)
+            if (disposing)
             {
-                disposableHud.Dispose();
+                var disposableHuds = _huds.Values.OfType<IDisposable>();
+                foreach (var disposableHud in disposableHuds)
+                {
+                    disposableHud.Dispose();
+                }
+
+                _controller.Dispose();
             }
-            
-            _controller.Dispose();
+
             _disposed = true;
         }
-        GC.SuppressFinalize(this);
     }
 }

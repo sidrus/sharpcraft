@@ -75,6 +75,11 @@ public class RenderableChunk(GL gl, Chunk chunk) : IDisposable
     {
         if (!_disposed)
         {
+            if (disposing)
+            {
+                // Dispose managed state (none)
+            }
+
             if (_isInitialized)
             {
                 gl.DeleteBuffer(_opaqueVbo);
@@ -85,6 +90,11 @@ public class RenderableChunk(GL gl, Chunk chunk) : IDisposable
 
             _disposed = true;
         }
+    }
+
+    ~RenderableChunk()
+    {
+        Dispose(false);
     }
 
     private bool _disposed;

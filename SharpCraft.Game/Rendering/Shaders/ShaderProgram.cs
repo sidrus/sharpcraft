@@ -74,9 +74,19 @@ public class ShaderProgram : IDisposable
     {
         if (!_disposed)
         {
+            if (disposing)
+            {
+                // Dispose managed state (none)
+            }
+
             _gl.DeleteProgram(_handle);
             _disposed = true;
         }
+    }
+
+    ~ShaderProgram()
+    {
+        Dispose(false);
     }
 
     private bool _disposed;

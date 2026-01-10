@@ -7,8 +7,6 @@ namespace SharpCraft.Game.Integrations.Steam;
 public class AvatarLoader(IWindow window, GL gl) : IDisposable
 {
     public uint? AvatarTexture { get; private set; }
-    private Steamworks.Data.Image? _pendingAvatar;
-    private readonly object _lock = new();
 
     public async Task LoadSteamAvatar()
     {
@@ -19,32 +17,11 @@ public class AvatarLoader(IWindow window, GL gl) : IDisposable
 
         if (image.HasValue)
         {
-            lock (_lock)
-            {
-                _pendingAvatar = image.Value;
-            }
-        }
-    }
-
-    public void Update()
-    {
-        Steamworks.Data.Image? toLoad = null;
-        lock (_lock)
-        {
-            if (_pendingAvatar.HasValue)
-            {
-                toLoad = _pendingAvatar;
-                _pendingAvatar = null;
-            }
-        }
-
-        if (toLoad.HasValue)
-        {
             if (AvatarTexture.HasValue)
             {
                 gl.DeleteTexture(AvatarTexture.Value);
             }
-            AvatarTexture = CreateTextureFromRgba(toLoad.Value.Data, toLoad.Value.Width, toLoad.Value.Height);
+            AvatarTexture = CreateTextureFromRgba(image.Value.Data, image.Value.Width, image.Value.Height);
         }
     }
 
@@ -71,10 +48,30 @@ public class AvatarLoader(IWindow window, GL gl) : IDisposable
 
     public void Dispose()
     {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool _)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
         if (AvatarTexture.HasValue)
         {
             gl.DeleteTexture(AvatarTexture.Value);
             AvatarTexture = null;
         }
+
+        _disposed = true;
     }
+
+    ~AvatarLoader()
+    {
+        Dispose(false);
+    }
+
+    private bool _disposed;
 }

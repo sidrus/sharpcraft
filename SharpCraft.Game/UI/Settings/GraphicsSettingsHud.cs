@@ -31,9 +31,9 @@ public class GraphicsSettingsHud : Hud
     {
         if (!IsVisible) return;
 
-        // Force the window to center
+        // Force the window to center only on first appearance
         var io = ImGui.GetIO();
-        ImGui.SetNextWindowPos(new Vector2(io.DisplaySize.X * 0.5f, io.DisplaySize.Y * 0.5f), ImGuiCond.Always, new Vector2(0.5f, 0.5f));
+        ImGui.SetNextWindowPos(new Vector2(io.DisplaySize.X * 0.5f, io.DisplaySize.Y * 0.5f), ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
         ImGui.SetNextWindowSize(new Vector2(0, 0)); // Auto-height
 
         // Use a local copy for the close button [X] functionality

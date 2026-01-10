@@ -44,9 +44,19 @@ public class Texture2d : IDisposable
     {
         if (!_disposed)
         {
+            if (disposing)
+            {
+                // Dispose managed state (none)
+            }
+
             _gl.DeleteTexture(_handle);
             _disposed = true;
         }
+    }
+
+    ~Texture2d()
+    {
+        Dispose(false);
     }
 
     private bool _disposed;
