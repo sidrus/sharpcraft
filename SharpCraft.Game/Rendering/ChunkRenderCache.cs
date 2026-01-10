@@ -37,12 +37,6 @@ public class ChunkRenderCache(GL gl) : IDisposable
                 entry.Generation = _currentGeneration;
                 _cache[chunk] = entry;
             }
-            else
-            {
-                // If it's not in cache, Get will add it later during rendering
-                // or we can add it here if needed. 
-                // TerrainRenderer calls Get(chunk) for every active chunk anyway.
-            }
         }
 
         // Identify and remove stale chunks

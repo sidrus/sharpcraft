@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="SharpCraft.Core.Tests/SharpCraft.Core.Tests.csproj" />
   <Project Path="SharpCraft.Core/SharpCraft.Core.csproj" />
   <Project Path="SharpCraft.Game/SharpCraft.Game.csproj" />
 </Solution>

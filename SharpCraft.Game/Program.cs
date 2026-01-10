@@ -7,7 +7,7 @@ using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Steamworks;
 
-// --- 1. Setup Logging ---
+// Setup Logging
 using var loggerFactory = LoggerFactory.Create(builder =>
 {
     builder
@@ -25,7 +25,7 @@ logger.LogInformation("SharpCraft starting...");
 logger.LogInformation("Process Architecture: {Arch}", RuntimeInformation.ProcessArchitecture);
 logger.LogInformation("Runtime Directory: {Dir}", AppContext.BaseDirectory);
 
-// --- 2. Steam Integration ---
+// Steam Integration
 try
 {
     logger.LogDebug("Initializing Steam...");
@@ -38,13 +38,13 @@ catch (Exception e)
     return;
 }
 
-// --- 3. World Generation ---
+// World Generation
 logger.LogInformation("Generating world...");
 var world = new World(seed: 42);
 await world.GenerateAsync(32, System.Numerics.Vector3.Zero);
 logger.LogInformation("World generation complete");
 
-// --- 4. Window & Game Initialization ---
+// Window & Game Initialization
 var opts = WindowOptions.Default with
 {
     Size = new Vector2D<int>(2560, 1080),
@@ -58,11 +58,11 @@ logger.LogInformation("Creating game window...");
 using var window = Window.Create(opts);
 using var game = new Game(window, world, loggerFactory);
 
-// --- 5. Game Loop ---
+// Game Loop
 logger.LogInformation("Entering game loop...");
 game.Run();
 
-// --- 6. Cleanup ---
+// Cleanup
 logger.LogInformation("Shutting down...");
 SteamClient.Shutdown();
 logger.LogInformation("Shutdown complete");

@@ -2,6 +2,9 @@
 
 namespace SharpCraft.Core;
 
+/// <summary>
+/// Manages the lifecycle of multiple objects, handling registration, updates, and destruction.
+/// </summary>
 public class LifecycleManager
 {
     private readonly List<ILifecycle> _objects = new();
@@ -9,6 +12,10 @@ public class LifecycleManager
     private readonly List<ILifecycle> _toRemove = new();
     private bool _isIterating;
 
+    /// <summary>
+    /// Registers an object to be managed.
+    /// </summary>
+    /// <param name="obj">The object to register.</param>
     public void Register(ILifecycle obj)
     {
         if (_isIterating)
@@ -22,6 +29,10 @@ public class LifecycleManager
         }
     }
 
+    /// <summary>
+    /// Unregisters an object from the manager.
+    /// </summary>
+    /// <param name="obj">The object to unregister.</param>
     public void Unregister(ILifecycle obj)
     {
         if (_isIterating)
@@ -37,6 +48,9 @@ public class LifecycleManager
         }
     }
 
+    /// <summary>
+    /// Starts the lifecycle for all registered objects.
+    /// </summary>
     public void Start()
     {
         ProcessPending();
@@ -49,6 +63,10 @@ public class LifecycleManager
         ProcessPending();
     }
 
+    /// <summary>
+    /// Updates all registered objects.
+    /// </summary>
+    /// <param name="deltaTime">The time since the last update.</param>
     public void Update(double deltaTime)
     {
         _isIterating = true;
@@ -60,6 +78,10 @@ public class LifecycleManager
         ProcessPending();
     }
 
+    /// <summary>
+    /// Performs a fixed update on all registered objects.
+    /// </summary>
+    /// <param name="fixedDeltaTime">The fixed time step.</param>
     public void FixedUpdate(double fixedDeltaTime)
     {
         _isIterating = true;
@@ -71,6 +93,10 @@ public class LifecycleManager
         ProcessPending();
     }
 
+    /// <summary>
+    /// Renders all registered objects.
+    /// </summary>
+    /// <param name="deltaTime">The time since the last render.</param>
     public void Render(double deltaTime)
     {
         _isIterating = true;
@@ -82,6 +108,9 @@ public class LifecycleManager
         ProcessPending();
     }
 
+    /// <summary>
+    /// Destroys all managed objects and clears the manager.
+    /// </summary>
     public void Destroy()
     {
         _isIterating = true;

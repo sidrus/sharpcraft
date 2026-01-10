@@ -1,5 +1,8 @@
 ﻿namespace SharpCraft.Core;
 
+/// <summary>
+/// Defines the lifecycle methods for objects managed by the LifecycleManager.
+/// </summary>
 public interface ILifecycle
 {
     /// <summary>

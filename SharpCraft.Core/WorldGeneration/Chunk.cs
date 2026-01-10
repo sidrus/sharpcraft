@@ -4,23 +4,61 @@ using SharpCraft.Core.Numerics;
 
 namespace SharpCraft.Core.WorldGeneration;
 
+/// <summary>
+/// Represents a 16x256x16 section of the world.
+/// </summary>
 public class Chunk(Vector2<int> coord)
 {
+    /// <summary>
+    /// The horizontal size of a chunk in blocks.
+    /// </summary>
     public const int Size = 16;
+
+    /// <summary>
+    /// The vertical size of a chunk in blocks.
+    /// </summary>
     public const int Height = 256;
 
+    /// <summary>
+    /// Gets the mesh for opaque blocks.
+    /// </summary>
     public ChunkMesh OpaqueMesh { get; private set; }
+
+    /// <summary>
+    /// Gets the mesh for transparent blocks.
+    /// </summary>
     public ChunkMesh TransparentMesh { get; private set; }
 
+    /// <summary>
+    /// Gets the vertices of the opaque mesh (legacy helper).
+    /// </summary>
     public float[] Vertices => OpaqueMesh.Vertices;
+
+    /// <summary>
+    /// Gets the indices of the opaque mesh (legacy helper).
+    /// </summary>
     public uint[] Indices => OpaqueMesh.Indices;
 
+    /// <summary>
+    /// Gets the world position of the chunk's origin.
+    /// </summary>
     public Vector3 WorldPosition { get; } = new(coord.X * Size, 0, coord.Y * Size);
+
+    /// <summary>
+    /// Gets a value indicating whether the chunk needs to be re-meshed.
+    /// </summary>
     public bool IsDirty { get; private set; } = true;
 
     private readonly Block[,,] _blocks = new Block[Size, Height, Size];
     private readonly Lock _lockObject = new();
 
+    /// <summary>
+    /// Gets the block at the specified local coordinates.
+    /// </summary>
+    /// <param name="x">Local X [0, Size-1].</param>
+    /// <param name="y">Local Y [0, Height-1].</param>
+    /// <param name="z">Local Z [0, Size-1].</param>
+    /// <returns>The block at the position, or Air if out of bounds.</returns>
     public Block GetBlock(int x, int y, int z)
     {
         if (x < 0 || x >= Size || y < 0 || y >= Height || z < 0 || z >= Size)
@@ -31,6 +69,13 @@ public class Chunk(Vector2<int> coord)
         return _blocks[x, y, z];
     }
 
+    /// <summary>
+    /// Sets the block type at the specified local coordinates.
+    /// </summary>
+    /// <param name="x">Local X [0, Size-1].</param>
+    /// <param name="y">Local Y [0, Height-1].</param>
+    /// <param name="z">Local Z [0, Size-1].</param>
+    /// <param name="type">The new block type.</param>
     public void SetBlock(int x, int y, int z, BlockType type)
     {
         if (x < 0 || x >= Size || y < 0 || y >= Height || z < 0 || z >= Size)
@@ -42,12 +87,14 @@ public class Chunk(Vector2<int> coord)
         IsDirty = true;
     }
 
+    /// <summary>
+    /// Generates the visual meshes for the chunk.
+    /// </summary>
+    /// <param name="world">The world context for neighbor checks.</param>
     public void GenerateMesh(World world)
     {
         if (!IsDirty) return;
 
-        // Pre-allocate some capacity to reduce reallocations.
-        // Average chunk might have ~2000-4000 vertices? Let's start with a reasonable guess.
         var opaqueVerts = new List<float>(4096);
         var opaqueIndices = new List<uint>(1024);
         uint opaqueIndexOffset = 0;

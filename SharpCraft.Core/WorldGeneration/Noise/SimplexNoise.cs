@@ -2,10 +2,17 @@
 
 namespace SharpCraft.Core.WorldGeneration.Noise;
 
+/// <summary>
+/// Implements a 2D Simplex Noise generator.
+/// </summary>
 public class SimplexNoise : INoiseGenerator
 {
     private readonly int[] _perm;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SimplexNoise"/> class with a given seed.
+    /// </summary>
+    /// <param name="seed">The seed for random generation.</param>
     public SimplexNoise(int seed = 12345)
     {
         var random = new Random(seed);
@@ -20,6 +27,7 @@ public class SimplexNoise : INoiseGenerator
         }
     }
 
+    /// <inheritdoc />
     public float Evaluate(float x, float y)
     {
         const float F2 = 0.366025403f; // (Math.Sqrt(3) - 1) / 2

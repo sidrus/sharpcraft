@@ -59,8 +59,6 @@ public partial class Game : IDisposable
         _gl?.Viewport(0, 0, (uint)size.X, (uint)size.Y);
     }
 
-    // This is just a quick wrapper to get us from a void method to an
-    // awaitable Task method.
     private async void OnLoad()
     {
         try

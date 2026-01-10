@@ -7,13 +7,30 @@ using SharpCraft.Core.WorldGeneration;
 
 namespace SharpCraft.Core;
 
+/// <summary>
+/// Represents the game world, containing all chunks and entities.
+/// </summary>
 public class World(int seed = 12345) : ICollisionProvider
 {
     private readonly ConcurrentDictionary<Vector2<int>, Chunk> _chunks = new();
     private readonly IWorldGenerator _generator = new DefaultWorldGenerator(seed);
+
+    /// <summary>
+    /// Gets the current size of the world (render distance).
+    /// </summary>
     public int Size { get; private set; }
+
+    /// <summary>
+    /// Gets the horizontal size of a chunk.
+    /// </summary>
     public static int ChunkSize => Chunk.Size;
 
+    /// <summary>
+    /// Generates the world asynchronously around a center point.
+    /// </summary>
+    /// <param name="bounds">The number of chunks to generate in each direction from the center.</param>
+    /// <param name="center">The center point in world space. Defaults to Zero.</param>
+    /// <returns>A task representing the operation.</returns>
     public async Task GenerateAsync(int bounds, Vector3? center = null)
     {
         Size = bounds;
@@ -21,11 +38,9 @@ public class World(int seed = 12345) : ICollisionProvider
         var currentCenter = center ?? Vector3.Zero;
         var coords = GetCoordsInRange(currentCenter, bounds);
 
-        // Process in batches to be more "progressive" and not overwhelm the thread pool immediately,
-        // although Task.WhenAll(tasks) is still a big block.
-        // To be TRULY progressive we could use Parallel.ForEachAsync with MaxDegreeOfParallelism
+        // Process in batches to balance performance.
         const int batchSize = 16;
-        for (int i = 0; i < coords.Count; i += batchSize)
+        for (var i = 0; i < coords.Count; i += batchSize)
         {
             var batch = coords.Skip(i).Take(batchSize);
             var tasks = batch.Select(coord => Task.Run(() => GetOrCreateChunk(coord))).ToList();
@@ -57,6 +72,11 @@ public class World(int seed = 12345) : ICollisionProvider
         return coords;
     }
 
+    /// <summary>
+    /// Unloads chunks that are outside the specified range from the center.
+    /// </summary>
+    /// <param name="center">The center point.</param>
+    /// <param name="range">The range in chunks.</param>
     public void UnloadChunks(Vector3 center, int range)
     {
         var centerChunkX = (int)Math.Floor(center.X / Chunk.Size);
@@ -72,6 +92,10 @@ public class World(int seed = 12345) : ICollisionProvider
         }
     }
 
+    /// <summary>
+    /// Generates chunks within the specified bounds from the origin.
+    /// </summary>
+    /// <param name="bounds">The number of chunks in each direction.</param>
     public void Generate(int bounds)
     {
         Size = bounds;
@@ -84,6 +108,11 @@ public class World(int seed = 12345) : ICollisionProvider
         }
     }
 
+    /// <summary>
+    /// Gets an existing chunk or creates a new one at the specified coordinates.
+    /// </summary>
+    /// <param name="coord">The chunk coordinates.</param>
+    /// <returns>The chunk.</returns>
     public Chunk GetOrCreateChunk(Vector2<int> coord)
     {
         return _chunks.GetOrAdd(coord, k =>
@@ -94,6 +123,7 @@ public class World(int seed = 12345) : ICollisionProvider
         });
     }
 
+    /// <inheritdoc />
     public Block GetBlock(int worldX, int worldY, int worldZ)
     {
         if (worldY is < 0 or >= Chunk.Height)
@@ -115,6 +145,13 @@ public class World(int seed = 12345) : ICollisionProvider
         return new Block { Type = BlockType.Air };
     }
 
+    /// <summary>
+    /// Sets the block type at the specified world coordinates.
+    /// </summary>
+    /// <param name="worldX">The world X coordinate.</param>
+    /// <param name="worldY">The world Y coordinate.</param>
+    /// <param name="worldZ">The world Z coordinate.</param>
+    /// <param name="type">The new block type.</param>
     public void SetBlock(int worldX, int worldY, int worldZ, BlockType type)
     {
         if (worldY is < 0 or >= Chunk.Height)
@@ -132,5 +169,9 @@ public class World(int seed = 12345) : ICollisionProvider
         chunk.SetBlock(localX, worldY, localZ, type);
     }
 
+    /// <summary>
+    /// Gets all currently loaded chunks.
+    /// </summary>
+    /// <returns>An enumerable of loaded chunks.</returns>
     public IEnumerable<Chunk> GetLoadedChunks() => _chunks.Values;
 }

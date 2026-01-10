@@ -3,12 +3,16 @@ using SharpCraft.Core.WorldGeneration.Noise;
 
 namespace SharpCraft.Core.WorldGeneration;
 
+/// <summary>
+/// Implements the default procedural world generation.
+/// </summary>
 public class DefaultWorldGenerator(int seed = 12345) : IWorldGenerator
 {
     private readonly INoiseGenerator _continentNoise = new SimplexNoise(seed);
     private readonly INoiseGenerator _terrainNoise = new SimplexNoise(seed);
     private readonly INoiseGenerator _detailNoise = new SimplexNoise(seed);
 
+    /// <inheritdoc />
     public void GenerateChunk(Chunk chunk)
     {
         for (var x = 0; x < Chunk.Size; x++)

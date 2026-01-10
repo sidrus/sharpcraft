@@ -2,19 +2,23 @@
 
 namespace SharpCraft.Core.Physics;
 
+/// <summary>
+/// Implements axis-by-axis collision resolution.
+/// </summary>
 public sealed class PhysicsSystem(ICollisionProvider world) : IPhysicsSystem
 {
+    /// <inheritdoc />
     public Vector3 MoveAndResolve(Vector3 position, Vector3 velocity, Vector3 size)
     {
-        // 1. Move X and resolve
+        // Move X and resolve
         position.X += velocity.X;
         position = ResolveAxis(position, size, 0);
 
-        // 2. Move Y and resolve
+        // Move Y and resolve
         position.Y += velocity.Y;
         position = ResolveAxis(position, size, 1);
 
-        // 3. Move Z and resolve
+        // Move Z and resolve
         position.Z += velocity.Z;
         position = ResolveAxis(position, size, 2);
 
@@ -25,7 +29,6 @@ public sealed class PhysicsSystem(ICollisionProvider world) : IPhysicsSystem
     {
         var entityBox = AABB.FromPositionSize(position, size);
 
-        // Find block range to check
         var minX = (int)Math.Floor(entityBox.Min.X);
         var maxX = (int)Math.Floor(entityBox.Max.X);
         var minY = (int)Math.Floor(entityBox.Min.Y);
@@ -42,7 +45,7 @@ public sealed class PhysicsSystem(ICollisionProvider world) : IPhysicsSystem
                         if (entityBox.Intersects(blockBox))
                         {
                             position = PushOut(position, entityBox, blockBox, axis);
-                            entityBox = AABB.FromPositionSize(position, size); // Update box for next block check
+                            entityBox = AABB.FromPositionSize(position, size);
                         }
                     }
 
