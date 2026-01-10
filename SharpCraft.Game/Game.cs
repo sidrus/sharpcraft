@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using Microsoft.Extensions.Logging;
 using SharpCraft.Core;
+using SharpCraft.Core.Numerics;
 using SharpCraft.Core.Physics;
 using SharpCraft.Game.Controllers;
 using SharpCraft.Game.Input;
@@ -36,6 +37,8 @@ public partial class Game : IDisposable
 
     private const double FixedDeltaTime = 1.0 / 60.0;
     private double _accumulator;
+    private Vector2<int>? _lastPlayerChunk;
+    private Task? _worldUpdateTask;
 
     public Game(IWindow window, World world, ILoggerFactory loggerFactory)
     {
@@ -102,8 +105,32 @@ public partial class Game : IDisposable
             _accumulator -= FixedDeltaTime;
         }
 
+        UpdateWorldChunks();
+
         _hudManager?.OnUpdate(deltaTime);
         _input?.PostUpdate();
+    }
+
+    private void UpdateWorldChunks()
+    {
+        if (_playerController == null || _hudManager?.Settings == null) return;
+
+        var playerPos = _playerController.Entity.Position;
+        var currentChunkX = (int)Math.Floor(playerPos.X / World.ChunkSize);
+        var currentChunkZ = (int)Math.Floor(playerPos.Z / World.ChunkSize);
+        var currentChunk = new Vector2<int>(currentChunkX, currentChunkZ);
+
+        if ((_lastPlayerChunk == null || currentChunk != _lastPlayerChunk.Value) && (_worldUpdateTask == null || _worldUpdateTask.IsCompleted))
+        {
+            _lastPlayerChunk = currentChunk;
+            var renderDistance = _hudManager.Settings.RenderDistance;
+                
+            _worldUpdateTask = Task.Run(async () =>
+            {
+                await _world.GenerateAsync(renderDistance, playerPos);
+                _world.UnloadChunks(playerPos, renderDistance + 1); // +1 to give some buffer
+            });
+        }
     }
 
     private void OnRender(double deltaTime)
@@ -121,7 +148,7 @@ public partial class Game : IDisposable
             .Select(l => new PointLightData(l.Position, l.Color, l.Intensity, l.Constant, l.Linear, l.Quadratic))
             .ToArray();
 
-        var viewDistance = _world.Size * _world.ChunkSize;
+        var viewDistance = _world.Size * World.ChunkSize;
         var context = new RenderContext(
             View: _camera.GetViewMatrix(alpha),
             Projection: _camera.GetProjectionMatrix((float)_window.Size.X / _window.Size.Y),
@@ -164,12 +191,24 @@ public partial class Game : IDisposable
         _hudManager.OnCursorModeChanged += () => _playerController?.ResetMouse();
         await _hudManager.InitializeAsync();
 
+        if (_hudManager.Settings != null)
+        {
+            _hudManager.Settings.OnVisibilityChanged += () =>
+            {
+                // Force a world update when settings are closed, in case RenderDistance changed
+                if (!_hudManager.Settings.IsVisible)
+                {
+                    _lastPlayerChunk = null; 
+                }
+            };
+        }
+
         var physics = new PhysicsSystem(_world);
         var entity = new PhysicsEntity(new Transform { Position = new Vector3(0, 80, 0) }, physics);
 
         _camera = new FirstPersonCamera(entity, Vector3.UnitY * 1.6f);
         _playerController = new LocalPlayerController(entity, _camera, _world);
-        _renderPipeline = new DefaultRenderPipeline(_gl);
+        _renderPipeline = new DefaultRenderPipeline(_gl, _world);
 
         _lightSystem.AddPointLight(new PointLight
         {

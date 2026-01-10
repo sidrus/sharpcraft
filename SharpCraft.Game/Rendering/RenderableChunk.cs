@@ -21,8 +21,17 @@ public class RenderableChunk(GL gl, Chunk chunk) : IDisposable
             _isInitialized = true;
         }
 
-        UpdateBuffer(_opaqueVbo, _opaqueEbo, chunk.OpaqueMesh, out _opaqueIndexCount);
-        UpdateBuffer(_transparentVbo, _transparentEbo, chunk.TransparentMesh, out _transparentIndexCount);
+        ChunkMesh opaque;
+        ChunkMesh transparent;
+
+        lock (chunk)
+        {
+            opaque = chunk.OpaqueMesh;
+            transparent = chunk.TransparentMesh;
+        }
+
+        UpdateBuffer(_opaqueVbo, _opaqueEbo, opaque, out _opaqueIndexCount);
+        UpdateBuffer(_transparentVbo, _transparentEbo, transparent, out _transparentIndexCount);
     }
 
     private unsafe void UpdateBuffer(uint vbo, uint ebo, ChunkMesh mesh, out int count)

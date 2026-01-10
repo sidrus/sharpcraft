@@ -6,7 +6,7 @@ using Silk.NET.OpenGL;
 
 namespace SharpCraft.Game.Rendering;
 
-public class WaterRenderer(GL gl, ChunkRenderCache cache) : IRenderer
+public class WaterRenderer(GL gl, ChunkRenderCache cache, ChunkMeshManager meshManager) : IRenderer
 {
     private readonly ShaderProgram _shader = new(gl, Shaders.Shaders.DefaultVertex, Shaders.Shaders.DefaultFragment);
     private readonly Texture2d _texture = new ColorTexture2d(gl, "Assets/Textures/terrain.png");
@@ -73,7 +73,7 @@ public class WaterRenderer(GL gl, ChunkRenderCache cache) : IRenderer
                 continue;
 
             var renderChunk = cache.Get(chunk);
-            if (chunk.IsDirty) { chunk.GenerateMesh(world); renderChunk.UpdateBuffers(); }
+            if (chunk.IsDirty) { meshManager.Enqueue(chunk); }
 
             var model = Matrix4x4.CreateTranslation(chunk.WorldPosition);
             _shader.SetUniform("model", model);

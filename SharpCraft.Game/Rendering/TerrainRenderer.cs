@@ -6,7 +6,7 @@ using Silk.NET.OpenGL;
 
 namespace SharpCraft.Game.Rendering;
 
-public class TerrainRenderer(GL gl, ChunkRenderCache cache) : IRenderer
+public class TerrainRenderer(GL gl, ChunkRenderCache cache, ChunkMeshManager meshManager) : IRenderer
 {
     private readonly ShaderProgram _shader = new(gl, Shaders.Shaders.DefaultVertex, Shaders.Shaders.DefaultFragment);
     private readonly Texture2d _texture = new ColorTexture2d(gl, "Assets/Textures/terrain.png");
@@ -18,6 +18,16 @@ public class TerrainRenderer(GL gl, ChunkRenderCache cache) : IRenderer
 
     public void Render(World world, RenderContext context)
     {
+        meshManager.Process();
+        while (meshManager.TryGetCompleted(out var completedChunk))
+        {
+            if (completedChunk != null)
+            {
+                var rc = cache.Get(completedChunk);
+                rc.UpdateBuffers();
+            }
+        }
+
         _shader.Use();
         _texture.Bind();
         _normalMap.Bind(TextureUnit.Texture1);
@@ -74,7 +84,7 @@ public class TerrainRenderer(GL gl, ChunkRenderCache cache) : IRenderer
                 continue;
 
             var renderChunk = cache.Get(chunk);
-            if (chunk.IsDirty) { chunk.GenerateMesh(world); renderChunk.UpdateBuffers(); }
+            if (chunk.IsDirty) { meshManager.Enqueue(chunk); }
 
             var model = Matrix4x4.CreateTranslation(chunk.WorldPosition);
             _shader.SetUniform("model", model);

@@ -19,6 +19,7 @@ public class Chunk(Vector2<int> coord)
     public bool IsDirty { get; private set; } = true;
 
     private readonly Block[,,] _blocks = new Block[Size, Height, Size];
+    private readonly Lock _lockObject = new();
 
     public Block GetBlock(int x, int y, int z)
     {
@@ -90,10 +91,16 @@ public class Chunk(Vector2<int> coord)
             }
         }
 
-        OpaqueMesh = new ChunkMesh { Vertices = opaqueVerts.ToArray(), Indices = opaqueIndices.ToArray() };
-        TransparentMesh = new ChunkMesh
+        var newOpaqueMesh = new ChunkMesh { Vertices = opaqueVerts.ToArray(), Indices = opaqueIndices.ToArray() };
+        var newTransparentMesh = new ChunkMesh
             { Vertices = transparentVerts.ToArray(), Indices = transparentIndices.ToArray() };
-        IsDirty = false;
+
+        lock (_lockObject)
+        {
+            OpaqueMesh = newOpaqueMesh;
+            TransparentMesh = newTransparentMesh;
+            IsDirty = false;
+        }
     }
 
     private bool ShouldRenderFace(World world, int x, int y, int z, bool currentIsTransparent = false)

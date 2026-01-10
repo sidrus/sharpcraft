@@ -5,23 +5,61 @@ namespace SharpCraft.Game.Rendering;
 
 public class ChunkRenderCache(GL gl) : IDisposable
 {
-    private readonly Dictionary<Chunk, RenderableChunk> _cache = new();
+    private int _currentGeneration;
+    private readonly Dictionary<Chunk, (RenderableChunk RenderChunk, int Generation)> _cache = new();
+    private readonly List<Chunk> _toRemove = new();
 
     public RenderableChunk Get(Chunk chunk)
     {
-        if (!_cache.TryGetValue(chunk, out var rc))
+        if (!_cache.TryGetValue(chunk, out var entry))
         {
-            rc = new RenderableChunk(gl, chunk);
-            _cache.Add(chunk, rc);
+            var rc = new RenderableChunk(gl, chunk);
+            entry = (rc, _currentGeneration);
+            _cache.Add(chunk, entry);
         }
-        return rc;
+        else
+        {
+            entry.Generation = _currentGeneration;
+            _cache[chunk] = entry;
+        }
+        return entry.RenderChunk;
     }
 
     public void Update(Chunk[] activeChunks)
     {
-        var activeSet = activeChunks.ToHashSet();
-        var toRemove = _cache.Keys.Where(c => !activeSet.Contains(c)).ToList();
-        foreach (var c in toRemove) { _cache[c].Dispose(); _cache.Remove(c); }
+        _currentGeneration++;
+        
+        // Mark active chunks with current generation
+        foreach (var chunk in activeChunks)
+        {
+            if (_cache.TryGetValue(chunk, out var entry))
+            {
+                entry.Generation = _currentGeneration;
+                _cache[chunk] = entry;
+            }
+            else
+            {
+                // If it's not in cache, Get will add it later during rendering
+                // or we can add it here if needed. 
+                // TerrainRenderer calls Get(chunk) for every active chunk anyway.
+            }
+        }
+
+        // Identify and remove stale chunks
+        _toRemove.Clear();
+        foreach (var (chunk, entry) in _cache)
+        {
+            if (entry.Generation < _currentGeneration)
+            {
+                _toRemove.Add(chunk);
+            }
+        }
+
+        foreach (var c in _toRemove)
+        {
+            _cache[c].RenderChunk.Dispose();
+            _cache.Remove(c);
+        }
     }
 
     public void Dispose()
@@ -36,9 +74,9 @@ public class ChunkRenderCache(GL gl) : IDisposable
         {
             if (disposing)
             {
-                foreach (var rc in _cache.Values)
+                foreach (var entry in _cache.Values)
                 {
-                    rc.Dispose();
+                    entry.RenderChunk.Dispose();
                 }
                 _cache.Clear();
             }

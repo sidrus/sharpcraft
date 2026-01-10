@@ -24,6 +24,7 @@ public class GraphicsSettingsHud : Hud
 
     public float FogNearFactor = 0.3f;
     public float FogFarFactor = 0.95f;
+    public int RenderDistance = 8;
 
     public event Action? OnVisibilityChanged;
 
@@ -55,6 +56,7 @@ public class GraphicsSettingsHud : Hud
 
             Gui.Panel("Atmospherics", () =>
             {
+                ImGui.SliderInt("Render Distance", ref RenderDistance, 2, 32);
                 ImGui.SliderFloat("Fog Near Offset", ref FogNearFactor, 0.0f, 1.0f);
                 ImGui.SliderFloat("Fog Far Offset", ref FogFarFactor, 0.1f, 2.0f);
             });

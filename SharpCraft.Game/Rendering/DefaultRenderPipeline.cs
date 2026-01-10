@@ -13,12 +13,14 @@ public class DefaultRenderPipeline : IRenderPipeline
     private World? _world;
     private RenderContext? _context;
 
-    public DefaultRenderPipeline(GL gl)
+    public DefaultRenderPipeline(GL gl, World world)
     {
         _gl = gl;
+        _world = world;
         _cache = new ChunkRenderCache(gl);
-        _terrainRenderer = new TerrainRenderer(gl, _cache);
-        _waterRenderer = new WaterRenderer(gl, _cache);
+        var meshManager = new ChunkMeshManager(world);
+        _terrainRenderer = new TerrainRenderer(gl, _cache, meshManager);
+        _waterRenderer = new WaterRenderer(gl, _cache, meshManager);
     }
 
     public void OnRender(double deltaTime)

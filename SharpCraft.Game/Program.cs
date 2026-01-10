@@ -41,7 +41,7 @@ catch (Exception e)
 // --- 3. World Generation ---
 logger.LogInformation("Generating world...");
 var world = new World(seed: 42);
-world.Generate(8);
+await world.GenerateAsync(8, System.Numerics.Vector3.Zero);
 logger.LogInformation("World generation complete");
 
 // --- 4. Window & Game Initialization ---
