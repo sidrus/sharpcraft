@@ -1,11 +1,15 @@
 ﻿using System.Numerics;
 using ImGuiNET;
+using SharpCraft.Core;
+using SharpCraft.Game.Controllers;
 using SharpCraft.Game.UI.Components;
 
 namespace SharpCraft.Game.UI.Settings;
 
-public class GraphicsSettingsHud
+public class GraphicsSettingsHud : Hud
 {
+    public override string Name => "GraphicsSettingsHud";
+
     public bool IsVisible { get; set; }
 
     public bool UseNormalMap = true;
@@ -22,7 +26,7 @@ public class GraphicsSettingsHud
 
     public event Action? OnVisibilityChanged;
 
-    public void Draw()
+    public override void Draw(double deltaTime, World world, LocalPlayerController? player)
     {
         if (!IsVisible) return;
 

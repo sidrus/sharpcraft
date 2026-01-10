@@ -10,9 +10,11 @@ using Silk.NET.Windowing;
 
 namespace SharpCraft.Game.UI.Debug;
 
-public class DebugHud
+public class DebugHud : Hud
 {
-    public void Draw(double deltaTime, World world, LocalPlayerController? player)
+    public override string Name => "DebugHud";
+
+    public override void Draw(double deltaTime, World world, LocalPlayerController? player)
     {
         ImGui.GetIO().FontGlobalScale = 2f;
         ImGui.SetNextWindowPos(new Vector2(10, 10));

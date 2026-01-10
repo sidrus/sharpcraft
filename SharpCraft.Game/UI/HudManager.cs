@@ -1,6 +1,7 @@
 ﻿using SharpCraft.Core;
 using SharpCraft.Game.Controllers;
 using SharpCraft.Game.UI.Debug;
+using SharpCraft.Game.UI.Main;
 using SharpCraft.Game.UI.Settings;
 using Silk.NET.Input;
 using Silk.NET.OpenGL;
@@ -12,31 +13,38 @@ namespace SharpCraft.Game.UI;
 public class HudManager : IDisposable
 {
     private readonly ImGuiController _controller;
-    private readonly DebugHud _debugHud;
-    private readonly GraphicsSettingsHud _graphicsSettingsHud;
     private readonly IInputContext _input;
     private bool _disposed;
+    private readonly Dictionary<string, IHud> _huds = [];
 
-    public GraphicsSettingsHud Settings => _graphicsSettingsHud;
-    public DebugHud Debug => _debugHud;
+    public GraphicsSettingsHud? Settings => GetHud<GraphicsSettingsHud>();
+    public DebugHud? Debug => GetHud<DebugHud>();
 
     public HudManager(GL gl, IWindow window, IInputContext input)
     {
         _input = input;
         _controller = new ImGuiController(gl, window, input);
-        _debugHud = new DebugHud();
-        _graphicsSettingsHud = new GraphicsSettingsHud();
-        _graphicsSettingsHud.OnVisibilityChanged += UpdateCursorMode;
 
+        RegisterHud(new DebugHud());
+        RegisterHud(new MainHud());
+
+        var graphicsSettingsHud = new GraphicsSettingsHud();
+        graphicsSettingsHud.OnVisibilityChanged += UpdateCursorMode;
+        RegisterHud(graphicsSettingsHud);
 
         input.Keyboards[0].KeyUp += OnKeyUp;
+    }
+
+    private void RegisterHud(Hud hud)
+    {
+        _huds[hud.Name] = hud;
     }
 
     private void OnKeyUp(IKeyboard keyboard, Key key, int scancode)
     {
         if (key == Key.F3)
         {
-            _graphicsSettingsHud.IsVisible = !_graphicsSettingsHud.IsVisible;
+            Settings?.IsVisible = !Settings.IsVisible;
             UpdateCursorMode();
         }
 
@@ -51,7 +59,7 @@ public class HudManager : IDisposable
         var mouse = _input.Mice[0];
 
         // If menu is open, always show cursor. Otherwise toggle based on Raw mode.
-        if (_graphicsSettingsHud.IsVisible)
+        if (Settings?.IsVisible ?? false)
         {
             mouse.Cursor.CursorMode = CursorMode.Normal;
         }
@@ -66,6 +74,10 @@ public class HudManager : IDisposable
     // usually via an event or by the game checking the manager state.
     public event Action? OnCursorModeChanged;
 
+    private T? GetHud<T>() where T : class, IHud => _huds.Values
+        .OfType<T>()
+        .FirstOrDefault();
+
     public void Update(double deltaTime)
     {
         _controller.Update((float)deltaTime);
@@ -73,8 +85,10 @@ public class HudManager : IDisposable
 
     public void Render(float deltaTime, World world, LocalPlayerController? player)
     {
-        _debugHud.Draw(deltaTime, world, player);
-        _graphicsSettingsHud.Draw();
+        foreach (var hud in _huds)
+        {
+            hud.Value.Draw(deltaTime, world, player);
+        }
         _controller.Render();
     }
 
