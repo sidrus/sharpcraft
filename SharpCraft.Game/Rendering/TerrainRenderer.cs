@@ -80,15 +80,16 @@ public class TerrainRenderer(GL gl, ChunkRenderCache cache, ChunkMeshManager mes
 
         foreach (var chunk in world.GetLoadedChunks())
         {
-            if (!_frustum.IsBoxInFrustum(chunk.WorldPosition, chunk.WorldPosition + new Vector3(16, 256, 16)))
+            var chunkPos = chunk.WorldPosition;
+            if (!_frustum.IsBoxInFrustum(chunkPos, chunkPos + new Vector3(16, 256, 16)))
                 continue;
 
             var renderChunk = cache.Get(chunk);
             if (chunk.IsDirty) { meshManager.Enqueue(chunk); }
 
-            var model = Matrix4x4.CreateTranslation(chunk.WorldPosition);
+            var model = Matrix4x4.CreateTranslation(chunkPos);
             _shader.SetUniform("model", model);
-            _shader.SetUniform("mvp", Matrix4x4.CreateTranslation(chunk.WorldPosition) * context.ViewProjection);
+            _shader.SetUniform("mvp", model * context.ViewProjection);
             renderChunk.BindAndDrawOpaque();
         }
     }

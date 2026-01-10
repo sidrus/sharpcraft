@@ -25,7 +25,7 @@ public class ChunkRenderCache(GL gl) : IDisposable
         return entry.RenderChunk;
     }
 
-    public void Update(Chunk[] activeChunks)
+    public void Update(IEnumerable<Chunk> activeChunks)
     {
         _currentGeneration++;
         

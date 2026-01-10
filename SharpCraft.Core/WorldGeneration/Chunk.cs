@@ -46,12 +46,14 @@ public class Chunk(Vector2<int> coord)
     {
         if (!IsDirty) return;
 
-        var opaqueVerts = new List<float>();
-        var opaqueIndices = new List<uint>();
+        // Pre-allocate some capacity to reduce reallocations.
+        // Average chunk might have ~2000-4000 vertices? Let's start with a reasonable guess.
+        var opaqueVerts = new List<float>(4096);
+        var opaqueIndices = new List<uint>(1024);
         uint opaqueIndexOffset = 0;
 
-        var transparentVerts = new List<float>();
-        var transparentIndices = new List<uint>();
+        var transparentVerts = new List<float>(1024);
+        var transparentIndices = new List<uint>(256);
         uint transparentIndexOffset = 0;
 
         for (var x = 0; x < Size; x++)
@@ -68,25 +70,23 @@ public class Chunk(Vector2<int> coord)
                     var iList = isTransparent ? transparentIndices : opaqueIndices;
                     ref var offset = ref (isTransparent ? ref transparentIndexOffset : ref opaqueIndexOffset);
 
-                    var blockPos = new Vector3(x, y, z);
-
                     if (ShouldRenderFace(world, x, y, z - 1, isTransparent)) // North (-Z)
-                        AddFace(vList, iList, ref offset, blockPos, Direction.North, block.Type);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.North, block.Type);
 
                     if (ShouldRenderFace(world, x, y, z + 1, isTransparent)) // South (+Z)
-                        AddFace(vList, iList, ref offset, blockPos, Direction.South, block.Type);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.South, block.Type);
 
                     if (ShouldRenderFace(world, x + 1, y, z, isTransparent)) // East (+X)
-                        AddFace(vList, iList, ref offset, blockPos, Direction.East, block.Type);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.East, block.Type);
 
                     if (ShouldRenderFace(world, x - 1, y, z, isTransparent)) // West (-X)
-                        AddFace(vList, iList, ref offset, blockPos, Direction.West, block.Type);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.West, block.Type);
 
                     if (ShouldRenderFace(world, x, y + 1, z, isTransparent)) // Up (+Y)
-                        AddFace(vList, iList, ref offset, blockPos, Direction.Up, block.Type);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.Up, block.Type);
 
                     if (ShouldRenderFace(world, x, y - 1, z, isTransparent)) // Down (-Y)
-                        AddFace(vList, iList, ref offset, blockPos, Direction.Down, block.Type);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.Down, block.Type);
                 }
             }
         }
@@ -132,25 +132,8 @@ public class Chunk(Vector2<int> coord)
     }
 
     private static void AddFace(List<float> vertices, List<uint> indices, ref uint offset,
-        Vector3 pos, Direction dir, BlockType type)
+        int x, int y, int z, Direction dir, BlockType type)
     {
-        var faceVerts = GetFaceVertices(pos, dir);
-        var uvs = GetTextureCoords(type, dir);
-        var normals = GetNormal(dir);
-
-        // Interleave: position(3) + uv(2) + normal(3)
-        for (var i = 0; i < 4; i++)
-        {
-            vertices.Add(faceVerts[i * 3]); // x
-            vertices.Add(faceVerts[i * 3 + 1]); // y
-            vertices.Add(faceVerts[i * 3 + 2]); // z
-            vertices.Add(uvs[i * 2]); // u
-            vertices.Add(uvs[i * 2 + 1]); // v
-            vertices.Add(normals[0]); // nx
-            vertices.Add(normals[1]); // ny
-            vertices.Add(normals[2]); // nz
-        }
-
         // Two triangles per face
         indices.Add(offset);
         indices.Add(offset + 1);
@@ -161,74 +144,51 @@ public class Chunk(Vector2<int> coord)
         indices.Add(offset + 3);
 
         offset += 4;
-    }
 
-    private static float[] GetFaceVertices(Vector3 pos, Direction dir)
-    {
-        float x = pos.X, y = pos.Y, z = pos.Z;
-
-        return dir switch
+        // Position data
+        float fx = x, fy = y, fz = z;
+        Span<float> faceVerts = stackalloc float[12];
+        switch (dir)
         {
-            // Up: +Y face
-            Direction.Up =>
-            [
-                x, y + 1, z,
-                x, y + 1, z + 1,
-                x + 1, y + 1, z + 1,
-                x + 1, y + 1, z
-            ],
+            case Direction.Up:
+                faceVerts[0] = fx; faceVerts[1] = fy + 1; faceVerts[2] = fz;
+                faceVerts[3] = fx; faceVerts[4] = fy + 1; faceVerts[5] = fz + 1;
+                faceVerts[6] = fx + 1; faceVerts[7] = fy + 1; faceVerts[8] = fz + 1;
+                faceVerts[9] = fx + 1; faceVerts[10] = fy + 1; faceVerts[11] = fz;
+                break;
+            case Direction.Down:
+                faceVerts[0] = fx; faceVerts[1] = fy; faceVerts[2] = fz;
+                faceVerts[3] = fx + 1; faceVerts[4] = fy; faceVerts[5] = fz;
+                faceVerts[6] = fx + 1; faceVerts[7] = fy; faceVerts[8] = fz + 1;
+                faceVerts[9] = fx; faceVerts[10] = fy; faceVerts[11] = fz + 1;
+                break;
+            case Direction.North:
+                faceVerts[0] = fx + 1; faceVerts[1] = fy; faceVerts[2] = fz;
+                faceVerts[3] = fx; faceVerts[4] = fy; faceVerts[5] = fz;
+                faceVerts[6] = fx; faceVerts[7] = fy + 1; faceVerts[8] = fz;
+                faceVerts[9] = fx + 1; faceVerts[10] = fy + 1; faceVerts[11] = fz;
+                break;
+            case Direction.South:
+                faceVerts[0] = fx; faceVerts[1] = fy; faceVerts[2] = fz + 1;
+                faceVerts[3] = fx + 1; faceVerts[4] = fy; faceVerts[5] = fz + 1;
+                faceVerts[6] = fx + 1; faceVerts[7] = fy + 1; faceVerts[8] = fz + 1;
+                faceVerts[9] = fx; faceVerts[10] = fy + 1; faceVerts[11] = fz + 1;
+                break;
+            case Direction.East:
+                faceVerts[0] = fx + 1; faceVerts[1] = fy; faceVerts[2] = fz + 1;
+                faceVerts[3] = fx + 1; faceVerts[4] = fy; faceVerts[5] = fz;
+                faceVerts[6] = fx + 1; faceVerts[7] = fy + 1; faceVerts[8] = fz;
+                faceVerts[9] = fx + 1; faceVerts[10] = fy + 1; faceVerts[11] = fz + 1;
+                break;
+            case Direction.West:
+                faceVerts[0] = fx; faceVerts[1] = fy; faceVerts[2] = fz;
+                faceVerts[3] = fx; faceVerts[4] = fy; faceVerts[5] = fz + 1;
+                faceVerts[6] = fx; faceVerts[7] = fy + 1; faceVerts[8] = fz + 1;
+                faceVerts[9] = fx; faceVerts[10] = fy + 1; faceVerts[11] = fz;
+                break;
+        }
 
-            // Down: -Y face
-            Direction.Down =>
-            [
-                x, y, z,
-                x + 1, y, z,
-                x + 1, y, z + 1,
-                x, y, z + 1
-            ],
-
-            // North: -Z face
-            Direction.North =>
-            [
-                x + 1, y, z,
-                x, y, z,
-                x, y + 1, z,
-                x + 1, y + 1, z
-            ],
-
-            // South: +Z face
-            Direction.South =>
-            [
-                x, y, z + 1,
-                x + 1, y, z + 1,
-                x + 1, y + 1, z + 1,
-                x, y + 1, z + 1
-            ],
-
-            // East: +X face
-            Direction.East =>
-            [
-                x + 1, y, z + 1,
-                x + 1, y, z,
-                x + 1, y + 1, z,
-                x + 1, y + 1, z + 1
-            ],
-
-            // West: -X face
-            Direction.West =>
-            [
-                x, y, z,
-                x, y, z + 1,
-                x, y + 1, z + 1,
-                x, y + 1, z
-            ],
-            _ => new float[12]
-        };
-    }
-
-    private static float[] GetTextureCoords(BlockType type, Direction dir)
-    {
-        // Define tile indices (row * 16 + col)
+        // Texture data
         var tileIndex = type switch
         {
             BlockType.Grass => dir switch
@@ -236,8 +196,7 @@ public class Chunk(Vector2<int> coord)
                 Direction.Up => 0,
                 Direction.Down => 2,
                 _ => 3
-            }, // Top, Bottom, Side
-
+            },
             BlockType.Dirt => 2,
             BlockType.Stone => 1,
             BlockType.Sand => 18,
@@ -246,36 +205,39 @@ public class Chunk(Vector2<int> coord)
             _ => 0
         };
 
-        const float atlasSize = 16f; // 16x16 tiles
+        const float atlasSize = 16f;
         const float tileSize = 1f / atlasSize;
+        var tx = (tileIndex % 16) * tileSize;
+        var ty = (tileIndex / 16) * tileSize;
 
-        var x = tileIndex % 16;
-        var y = tileIndex / 16;
+        Span<float> uvs = stackalloc float[8];
+        uvs[0] = tx; uvs[1] = ty + tileSize;
+        uvs[2] = tx + tileSize; uvs[3] = ty + tileSize;
+        uvs[4] = tx + tileSize; uvs[5] = ty;
+        uvs[6] = tx; uvs[7] = ty;
 
-        var u = x * tileSize;
-        var v = y * tileSize;
-
-        // Return 4 pairs of UVs for the face corners
-        return
-        [
-            u, v + tileSize, // Bottom Left
-            u + tileSize, v + tileSize, // Bottom Right
-            u + tileSize, v, // Top Right
-            u, v // Top Left
-        ];
-    }
-
-    private static float[] GetNormal(Direction dir)
-    {
-        return dir switch
+        // Normals
+        float nx = 0, ny = 0, nz = 0;
+        switch (dir)
         {
-            Direction.Up => [0f, 1f, 0f],
-            Direction.Down => [0f, -1f, 0f],
-            Direction.North => [0f, 0f, -1f],
-            Direction.South => [0f, 0f, 1f],
-            Direction.East => [1f, 0f, 0f],
-            Direction.West => [-1f, 0f, 0f],
-            _ => [0f, 0f, 0f]
-        };
+            case Direction.Up: ny = 1f; break;
+            case Direction.Down: ny = -1f; break;
+            case Direction.North: nz = -1f; break;
+            case Direction.South: nz = 1f; break;
+            case Direction.East: nx = 1f; break;
+            case Direction.West: nx = -1f; break;
+        }
+
+        for (var i = 0; i < 4; i++)
+        {
+            vertices.Add(faceVerts[i * 3]);
+            vertices.Add(faceVerts[i * 3 + 1]);
+            vertices.Add(faceVerts[i * 3 + 2]);
+            vertices.Add(uvs[i * 2]);
+            vertices.Add(uvs[i * 2 + 1]);
+            vertices.Add(nx);
+            vertices.Add(ny);
+            vertices.Add(nz);
+        }
     }
 }

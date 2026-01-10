@@ -41,7 +41,7 @@ catch (Exception e)
 // --- 3. World Generation ---
 logger.LogInformation("Generating world...");
 var world = new World(seed: 42);
-await world.GenerateAsync(8, System.Numerics.Vector3.Zero);
+await world.GenerateAsync(32, System.Numerics.Vector3.Zero);
 logger.LogInformation("World generation complete");
 
 // --- 4. Window & Game Initialization ---
@@ -65,4 +65,4 @@ game.Run();
 // --- 6. Cleanup ---
 logger.LogInformation("Shutting down...");
 SteamClient.Shutdown();
-logger.LogInformation("Shutdown complete.");
+logger.LogInformation("Shutdown complete");

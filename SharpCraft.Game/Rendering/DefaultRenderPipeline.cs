@@ -38,7 +38,9 @@ public class DefaultRenderPipeline : IRenderPipeline
     public void Execute(World world, RenderContext context)
     {
         // 1. Update the cache once for the entire frame
-        var activeChunks = world.GetLoadedChunks().ToArray();
+        // Use a more allocation-friendly way to iterate if possible, 
+        // but for now let's at least avoid ToArray() if Update can take IEnumerable
+        var activeChunks = world.GetLoadedChunks();
         _cache.Update(activeChunks);
 
         // 2. Opaque Pass
