@@ -22,7 +22,11 @@ public class WaterRenderer(GL gl, ChunkRenderCache cache) : IRenderer
         _shader.SetUniform("fogColor", context.FogColor);
         _shader.SetUniform("fogNear", context.FogNear);
         _shader.SetUniform("fogFar", context.FogFar);
-        _shader.SetUniform("lightDir", Vector3.Normalize(new Vector3(0.5f, 1.0f, 0.3f)));
+
+        _shader.SetUniform("dirLight.direction", Vector3.Normalize(new Vector3(0.5f, -1.0f, 0.3f)));
+        _shader.SetUniform("dirLight.color", Vector3.One);
+        _shader.SetUniform("exposure", 1.0f);
+        _shader.SetUniform("gamma", 2.2f);
 
         foreach (var chunk in world.GetLoadedChunks())
         {
