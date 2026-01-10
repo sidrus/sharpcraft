@@ -5,6 +5,8 @@ namespace SharpCraft.Core.Physics;
 public sealed class PhysicsEntity(Transform transform, IPhysicsSystem physics)
 {
     private Transform _transform = transform;
+    private Vector3 _prevPosition = transform.Position;
+    private Quaternion _prevRotation = transform.Rotation;
 
     public Quaternion Rotation
     {
@@ -17,6 +19,8 @@ public sealed class PhysicsEntity(Transform transform, IPhysicsSystem physics)
     public Vector3 Size = new Vector3(0.6f, 1.8f, 0.6f) * transform.Scale;
 
     public Vector3 Position => _transform.Position;
+    public Vector3 PreviousPosition => _prevPosition;
+    public Quaternion PreviousRotation => _prevRotation;
 
     public bool IsGrounded { get; private set; }
 
@@ -26,6 +30,9 @@ public sealed class PhysicsEntity(Transform transform, IPhysicsSystem physics)
 
     public void Update(float deltaTime)
     {
+        _prevPosition = _transform.Position;
+        _prevRotation = _transform.Rotation;
+
         var oldX = _transform.Position.X;
         var oldY = _transform.Position.Y;
         var oldZ = _transform.Position.Z;

@@ -17,7 +17,6 @@ public partial class HudManager : ILifecycle, IDisposable
     private readonly GL _gl;
     private readonly IWindow _window;
     private readonly IInputContext _input;
-    private readonly ILogger<HudManager> _logger;
     private bool _disposed;
     private readonly Dictionary<string, IHud> _huds = [];
 
@@ -29,7 +28,6 @@ public partial class HudManager : ILifecycle, IDisposable
         _gl = gl;
         _window = window;
         _input = input;
-        _logger = logger;
         _controller = new ImGuiController(gl, window, input);
         input.Keyboards[0].KeyUp += OnKeyUp;
 
@@ -109,7 +107,6 @@ public partial class HudManager : ILifecycle, IDisposable
             {
                 _window.FramesPerSecond = 0;
                 _window.UpdatesPerSecond = 0;
-                LogFpsUpsUncapped();
             }
         }
 
@@ -175,10 +172,4 @@ public partial class HudManager : ILifecycle, IDisposable
             _disposed = true;
         }
     }
-
-    [LoggerMessage(LogLevel.Debug, "VSync changed to: {vSync}")]
-    private partial void LogVsyncChanged(bool vSync);
-
-    [LoggerMessage(LogLevel.Debug, "FPS/UPS uncapped (set to 0)")]
-    private partial void LogFpsUpsUncapped();
 }

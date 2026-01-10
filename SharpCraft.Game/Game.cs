@@ -34,6 +34,9 @@ public partial class Game : IDisposable
     private bool _useAoMap = true;
     private bool _useSpecularMap = true;
 
+    private const double FixedDeltaTime = 1.0 / 60.0;
+    private double _accumulator;
+
     public Game(IWindow window, World world, ILoggerFactory loggerFactory)
     {
         _world = world;
@@ -87,9 +90,16 @@ public partial class Game : IDisposable
     {
         SteamClient.RunCallbacks();
 
-        if (_input?.Mouse.Cursor.CursorMode == CursorMode.Raw)
+        _accumulator += deltaTime;
+
+        while (_accumulator >= FixedDeltaTime)
         {
-            _playerController?.Update((float)deltaTime, _input.Keyboard);
+            if (_input?.Mouse.Cursor.CursorMode == CursorMode.Raw)
+            {
+                _playerController?.Update((float)FixedDeltaTime, _input.Keyboard);
+            }
+
+            _accumulator -= FixedDeltaTime;
         }
 
         _hudManager?.OnUpdate(deltaTime);
@@ -103,6 +113,8 @@ public partial class Game : IDisposable
             return;
         }
 
+        var alpha = (float)(_accumulator / FixedDeltaTime);
+
         _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
         var lights = _lightSystem.GetActivePointLights()
@@ -111,9 +123,9 @@ public partial class Game : IDisposable
 
         var viewDistance = _world.Size * _world.ChunkSize;
         var context = new RenderContext(
-            View: _camera.GetViewMatrix(),
+            View: _camera.GetViewMatrix(alpha),
             Projection: _camera.GetProjectionMatrix((float)_window.Size.X / _window.Size.Y),
-            CameraPosition: _camera.Position,
+            CameraPosition: (_camera as FirstPersonCamera)?.GetInterpolatedPosition(alpha) ?? _camera.Position,
             FogColor: new Vector3(0.53f, 0.81f, 0.92f),
             FogNear: viewDistance * _hudManager.Settings.FogNearFactor,
             FogFar: viewDistance * _hudManager.Settings.FogFarFactor,
@@ -222,7 +234,7 @@ public partial class Game : IDisposable
 
     public void Run() => _window?.Run();
 
-    public void Exit() => _window?.Close();
+    private void Exit() => _window?.Close();
 
     public void Dispose()
     {
