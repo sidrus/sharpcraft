@@ -14,7 +14,7 @@ public class GraphicsSettingsHud
     public float AoMapStrength = 0.5f;
     public bool UseSpecularMap = true;
     public float SpecularMapStrength = 0.5f;
-    public float Gamma = 2.2f;
+    public float Gamma = 1.6f;
     public float Exposure = 1.0f;
 
     public float FogNearFactor = 0.3f;
