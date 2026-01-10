@@ -36,7 +36,6 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
         _keyboard = keyboard;
         if (keyboard is null) return;
 
-        var dt = deltaTime;
         var pos = entity.Position;
 
         // 1. SENSE: Detect surroundings
@@ -108,19 +107,19 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
         // Dolphin-launch prevention: apply extra drag at the surface
         if (IsSwimming && entity.Velocity.Y > 1.5f && !IsUnderwater)
         {
-            entity.Velocity.Y = MathUtils.Lerp(entity.Velocity.Y, 1.5f, dt * 10.0f);
+            entity.Velocity.Y = MathUtils.Lerp(entity.Velocity.Y, 1.5f, deltaTime * 10.0f);
         }
 
         // friction application
-        var deltaFriction = 1.0f - MathF.Pow(1.0f - Friction, dt * 60.0f);
+        var deltaFriction = 1.0f - MathF.Pow(1.0f - Friction, deltaTime * 60.0f);
         entity.Velocity.X = MathUtils.Lerp(entity.Velocity.X, moveDir.X * currentWalkSpeed, deltaFriction);
         entity.Velocity.Z = MathUtils.Lerp(entity.Velocity.Z, moveDir.Z * currentWalkSpeed, deltaFriction);
 
         // Apply gravity and clamp to terminal velocity
-        entity.Velocity.Y += gravity * dt;
+        entity.Velocity.Y += gravity * deltaTime;
         if (entity.Velocity.Y < terminalVelocity) entity.Velocity.Y = terminalVelocity;
 
-        entity.Update(dt);
+        entity.Update(deltaTime);
     }
 
     public void ResetMouse()
