@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 using SharpCraft.Core;
+using SharpCraft.Core.Numerics;
 using SharpCraft.Game.Controllers;
 using SharpCraft.Game.UI.Components;
 using Silk.NET.Input;
@@ -30,11 +31,16 @@ public class DebugHud : Hud
         {
             Gui.Panel("Player", () => {
                 var pos = player.Entity.Position;
-                Gui.Property("Position", $"{pos.X:F1}, {pos.Y:F1}, {pos.Z:F1}");
 
-                Gui.Property("Is Swimming", $"[{player.IsSwimming}]", color: new Vector4(0, 0.5f, 1, 1));
+                Gui.Property("Position", $"{pos.X:F1}, {pos.Y:F1}, {pos.Z:F1}");
+                Gui.Property("Facing", $"{player.Heading} ({player.NormalizedYaw:F1})");
+                Gui.Property("Pitch", $"{player.Pitch:F1}");
+
+                Gui.Property("Is Grounded", $"[{player.IsGrounded}]", color: new Vector4(0, 0.5f, 1, 1));
+                Gui.Property("Is Flying", $"[{player.IsFlying}]", color: new Vector4(0, 0.5f, 1, 1));
 
                 var underwater = player.IsUnderwater ? "[Underwater]" : string.Empty;
+                Gui.Property("Is Swimming", $"[{player.IsSwimming}]", color: new Vector4(0, 0.5f, 1, 1));
                 Gui.Label($"{underwater}", visible: player.IsUnderwater, color: new Vector4(1, 0.5f, 0.5f, 1));
             });
 

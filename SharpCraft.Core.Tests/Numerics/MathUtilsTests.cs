@@ -81,4 +81,24 @@ public class MathUtilsTests
 
         result.Should().Be(expected);
     }
+
+    [Theory]
+    [InlineData(0, "North")]
+    [InlineData(-45, "North-East")]
+    [InlineData(-90, "East")]
+    [InlineData(-135, "South-East")]
+    [InlineData(-180, "South")]
+    [InlineData(-225, "South-West")]
+    [InlineData(-270, "West")]
+    [InlineData(-315, "North-West")]
+    [InlineData(-360, "North")]
+    [InlineData(90, "West")]
+    [InlineData(180, "South")]
+    [InlineData(270, "East")]
+    [InlineData(45, "North-West")]
+    public void GetHeading_ShouldReturnCorrectDirection(float yaw, string expected)
+    {
+        var result = MathUtils.GetHeading(yaw);
+        result.Should().Be(expected);
+    }
 }

@@ -42,4 +42,26 @@ public static class MathUtils
     /// <param name="t">The interpolation factor [0, 1].</param>
     /// <returns>The interpolated value.</returns>
     public static float Lerp(float a, float b, float t) => a + (b - a) * t;
+
+    /// <summary>
+    /// Converts a yaw angle in degrees to a cardinal or intercardinal direction.
+    /// </summary>
+    /// <param name="yaw">The yaw angle in degrees (0 = North, 90 = West).</param>
+    /// <returns>A string representing the heading.</returns>
+    public static string GetHeading(float yaw)
+    {
+        var heading = (-yaw % 360 + 360) % 360;
+        return heading switch
+        {
+            >= 337.5f or < 22.5f => "North",
+            >= 22.5f and < 67.5f => "North-East",
+            >= 67.5f and < 112.5f => "East",
+            >= 112.5f and < 157.5f => "South-East",
+            >= 157.5f and < 202.5f => "South",
+            >= 202.5f and < 247.5f => "South-West",
+            >= 247.5f and < 292.5f => "West",
+            >= 292.5f and < 337.5f => "North-West",
+            _ => "North"
+        };
+    }
 }

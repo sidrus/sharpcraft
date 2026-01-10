@@ -19,6 +19,27 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     public bool IsSwimming { get; private set; }
     public bool IsUnderwater { get; private set; }
     public bool IsFlying { get; set; }
+    public bool IsGrounded => entity.IsGrounded;
+
+    /// <summary>
+    /// Gets the current yaw angle in degrees.
+    /// </summary>
+    public float Yaw => _yaw;
+
+    /// <summary>
+    /// Gets the current pitch angle in degrees.
+    /// </summary>
+    public float Pitch => camera is FirstPersonCamera fpc ? fpc.Pitch : 0;
+
+    /// <summary>
+    /// Gets the yaw angle normalized to [0, 360) degrees.
+    /// </summary>
+    public float NormalizedYaw => (_yaw % 360 + 360) % 360;
+
+    /// <summary>
+    /// Gets the compass heading based on the current yaw.
+    /// </summary>
+    public string Heading => MathUtils.GetHeading(_yaw);
 
     private Vector2 _lastMousePos;
     private bool _firstMouseMove = true;
@@ -65,7 +86,18 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
         var currentWalkSpeed = IsFlying ? WalkSpeed * 2.5f : WalkSpeed;
 
         var canJump = entity.IsGrounded && BlockBelow.IsSolid;
-        Friction = (canJump || IsFlying) ? (IsFlying ? 0.15f : BlockBelow.Friction) : 0.05f;
+        if (IsFlying)
+        {
+            Friction = 0.15f;
+        }
+        else if (canJump)
+        {
+            Friction = BlockBelow.Friction;
+        }
+        else
+        {
+            Friction = 0.05f;
+        }
 
         if (!IsFlying && (IsSwimming || isOnWaterSurface))
         {
