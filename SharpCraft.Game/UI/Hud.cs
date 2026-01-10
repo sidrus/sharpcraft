@@ -10,6 +10,6 @@ public abstract class Hud : IHud
     public virtual void OnUpdate(double deltaTime)
     {
     }
-
-    public abstract void Draw(double deltaTime, World world, LocalPlayerController? player);
+    
+    public abstract void Draw(double deltaTime, HudContext context);
 }

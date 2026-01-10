@@ -168,7 +168,7 @@ public partial class Game : IDisposable
         );
 
         _renderPipeline.Execute(_world, context);
-        _hudManager.Render((float)deltaTime, _world, _playerController);
+        _hudManager.Render((float)deltaTime, _world, _playerController, _renderPipeline.MeshManager, _lightSystem);
     }
 
     private void InitializeGraphicsState()

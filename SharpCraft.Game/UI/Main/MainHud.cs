@@ -17,7 +17,7 @@ public partial class MainHud(IWindow window, GL gl) : Hud, IDisposable
 
     public async Task LoadSteamAvatar() => await _avatarLoader.LoadSteamAvatar();
 
-    public override void Draw(double deltaTime, World world, LocalPlayerController? player)
+    public override void Draw(double deltaTime, HudContext context)
     {
         var viewport = ImGui.GetMainViewport();
         var center = viewport.GetCenter();

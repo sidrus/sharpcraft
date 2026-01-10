@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using SharpCraft.Core;
 using SharpCraft.Game.Controllers;
+using SharpCraft.Game.Rendering;
+using SharpCraft.Game.Rendering.Lighting;
 using SharpCraft.Game.UI.Debug;
 using SharpCraft.Game.UI.Main;
 using SharpCraft.Game.UI.Settings;
@@ -73,13 +75,10 @@ public partial class HudManager : ILifecycle, IDisposable
             UpdateCursorMode();
         }
 
-        if (key == Key.F4)
+        if (key == Key.F4 && Developer != null)
         {
-            if (Developer != null)
-            {
-                Developer.IsVisible = !Developer.IsVisible;
-                UpdateCursorMode();
-            }
+            Developer.IsVisible = !Developer.IsVisible;
+            UpdateCursorMode();
         }
 
         if (key == Key.AltLeft)
@@ -134,27 +133,32 @@ public partial class HudManager : ILifecycle, IDisposable
 
     private World? _world;
     private LocalPlayerController? _player;
+    private ChunkMeshManager? _meshManager;
+    private LightingSystem? _lighting;
 
-    public void SetContext(World world, LocalPlayerController? player)
+    public void SetContext(World world, LocalPlayerController? player, ChunkMeshManager? meshManager, LightingSystem? lighting)
     {
         _world = world;
         _player = player;
+        _meshManager = meshManager;
+        _lighting = lighting;
     }
 
     public void OnRender(double deltaTime)
     {
         if (_world == null) return;
 
+        var context = new HudContext(_world, _player, _meshManager, _lighting);
         foreach (var hud in _huds)
         {
-            hud.Value.Draw(deltaTime, _world, _player);
+            hud.Value.Draw(deltaTime, context);
         }
         _controller.Render();
     }
 
-    public void Render(float deltaTime, World world, LocalPlayerController? player)
+    public void Render(float deltaTime, World world, LocalPlayerController? player, ChunkMeshManager? meshManager, LightingSystem? lighting)
     {
-        SetContext(world, player);
+        SetContext(world, player, meshManager, lighting);
         OnRender(deltaTime);
     }
 

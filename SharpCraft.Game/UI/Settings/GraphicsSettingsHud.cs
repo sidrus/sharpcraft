@@ -28,7 +28,7 @@ public class GraphicsSettingsHud : Hud
 
     public event Action? OnVisibilityChanged;
 
-    public override void Draw(double deltaTime, World world, LocalPlayerController? player)
+    public override void Draw(double deltaTime, HudContext context)
     {
         if (!IsVisible) return;
 

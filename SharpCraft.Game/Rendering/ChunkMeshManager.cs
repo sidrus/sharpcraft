@@ -10,6 +10,9 @@ public class ChunkMeshManager(World world)
     private readonly ConcurrentDictionary<Chunk, bool> _processingChunks = new();
     private readonly ConcurrentQueue<Chunk> _completedChunks = new();
 
+    public int DirtyChunksCount => _dirtyChunks.Count;
+    public int ProcessingChunksCount => _processingChunks.Count;
+
     public void Enqueue(Chunk chunk)
     {
         if (_processingChunks.TryAdd(chunk, true))

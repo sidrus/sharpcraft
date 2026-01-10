@@ -6,5 +6,5 @@ namespace SharpCraft.Game.UI;
 public interface IHud : ILifecycle
 {
     public string Name { get; }
-    public void Draw(double deltaTime, World world, LocalPlayerController? player);
+    public void Draw(double deltaTime, HudContext context);
 }

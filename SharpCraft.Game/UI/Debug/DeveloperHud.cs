@@ -12,9 +12,11 @@ public class DeveloperHud : Hud
     public bool IsVisible { get; set; }
     public event Action? OnVisibilityChanged;
 
-    public override void Draw(double deltaTime, World world, LocalPlayerController? player)
+    public override void Draw(double deltaTime, HudContext context)
     {
         if (!IsVisible) return;
+
+        var player = context.Player;
 
         ImGui.SetNextWindowPos(new Vector2(10, 300), ImGuiCond.FirstUseEver);
         ImGui.SetNextWindowSize(new Vector2(250, 150), ImGuiCond.FirstUseEver);

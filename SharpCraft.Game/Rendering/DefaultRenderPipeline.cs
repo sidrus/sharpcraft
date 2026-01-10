@@ -9,6 +9,7 @@ public class DefaultRenderPipeline : IRenderPipeline
     private readonly TerrainRenderer _terrainRenderer;
     private readonly WaterRenderer _waterRenderer;
     private readonly ChunkRenderCache _cache;
+    public ChunkMeshManager MeshManager { get; }
 
     private World? _world;
     private RenderContext? _context;
@@ -18,9 +19,9 @@ public class DefaultRenderPipeline : IRenderPipeline
         _gl = gl;
         _world = world;
         _cache = new ChunkRenderCache(gl);
-        var meshManager = new ChunkMeshManager(world);
-        _terrainRenderer = new TerrainRenderer(gl, _cache, meshManager);
-        _waterRenderer = new WaterRenderer(gl, _cache, meshManager);
+        MeshManager = new ChunkMeshManager(world);
+        _terrainRenderer = new TerrainRenderer(gl, _cache, MeshManager);
+        _waterRenderer = new WaterRenderer(gl, _cache, MeshManager);
     }
 
     public void OnRender(double deltaTime)
