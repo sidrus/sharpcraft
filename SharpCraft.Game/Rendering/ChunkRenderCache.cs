@@ -7,7 +7,7 @@ public class ChunkRenderCache(GL gl) : IDisposable
 {
     private int _currentGeneration;
     private readonly Dictionary<Chunk, (RenderableChunk RenderChunk, int Generation)> _cache = new();
-    private readonly List<Chunk> _toRemove = new();
+    private readonly List<Chunk> _toRemove = [];
 
     public RenderableChunk Get(Chunk chunk)
     {

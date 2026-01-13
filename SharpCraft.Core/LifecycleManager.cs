@@ -7,9 +7,9 @@ namespace SharpCraft.Core;
 /// </summary>
 public class LifecycleManager
 {
-    private readonly List<ILifecycle> _objects = new();
-    private readonly List<ILifecycle> _toAdd = new();
-    private readonly List<ILifecycle> _toRemove = new();
+    private readonly List<ILifecycle> _objects = [];
+    private readonly List<ILifecycle> _toAdd = [];
+    private readonly List<ILifecycle> _toRemove = [];
     private bool _isIterating;
 
     /// <summary>

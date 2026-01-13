@@ -2,4 +2,7 @@
   <Project Path="SharpCraft.Core.Tests/SharpCraft.Core.Tests.csproj" />
   <Project Path="SharpCraft.Core/SharpCraft.Core.csproj" />
   <Project Path="SharpCraft.Game/SharpCraft.Game.csproj" />
+  <Project Path="SharpCraft.Sdk/SharpCraft.Sdk.csproj" />
+  <Project Path="SharpCraft.Sdk.Runtime/SharpCraft.Sdk.Runtime.csproj" />
+  <Project Path="SharpCraft.Sdk.Tests/SharpCraft.Sdk.Tests.csproj" />
 </Solution>

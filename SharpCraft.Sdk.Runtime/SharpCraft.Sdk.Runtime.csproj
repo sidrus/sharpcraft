@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.12.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SharpCraft.Core\SharpCraft.Core.csproj" />
+      <ProjectReference Include="..\SharpCraft.Sdk\SharpCraft.Sdk.csproj" />
+    </ItemGroup>
+
+</Project>

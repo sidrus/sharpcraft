@@ -12,9 +12,11 @@ using Silk.NET.OpenGL;
 using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.Windowing;
 
+using SharpCraft.Sdk.UI;
+
 namespace SharpCraft.Game.UI;
 
-public partial class HudManager : ILifecycle, IDisposable
+public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
 {
     private ImGuiController _controller;
     private readonly GL _gl;
@@ -68,9 +70,29 @@ public partial class HudManager : ILifecycle, IDisposable
         RegisterHud(developerHud);
     }
 
-    private void RegisterHud(Hud hud)
+    public void RegisterHud(string name, Action<double> drawAction)
+    {
+        AddHud(new SdkHud(name, drawAction));
+    }
+
+    private sealed class SdkHud(string name, Action<double> drawAction) : Hud
+    {
+        public override string Name { get; } = name;
+
+        public override void Draw(double deltaTime, HudContext context)
+        {
+            drawAction(deltaTime);
+        }
+    }
+
+    private void AddHud(Hud hud)
     {
         _huds[hud.Name] = hud;
+    }
+
+    private void RegisterHud(Hud hud)
+    {
+        AddHud(hud);
     }
 
     private void OnKeyUp(IKeyboard keyboard, Key key, int scancode)
