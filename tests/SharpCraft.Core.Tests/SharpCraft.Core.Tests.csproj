@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SharpCraft.Core\SharpCraft.Core.csproj" />
+    <ProjectReference Include="..\..\src\SharpCraft.Core\SharpCraft.Core.csproj" />
   </ItemGroup>
 
 </Project>
