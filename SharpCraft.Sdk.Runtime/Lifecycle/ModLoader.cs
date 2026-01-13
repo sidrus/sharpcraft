@@ -17,7 +17,7 @@ public class ModLoader(ILogger<ModLoader> logger)
     {
         if (!Directory.Exists(modsDirectory))
         {
-            logger.LogWarning("Mods directory {Directory} does not exist.", modsDirectory);
+            logger.LogWarning("Mods directory {Directory} does not exist", modsDirectory);
             return;
         }
 
