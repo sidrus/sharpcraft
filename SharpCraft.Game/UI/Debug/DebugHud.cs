@@ -23,17 +23,17 @@ public class DebugHud : Hud
 
     public override void Draw(double deltaTime, HudContext context)
     {
-        if (context.MeshManager != null && context.Lighting != null)
+        if (context is { MeshManager: not null, Lighting: not null })
         {
             _diagnostics.Update(deltaTime, context.World, context.MeshManager, context.Lighting);
         }
 
-        ImGui.GetIO().FontGlobalScale = 1.2f;
         ImGui.SetNextWindowPos(new Vector2(10, 10), ImGuiCond.FirstUseEver);
         ImGui.SetNextWindowSize(new Vector2(400, 600), ImGuiCond.FirstUseEver);
         
         if (ImGui.Begin("Diagnostics HUD", ImGuiWindowFlags.None))
         {
+            ImGui.SetWindowFontScale(1.2f);
             DrawTimeRangeSelector();
             
             if (ImGui.BeginTabBar("DiagnosticsTabs"))

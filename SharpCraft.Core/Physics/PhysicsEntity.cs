@@ -36,6 +36,17 @@ public sealed class PhysicsEntity(Transform transform, IPhysicsSystem physics)
     public Vector3 Position => _transform.Position;
 
     /// <summary>
+    /// Sets the position of the entity.
+    /// </summary>
+    /// <param name="position">The new position.</param>
+    public void SetPosition(Vector3 position)
+    {
+        _transform.Position = position;
+        _prevPosition = position;
+        Velocity = Vector3.Zero;
+    }
+
+    /// <summary>
     /// Gets the position from the previous update.
     /// </summary>
     public Vector3 PreviousPosition => _prevPosition;

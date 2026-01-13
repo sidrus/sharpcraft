@@ -6,6 +6,7 @@ using SharpCraft.Game.Rendering.Lighting;
 using SharpCraft.Game.UI.Debug;
 using SharpCraft.Game.UI.Main;
 using SharpCraft.Game.UI.Settings;
+using SharpCraft.Game.UI.Chat;
 using Silk.NET.Input;
 using Silk.NET.OpenGL;
 using Silk.NET.OpenGL.Extensions.ImGui;
@@ -25,6 +26,7 @@ public partial class HudManager : ILifecycle, IDisposable
     public GraphicsSettingsHud? Settings => GetHud<GraphicsSettingsHud>();
     public DebugHud? Debug => GetHud<DebugHud>();
     public DeveloperHud? Developer => GetHud<DeveloperHud>();
+    public ChatHud? Chat => GetHud<ChatHud>();
 
     public HudManager(GL gl, IWindow window, IInputContext input, ILogger<HudManager> logger)
     {
@@ -48,6 +50,10 @@ public partial class HudManager : ILifecycle, IDisposable
     public async Task InitializeAsync()
     {
         RegisterHud(new DebugHud());
+
+        var chatHud = new ChatHud();
+        chatHud.OnVisibilityChanged += UpdateCursorMode;
+        RegisterHud(chatHud);
 
         var mainHud = new MainHud(_window, _gl);
         await mainHud.LoadSteamAvatar();
@@ -81,6 +87,21 @@ public partial class HudManager : ILifecycle, IDisposable
             UpdateCursorMode();
         }
 
+        if (Chat is { IsTyping: false })
+        {
+            switch (key)
+            {
+                case Key.Enter:
+                    Chat.StartTyping();
+                    UpdateCursorMode();
+                    break;
+                case Key.Slash:
+                    Chat.StartTyping("/");
+                    UpdateCursorMode();
+                    break;
+            }
+        }
+
         if (key == Key.AltLeft)
         {
             UpdateCursorMode();
@@ -92,7 +113,10 @@ public partial class HudManager : ILifecycle, IDisposable
         var mouse = _input.Mice[0];
 
         // If menu is open, always show cursor. Otherwise toggle based on Raw mode.
-        var isAnyMenuVisible = (Settings?.IsVisible ?? false) || (Developer?.IsVisible ?? false);
+        var isAnyMenuVisible = (Settings?.IsVisible ?? false) || 
+                             (Developer?.IsVisible ?? false) ||
+                             (Chat?.IsTyping ?? false);
+        
         if (isAnyMenuVisible)
         {
             mouse.Cursor.CursorMode = CursorMode.Normal;
