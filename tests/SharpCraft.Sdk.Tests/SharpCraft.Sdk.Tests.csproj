@@ -26,9 +26,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\SharpCraft.Sdk.Runtime\SharpCraft.Sdk.Runtime.csproj" />
+      <ProjectReference Include="..\..\src\SharpCraft.Engine\SharpCraft.Engine.csproj" />
       <ProjectReference Include="..\..\src\SharpCraft.Sdk\SharpCraft.Sdk.csproj" />
-      <ProjectReference Include="..\..\src\SharpCraft.Game\SharpCraft.Game.csproj" />
+      <ProjectReference Include="..\..\src\SharpCraft.Client\SharpCraft.Client.csproj" />
     </ItemGroup>
 
 </Project>

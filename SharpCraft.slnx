@@ -1,8 +1,8 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/SharpCraft.Client/SharpCraft.Client.csproj" />
     <Project Path="src/SharpCraft.Core/SharpCraft.Core.csproj" />
-    <Project Path="src/SharpCraft.Game/SharpCraft.Game.csproj" />
-    <Project Path="src/SharpCraft.Sdk.Runtime/SharpCraft.Sdk.Runtime.csproj" />
+    <Project Path="src/SharpCraft.Engine/SharpCraft.Engine.csproj" />
     <Project Path="src/SharpCraft.Sdk/SharpCraft.Sdk.csproj" />
   </Folder>
   <Folder Name="/tests/">

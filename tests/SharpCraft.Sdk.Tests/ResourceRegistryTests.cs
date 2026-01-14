@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
 using SharpCraft.Sdk.Resources;
-using SharpCraft.Sdk.Runtime.Resources;
+using SharpCraft.Engine.Resources;
 using Xunit;
 
 namespace SharpCraft.Sdk.Tests;

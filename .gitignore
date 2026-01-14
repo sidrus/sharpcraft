@@ -5,6 +5,7 @@ riderModule.iml
 /_ReSharper.Caches/
 
 .idea
+.aiassistant
 
 SteamSdk/
 .output.txt
