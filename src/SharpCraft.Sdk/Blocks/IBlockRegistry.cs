@@ -1,6 +1,4 @@
-﻿using SharpCraft.Sdk.Blocks;
-
-namespace SharpCraft.Sdk.Blocks;
+﻿namespace SharpCraft.Sdk.Blocks;
 
 /// <summary>
 /// Registry for block definitions.

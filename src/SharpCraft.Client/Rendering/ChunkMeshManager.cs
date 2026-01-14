@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using SharpCraft.Core;
-using SharpCraft.Core.WorldGeneration;
+using SharpCraft.Engine.World;
 
 namespace SharpCraft.Client.Rendering;
 

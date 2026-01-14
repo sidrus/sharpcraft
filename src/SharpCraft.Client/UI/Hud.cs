@@ -1,7 +1,4 @@
-﻿using SharpCraft.Core;
-using SharpCraft.Client.Controllers;
-
-namespace SharpCraft.Client.UI;
+﻿namespace SharpCraft.Client.UI;
 
 public abstract class Hud : IHud
 {

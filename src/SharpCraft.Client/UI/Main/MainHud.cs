@@ -1,12 +1,8 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 using SharpCraft.Client.Integrations.Steam;
-using SharpCraft.Core;
-using SharpCraft.Client.Controllers;
-using SharpCraft.Client.UI.Components;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
-using Steamworks;
 
 namespace SharpCraft.Client.UI.Main;
 

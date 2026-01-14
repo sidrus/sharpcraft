@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace SharpCraft.Client.UI.Debug.Diagnostics;
+﻿namespace SharpCraft.Client.UI.Debug.Diagnostics;
 
 public class Metric(string name, int maxSamples)
 {

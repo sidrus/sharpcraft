@@ -1,8 +1,6 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 using SharpCraft.Client.UI.Components;
-using SharpCraft.Core;
-using SharpCraft.Client.Controllers;
 
 namespace SharpCraft.Client.UI.Debug;
 

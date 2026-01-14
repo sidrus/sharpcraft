@@ -1,10 +1,10 @@
 ﻿using System.Numerics;
 using SharpCraft.Client.Rendering.Cameras;
-using SharpCraft.Core;
-using SharpCraft.Core.Blocks;
-using SharpCraft.Core.Numerics;
-using SharpCraft.Core.Physics;
-using SharpCraft.Client.Rendering;
+using SharpCraft.Sdk.Lifecycle;
+using SharpCraft.Engine.World;
+using SharpCraft.Engine.Blocks;
+using SharpCraft.Sdk.Numerics;
+using SharpCraft.Engine.Physics;
 using Silk.NET.Input;
 
 namespace SharpCraft.Client.Controllers;

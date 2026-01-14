@@ -1,5 +1,4 @@
-﻿using SharpCraft.Core;
-using SharpCraft.Client.Controllers;
+﻿using SharpCraft.Sdk.Lifecycle;
 
 namespace SharpCraft.Client.UI;
 

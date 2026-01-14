@@ -1,7 +1,6 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 using SharpCraft.Client.Controllers;
-using SharpCraft.Core;
 
 namespace SharpCraft.Client.UI.Chat;
 

@@ -1,7 +1,7 @@
 ﻿
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
-using SharpCraft.Core;
+using SharpCraft.Engine.World;
 using SharpCraft.Client;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;

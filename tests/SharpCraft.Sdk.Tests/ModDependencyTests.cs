@@ -2,7 +2,6 @@
 using SharpCraft.Sdk.Lifecycle;
 using SharpCraft.Engine.Lifecycle;
 using Xunit;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SharpCraft.Sdk.Tests;
 

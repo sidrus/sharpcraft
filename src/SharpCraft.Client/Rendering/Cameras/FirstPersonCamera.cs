@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using SharpCraft.Core.Physics;
+using SharpCraft.Engine.Physics;
 
 namespace SharpCraft.Client.Rendering.Cameras;
 

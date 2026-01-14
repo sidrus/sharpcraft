@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using SharpCraft.Sdk.Resources;
 using SharpCraft.Engine.Resources;
 using Xunit;
 

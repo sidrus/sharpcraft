@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using SharpCraft.Sdk.Blocks;
-using SharpCraft.Sdk.Messaging;
 using SharpCraft.Engine;
 using SharpCraft.Engine.Blocks;
 using SharpCraft.Engine.Messaging;

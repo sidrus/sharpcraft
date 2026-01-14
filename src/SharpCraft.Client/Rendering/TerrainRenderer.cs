@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using SharpCraft.Client.Rendering.Shaders;
 using SharpCraft.Client.Rendering.Textures;
-using SharpCraft.Core;
+using SharpCraft.Engine.World;
 using Silk.NET.OpenGL;
 
 namespace SharpCraft.Client.Rendering;

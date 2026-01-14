@@ -1,10 +1,9 @@
 ﻿using FluentAssertions;
-using SharpCraft.Core.Blocks;
-using SharpCraft.Core.WorldGeneration;
+using SharpCraft.Engine.Blocks;
 using SharpCraft.Engine.World;
+using SharpCraft.Sdk.Numerics;
 using SharpCraft.Sdk.World;
 using Xunit;
-using SharpCraft.Core.Numerics;
 
 namespace SharpCraft.Sdk.Tests;
 
@@ -56,5 +55,55 @@ public class WorldGenerationTests
         registry.Register("test:flat", generator);
 
         registry.Get("test:flat").Should().Be(generator);
+    }
+
+    [Fact]
+    public void WorldGenerationRegistry_TryGet_ShouldReturnTrueIfFound()
+    {
+        var registry = new WorldGenerationRegistry();
+        var generator = new FlatWorldGenerator();
+        registry.Register("test:flat", generator);
+
+        var result = registry.TryGet("test:flat", out var found);
+
+        result.Should().BeTrue();
+        found.Should().Be(generator);
+    }
+
+    [Fact]
+    public void WorldGenerationRegistry_TryGet_ShouldReturnFalseIfNotFound()
+    {
+        var registry = new WorldGenerationRegistry();
+
+        var result = registry.TryGet("test:nonexistent", out var found);
+
+        result.Should().BeFalse();
+        found.Should().BeNull();
+    }
+
+    [Fact]
+    public void WorldGenerationRegistry_All_ShouldReturnAllRegisteredGenerators()
+    {
+        var registry = new WorldGenerationRegistry();
+        var generator1 = new FlatWorldGenerator();
+        var generator2 = new FlatWorldGenerator();
+        registry.Register("test:1", generator1);
+        registry.Register("test:2", generator2);
+
+        registry.All.Should().HaveCount(2);
+        registry.All.Should().Contain(new KeyValuePair<string, SharpCraft.Sdk.World.IWorldGenerator>("test:1", generator1));
+        registry.All.Should().Contain(new KeyValuePair<string, SharpCraft.Sdk.World.IWorldGenerator>("test:2", generator2));
+    }
+
+    [Fact]
+    public void WorldGenerationRegistry_RegisterDuplicate_ShouldThrow()
+    {
+        var registry = new WorldGenerationRegistry();
+        var generator = new FlatWorldGenerator();
+        registry.Register("test:flat", generator);
+
+        var act = () => registry.Register("test:flat", generator);
+
+        act.Should().Throw<ArgumentException>().WithMessage("*already registered*");
     }
 }

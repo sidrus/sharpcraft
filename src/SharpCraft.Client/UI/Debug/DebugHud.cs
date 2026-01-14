@@ -3,12 +3,6 @@ using ImGuiNET;
 using SharpCraft.Client.Controllers;
 using SharpCraft.Client.UI.Components;
 using SharpCraft.Client.UI.Debug.Diagnostics;
-using SharpCraft.Core;
-using SharpCraft.Core.Numerics;
-using Silk.NET.Input;
-using Silk.NET.OpenGL;
-using Silk.NET.OpenGL.Extensions.ImGui;
-using Silk.NET.Windowing;
 
 namespace SharpCraft.Client.UI.Debug;
 

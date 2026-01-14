@@ -1,5 +1,4 @@
-﻿using SharpCraft.Core.Blocks;
-using SharpCraft.Core.WorldGeneration;
+﻿using SharpCraft.Engine.Blocks;
 using SharpCraft.Sdk.World;
 
 namespace SharpCraft.Engine.World;

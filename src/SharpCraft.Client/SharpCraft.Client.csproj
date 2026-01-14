@@ -12,7 +12,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SharpCraft.Core\SharpCraft.Core.csproj" />
       <ProjectReference Include="..\SharpCraft.Sdk\SharpCraft.Sdk.csproj" />
       <ProjectReference Include="..\SharpCraft.Engine\SharpCraft.Engine.csproj" />
     </ItemGroup>

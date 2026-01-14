@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using SharpCraft.Core;
+using SharpCraft.Sdk.Lifecycle;
 using Silk.NET.Input;
 
 namespace SharpCraft.Client.Input;

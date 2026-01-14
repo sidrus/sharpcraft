@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace SharpCraft.Core;
+﻿namespace SharpCraft.Core;
 
 /// <summary>
 /// Manages the lifecycle of multiple objects, handling registration, updates, and destruction.

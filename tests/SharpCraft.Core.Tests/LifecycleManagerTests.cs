@@ -1,6 +1,4 @@
-﻿using SharpCraft.Core;
-using AwesomeAssertions;
-using Bogus;
+﻿using AwesomeAssertions;
 
 namespace SharpCraft.Core.Tests;
 
