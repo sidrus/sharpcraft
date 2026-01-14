@@ -18,6 +18,21 @@ public record struct AABB(Vector3 min, Vector3 max)
     public Vector3 Max => max;
 
     /// <summary>
+    /// Gets the center of the bounding box.
+    /// </summary>
+    public Vector3 Center => (Min + Max) * 0.5f;
+
+    /// <summary>
+    /// Gets the size of the bounding box.
+    /// </summary>
+    public Vector3 Size => Max - Min;
+
+    /// <summary>
+    /// Gets the half-extents of the bounding box.
+    /// </summary>
+    public Vector3 Extents => Size * 0.5f;
+
+    /// <summary>
     /// Checks if this AABB intersects with another AABB.
     /// </summary>
     /// <param name="other">The other bounding box.</param>

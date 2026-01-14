@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="AwesomeAssertions" Version="9.3.0" />
     <PackageReference Include="Bogus" Version="35.6.5" />
+    <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
@@ -21,7 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SharpCraft.Core\SharpCraft.Core.csproj" />
+    <ProjectReference Include="..\..\src\SharpCraft.Client\SharpCraft.Client.csproj" />
+    <ProjectReference Include="..\..\src\SharpCraft.Engine\SharpCraft.Engine.csproj" />
+    <ProjectReference Include="..\..\src\SharpCraft.Sdk\SharpCraft.Sdk.csproj" />
   </ItemGroup>
 
 </Project>

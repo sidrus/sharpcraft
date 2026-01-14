@@ -25,7 +25,7 @@ public class ResourceRegistryTests
         var registry = new ResourceRegistry<TestResource>();
         var resource = new TestResource();
 
-        Action act = () => registry.Register("test", resource);
+        var act = () => registry.Register("test", resource);
 
         act.Should().Throw<ArgumentException>().WithMessage("*namespace*");
     }
@@ -36,7 +36,7 @@ public class ResourceRegistryTests
         var registry = new ResourceRegistry<TestResource>();
         var resource = new TestResource();
 
-        Action act = () => registry.Register("mod:test:extra", resource);
+        var act = () => registry.Register("mod:test:extra", resource);
 
         act.Should().Throw<ArgumentException>();
     }

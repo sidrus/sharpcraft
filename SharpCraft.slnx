@@ -1,14 +1,13 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/SharpCraft.Client/SharpCraft.Client.csproj" />
-    <Project Path="src/SharpCraft.Core/SharpCraft.Core.csproj" />
     <Project Path="src/SharpCraft.Engine/SharpCraft.Engine.csproj" />
     <Project Path="src/SharpCraft.Sdk/SharpCraft.Sdk.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/SharpCraft.Core.Tests/SharpCraft.Core.Tests.csproj" />
     <Project Path="tests/SharpCraft.Engine.Tests/SharpCraft.Engine.Tests.csproj" />
     <Project Path="tests/SharpCraft.Sdk.Tests/SharpCraft.Sdk.Tests.csproj" />
+    <Project Path="tests/SharpCraft.Client.Tests/SharpCraft.Client.Tests.csproj" />
   </Folder>
   <Folder Name="/docs/">
     <File Path="docs/README.md" />

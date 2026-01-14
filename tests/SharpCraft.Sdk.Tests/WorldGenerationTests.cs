@@ -13,12 +13,12 @@ public class WorldGenerationTests
     {
         public void GenerateChunk(IChunkData chunk, long seed)
         {
-            for (int x = 0; x < 16; x++)
+            for (var x = 0; x < 16; x++)
             {
-                for (int z = 0; z < 16; z++)
+                for (var z = 0; z < 16; z++)
                 {
                     chunk.SetBlock(x, 0, z, "sharpcraft:bedrock");
-                    for (int y = 1; y < 4; y++)
+                    for (var y = 1; y < 4; y++)
                     {
                         chunk.SetBlock(x, y, z, "sharpcraft:stone");
                     }

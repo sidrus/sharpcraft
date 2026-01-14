@@ -5,6 +5,7 @@ using SharpCraft.Engine.World;
 using SharpCraft.Engine.Blocks;
 using SharpCraft.Sdk.Numerics;
 using SharpCraft.Engine.Physics;
+using SharpCraft.Sdk.Physics;
 using Silk.NET.Input;
 
 namespace SharpCraft.Client.Controllers;
@@ -18,6 +19,8 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     public Block BlockAbove { get; private set; }
     public bool IsSwimming { get; private set; }
     public bool IsUnderwater { get; private set; }
+    public bool IsOnWaterSurface { get; private set; }
+    public float SubmersionDepth { get; private set; }
     public bool IsFlying { get; set; }
     public bool IsGrounded => entity.IsGrounded;
 
@@ -58,56 +61,109 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
         _keyboard = keyboard;
         if (keyboard is null) return;
 
-        var pos = entity.Position;
+        SenseSurroundings();
 
-        // 1. SENSE: Detect surroundings
+        var (gravity, terminalVelocity, walkSpeed, canJump) = CalculatePhysicsState();
+        var moveDir = GetMovementDirection(keyboard);
+
+        HandleJumpAndVerticalMovement(keyboard, deltaTime, walkSpeed, canJump);
+        ApplyMovement(moveDir, walkSpeed, gravity, terminalVelocity, deltaTime);
+    }
+
+    private void SenseSurroundings()
+    {
+        var pos = entity.Position;
+        var footY = (int)Math.Floor(pos.Y - 0.1f);
+
+        // Small offset below feet
         BlockBelow = world.GetBlock(
             (int)Math.Floor(pos.X),
-            (int)Math.Floor(pos.Y - 0.1f), // Small offset below feet
+            footY,
             (int)Math.Floor(pos.Z));
 
+        // Head level
         BlockAbove = world.GetBlock(
             (int)Math.Floor(pos.X),
-            (int)Math.Floor(pos.Y + entity.Size.Y - 0.2f), // Head level
+            (int)Math.Floor(pos.Y + entity.Size.Y - 0.2f),
             (int)Math.Floor(pos.Z));
 
-        var blockAtWaist = world.GetBlock(
+        var blockAtMid = world.GetBlock(
             (int)Math.Floor(pos.X),
-            (int)Math.Floor(pos.Y + entity.Size.Y * 0.5f),
+            (int)Math.Floor(pos.Y + 0.5f),
             (int)Math.Floor(pos.Z));
 
         IsUnderwater = BlockAbove.Type == BlockType.Water;
-        IsSwimming = IsUnderwater || blockAtWaist.Type == BlockType.Water;
-        var isOnWaterSurface = BlockBelow.Type == BlockType.Water && !IsSwimming;
+        IsSwimming = IsUnderwater || blockAtMid.Type == BlockType.Water;
+        IsOnWaterSurface = BlockBelow.Type == BlockType.Water && !IsSwimming;
 
-        // 2. DECIDE: Determine physics constants based on state
-        var gravity = IsFlying ? 0f : -9.81f;
-        var terminalVelocity = IsFlying ? -100f : -50f;
-        var currentWalkSpeed = IsFlying ? WalkSpeed * 2.5f : WalkSpeed;
+        // Calculate SubmersionDepth (how deep the feet are into water)
+        // Water surface is at floor(Y) + 1.0 if the block at floor(Y) is water.
+        // If we are at Y=63.5 and Y=63 is water, depth = 64.0 - 63.5 = 0.5
+        var currentBlockY = (int)Math.Floor(pos.Y);
+        var blockAtFeet = world.GetBlock((int)Math.Floor(pos.X), currentBlockY, (int)Math.Floor(pos.Z));
 
-        var canJump = entity.IsGrounded && BlockBelow.IsSolid;
-        if (IsFlying)
+        if (blockAtFeet.Type == BlockType.Water)
         {
-            Friction = 0.15f;
+            SubmersionDepth = (currentBlockY + 1) - pos.Y;
         }
-        else if (canJump)
+        else if (world.GetBlock((int)Math.Floor(pos.X), currentBlockY - 1, (int)Math.Floor(pos.Z)).Type == BlockType.Water)
         {
-            Friction = BlockBelow.Friction;
+            // If feet are just above water (e.g. at 64.04), depth is negative
+            SubmersionDepth = currentBlockY - pos.Y;
         }
         else
         {
-            Friction = 0.05f;
+            SubmersionDepth = 0;
         }
+    }
 
-        if (!IsFlying && (IsSwimming || isOnWaterSurface))
+    private (float gravity, float terminalVelocity, float walkSpeed, bool canJump) CalculatePhysicsState()
+    {
+        var canJump = entity.IsGrounded && BlockBelow.IsSolid;
+
+        var gravity = PhysicsConstants.DefaultGravity;
+        var density = PhysicsConstants.AirDensity;
+        var walkSpeed = WalkSpeed;
+        var friction = canJump ? BlockBelow.Friction : PhysicsConstants.AirFriction;
+
+        if (IsFlying)
         {
-            gravity = -2.0f;          // Buoyancy
-            terminalVelocity = -2.0f; // Sinking cap
-            currentWalkSpeed *= 0.5f; // Water resistance
-            Friction = 0.15f;         // Fluid drag
+            gravity = 0f;
+            density = IsSwimming || IsOnWaterSurface ? PhysicsConstants.WaterDensity : PhysicsConstants.AirDensity;
+            walkSpeed = WalkSpeed * 2.5f;
+            friction = PhysicsConstants.FlyingFriction;
+        }
+        else if (IsSwimming)
+        {
+            gravity = PhysicsConstants.WaterGravity;
+            density = PhysicsConstants.WaterDensity;
+            walkSpeed = WalkSpeed * 0.5f;
+            friction = PhysicsConstants.WaterFriction;
+        }
+        else if (IsOnWaterSurface)
+        {
+            gravity = PhysicsConstants.DefaultGravity;
+            density = PhysicsConstants.AirDensity;
+            walkSpeed = WalkSpeed * 0.8f;
+            friction = PhysicsConstants.WaterFriction;
         }
 
-        // 3. INPUT: Process movement and vertical forces
+        Friction = friction;
+
+        var terminalVelocity = IsFlying
+            ? -100f
+            : -PhysicsConstants.CalculateTerminalVelocity(
+                PhysicsConstants.DefaultMass,
+                gravity,
+                density,
+                PhysicsConstants.DefaultDragCoefficient,
+                PhysicsConstants.DefaultCrossSectionalArea);
+
+        return (gravity, terminalVelocity, walkSpeed, canJump);
+    }
+
+    private Vector3 GetMovementDirection(IKeyboard keyboard)
+    {
         var moveDir = Vector3.Zero;
         if (keyboard.IsKeyPressed(Key.W)) moveDir += entity.Forward;
         if (keyboard.IsKeyPressed(Key.S)) moveDir -= entity.Forward;
@@ -117,48 +173,61 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
         if (!IsFlying)
             moveDir.Y = 0;
 
-        if (moveDir.LengthSquared() > 0) moveDir = Vector3.Normalize(moveDir);
+        if (moveDir.LengthSquared() > 0)
+            moveDir = Vector3.Normalize(moveDir);
 
+        return moveDir;
+    }
+
+    private void HandleJumpAndVerticalMovement(IKeyboard keyboard, float deltaTime, float walkSpeed, bool canJump)
+    {
         if (IsFlying)
         {
-            if (keyboard.IsKeyPressed(Key.Space)) entity.Velocity.Y = MathUtils.Lerp(entity.Velocity.Y, currentWalkSpeed, deltaTime * 10f);
-            else if (keyboard.IsKeyPressed(Key.ShiftLeft)) entity.Velocity.Y = MathUtils.Lerp(entity.Velocity.Y, -currentWalkSpeed, deltaTime * 10f);
-            else entity.Velocity.Y = MathUtils.Lerp(entity.Velocity.Y, 0, deltaTime * 10f);
+            if (keyboard.IsKeyPressed(Key.Space))
+                entity.Velocity.Y = MathUtils.Lerp(entity.Velocity.Y, walkSpeed, deltaTime * 10f);
+            else if (keyboard.IsKeyPressed(Key.ShiftLeft))
+                entity.Velocity.Y = MathUtils.Lerp(entity.Velocity.Y, -walkSpeed, deltaTime * 10f);
+            else
+                entity.Velocity.Y = MathUtils.Lerp(entity.Velocity.Y, 0, deltaTime * 10f);
         }
         else if (keyboard.IsKeyPressed(Key.Space))
         {
             if (IsSwimming)
             {
-                // Swim up: Max prevents stacking with existing upward momentum
-                entity.Velocity.Y = Math.Max(entity.Velocity.Y, 3.0f);
-            }
-            else if (isOnWaterSurface)
-            {
-                // On surface but not swimming: maybe a small paddle? 
-                // Let's allow it but not as strong as a jump
-                entity.Velocity.Y = Math.Max(entity.Velocity.Y, 1.5f);
+                // Provide a baseline upward movement when swimming
+                entity.Velocity.Y = Math.Max(entity.Velocity.Y, 2.0f);
+
+                // If deep enough, allow a stronger "kick" (jump)
+                // This allows gaining momentum to potentially leave the water
+                if (SubmersionDepth > 0.8f)
+                {
+                    entity.Velocity.Y = Math.Max(entity.Velocity.Y, 4.0f);
+                }
             }
             else if (canJump)
             {
                 entity.Velocity.Y = 5.0f; // Normal Jump
             }
         }
+    }
 
-        // 4. ACT: Apply calculated forces
+    private void ApplyMovement(Vector3 moveDir, float walkSpeed, float gravity, float terminalVelocity, float deltaTime)
+    {
         // Dolphin-launch prevention: apply extra drag at the surface
-        if (IsSwimming && entity.Velocity.Y > 1.5f && !IsUnderwater)
+        if (IsSwimming && entity.Velocity.Y > 3.5f && !IsUnderwater)
         {
-            entity.Velocity.Y = MathUtils.Lerp(entity.Velocity.Y, 1.5f, deltaTime * 10.0f);
+            entity.Velocity.Y = MathUtils.Lerp(entity.Velocity.Y, 3.5f, deltaTime * 10.0f);
         }
 
         // friction application
         var deltaFriction = 1.0f - MathF.Pow(1.0f - Friction, deltaTime * 60.0f);
-        entity.Velocity.X = MathUtils.Lerp(entity.Velocity.X, moveDir.X * currentWalkSpeed, deltaFriction);
-        entity.Velocity.Z = MathUtils.Lerp(entity.Velocity.Z, moveDir.Z * currentWalkSpeed, deltaFriction);
+        entity.Velocity.X = MathUtils.Lerp(entity.Velocity.X, moveDir.X * walkSpeed, deltaFriction);
+        entity.Velocity.Z = MathUtils.Lerp(entity.Velocity.Z, moveDir.Z * walkSpeed, deltaFriction);
 
         // Apply gravity and clamp to terminal velocity
         entity.Velocity.Y += gravity * deltaTime;
-        if (entity.Velocity.Y < terminalVelocity) entity.Velocity.Y = terminalVelocity;
+        if (entity.Velocity.Y < terminalVelocity)
+            entity.Velocity.Y = terminalVelocity;
 
         entity.Update(deltaTime);
     }
