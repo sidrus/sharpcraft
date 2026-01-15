@@ -2,6 +2,7 @@ using SharpCraft.CoreMods.Blocks;
 using SharpCraft.Sdk;
 using SharpCraft.Sdk.Assets;
 using SharpCraft.Sdk.Lifecycle;
+using SharpCraft.Sdk.Rendering;
 using SharpCraft.Sdk.Resources;
 
 namespace SharpCraft.CoreMods;
@@ -60,12 +61,13 @@ public class CoreMod(ISharpCraftSdk sdk) : IMod
     private void LoadTextures()
     {
         var assetsDir = Path.Combine(BaseDirectory, "Assets", "Textures");
-        var terrainPath = Path.Combine(assetsDir, "terrain.png");
-        var normalPath = Path.Combine(assetsDir, "normals.png");
-        var aoPath = Path.Combine(assetsDir, "ao.png");
-        var specularPath = string.Empty;
-        var metallicPath = Path.Combine(assetsDir, "metallic.png");
-        var roughnessPath = Path.Combine(assetsDir, "roughness.png");
+        var material = new Material(Path.Combine(assetsDir, "terrain.png"))
+        {
+            NormalPath = Path.Combine(assetsDir, "normals.png"),
+            AmbientOcclusionPath = Path.Combine(assetsDir, "ao.png"),
+            MetallicPath = Path.Combine(assetsDir, "metallic.png"),
+            RoughnessPath = Path.Combine(assetsDir, "roughness.png")
+        };
 
         var textureMapping = new Dictionary<string, int>
         {
@@ -78,7 +80,7 @@ public class CoreMod(ISharpCraftSdk sdk) : IMod
             { "water", 19 }
         };
 
-        var textureData = TextureLoader.LoadTexturesFromAtlas(terrainPath, textureMapping, normalPath, aoPath, specularPath, metallicPath, roughnessPath);
+        var textureData = TextureLoader.LoadTexturesFromAtlas(material, textureMapping);
 
         foreach (var (name, data) in textureData)
         {

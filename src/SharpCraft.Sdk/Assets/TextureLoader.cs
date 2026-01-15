@@ -1,4 +1,5 @@
-﻿using SharpCraft.Sdk.Resources;
+﻿using SharpCraft.Sdk.Rendering;
+using SharpCraft.Sdk.Resources;
 using StbImageSharp;
 
 namespace SharpCraft.Sdk.Assets;
@@ -11,31 +12,21 @@ public static class TextureLoader
     /// <summary>
     /// Loads textures from an atlas image based on a mapping of names to tile indices.
     /// </summary>
-    /// <param name="albedoPath">Path to the main atlas image.</param>
+    /// <param name="material">The material containing texture paths.</param>
     /// <param name="textureMapping">A dictionary mapping texture names to their index in the atlas.</param>
-    /// <param name="normalPath">Optional path to the normal map atlas.</param>
-    /// <param name="aoPath">Optional path to the ambient occlusion map atlas.</param>
-    /// <param name="specularPath">Optional path to the specular map atlas.</param>
-    /// <param name="metallicPath">Optional path to the metallic map atlas.</param>
-    /// <param name="roughnessPath">Optional path to the roughness map atlas.</param>
     /// <param name="atlasSize">The number of tiles along one side of the atlas (defaults to 16).</param>
     /// <returns>An enumerable of texture names and their corresponding data.</returns>
     public static IEnumerable<(string name, TextureData data)> LoadTexturesFromAtlas(
-        string albedoPath,
+        Material material,
         IReadOnlyDictionary<string, int> textureMapping,
-        string? normalPath = null,
-        string? aoPath = null,
-        string? specularPath = null,
-        string? metallicPath = null,
-        string? roughnessPath = null,
         int atlasSize = 16)
     {
+        var (albedoPath, normalPath, aoPath, metallicPath, roughnessPath) = material;
         if (File.Exists(albedoPath))
         {
             var terrainImg = LoadImage(albedoPath);
             var normalImg = !string.IsNullOrEmpty(normalPath) && File.Exists(normalPath) ? LoadImage(normalPath) : null;
             var aoImg = !string.IsNullOrEmpty(aoPath) && File.Exists(aoPath) ? LoadImage(aoPath) : null;
-            var specularImg = !string.IsNullOrEmpty(specularPath) && File.Exists(specularPath) ? LoadImage(specularPath) : null;
             var metallicImg = !string.IsNullOrEmpty(metallicPath) && File.Exists(metallicPath) ? LoadImage(metallicPath) : null;
             var roughnessImg = !string.IsNullOrEmpty(roughnessPath) && File.Exists(roughnessPath) ? LoadImage(roughnessPath) : null;
 
@@ -50,11 +41,10 @@ public static class TextureLoader
                 var tileData = ExtractTile(terrainImg, tx, ty, tileW, tileH);
                 var normalData = normalImg != null ? ExtractTile(normalImg, tx, ty, tileW, tileH) : null;
                 var aoData = aoImg != null ? ExtractTile(aoImg, tx, ty, tileW, tileH) : null;
-                var specularData = specularImg != null ? ExtractTile(specularImg, tx, ty, tileW, tileH) : null;
                 var metallicData = metallicImg != null ? ExtractTile(metallicImg, tx, ty, tileW, tileH) : null;
                 var roughnessData = roughnessImg != null ? ExtractTile(roughnessImg, tx, ty, tileW, tileH) : null;
 
-                yield return (name, new TextureData(tileW, tileH, tileData, normalData, aoData, specularData, metallicData, roughnessData));
+                yield return (name, new TextureData(tileW, tileH, tileData, normalData, aoData, metallicData, roughnessData));
             }
         }
         else

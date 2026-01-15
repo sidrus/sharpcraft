@@ -1,4 +1,5 @@
 ﻿using SharpCraft.Sdk.Assets;
+using SharpCraft.Sdk.Rendering;
 
 namespace SharpCraft.Sdk.Tests.Assets;
 
@@ -13,9 +14,10 @@ public class TextureLoaderTests
             { "test1", 0 },
             { "test2", 1 }
         };
+        var material = new Material("non_existent.png");
 
         // Act
-        var result = TextureLoader.LoadTexturesFromAtlas("non_existent.png", mapping).ToList();
+        var result = TextureLoader.LoadTexturesFromAtlas(material, mapping).ToList();
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -38,13 +40,14 @@ public class TextureLoaderTests
     {
         // Arrange
         var mapping = new Dictionary<string, int> { { "test", 0 } };
+        var material = new Material("non_existent.png")
+        {
+            MetallicPath = "non_existent_metallic.png",
+            RoughnessPath = "non_existent_roughness.png"
+        };
 
         // Act
-        var result = TextureLoader.LoadTexturesFromAtlas(
-            "non_existent_albedo.png", 
-            mapping, 
-            metallicPath: "non_existent_metallic.png",
-            roughnessPath: "non_existent_roughness.png").ToList();
+        var result = TextureLoader.LoadTexturesFromAtlas(material, mapping).ToList();
 
         // Assert
         Assert.Single(result);
