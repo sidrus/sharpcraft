@@ -6,7 +6,17 @@ namespace SharpCraft.Client.UI.Debug;
 public class DeveloperHud : IHud
 {
     public string Name => "DeveloperHud";
-    public bool IsVisible { get; set; }
+    private bool _isVisible;
+    public bool IsVisible
+    {
+        get => _isVisible;
+        set
+        {
+            if (_isVisible == value) return;
+            _isVisible = value;
+            OnVisibilityChanged?.Invoke();
+        }
+    }
     public event Action? OnVisibilityChanged;
 
     public void Draw(double deltaTime, IGui gui, IHudContext context)
@@ -44,7 +54,6 @@ public class DeveloperHud : IHud
         if (IsVisible != visible)
         {
             IsVisible = visible;
-            OnVisibilityChanged?.Invoke();
         }
     }
 

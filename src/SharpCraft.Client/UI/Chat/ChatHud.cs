@@ -1,9 +1,8 @@
 ﻿using System.Numerics;
 using SharpCraft.Sdk.UI;
+using SharpCraft.Sdk.Messaging;
 
 namespace SharpCraft.Client.UI.Chat;
-
-public record ChatMessage(string Text, Vector4 Color);
 
 public class ChatHud : IHud
 {
@@ -13,6 +12,7 @@ public class ChatHud : IHud
     private bool _isTyping;
     private bool _focusInput;
     private bool _shouldScrollToBottom;
+    private IDisposable? _chatSubscription;
 
     public bool IsTyping
     {
@@ -51,6 +51,8 @@ public class ChatHud : IHud
 
     public void Draw(double deltaTime, IGui gui, IHudContext context)
     {
+        _chatSubscription ??= context.Sdk.Channels.GetChannel("chat").Subscribe<ChatMessage>(msg => AddMessage(msg.Text, msg.Color));
+
         var windowFlags = GuiWindowSettings.NoTitleBar |
                          GuiWindowSettings.NoSavedSettings;
 
@@ -63,7 +65,7 @@ public class ChatHud : IHud
         gui.SetNextWindowPos(new Vector2(10, viewportSize.Y - 220), GuiCond.Always);
         gui.SetNextWindowSize(new Vector2(400, 200), GuiCond.Always);
 
-        bool open = true;
+        var open = true;
         if (gui.Begin("ChatWindow", ref open, windowFlags))
         {
             // Chat History
@@ -96,7 +98,7 @@ public class ChatHud : IHud
 
                 if (gui.InputText("##ChatInput", ref _inputBuffer, 256, GuiInputTextOptions.EnterReturnsTrue))
                 {
-                    ProcessInput(context.Player);
+                    ProcessInput(context);
                 }
 
                 if (gui.IsKeyPressed(GuiKey.Escape))
@@ -109,7 +111,7 @@ public class ChatHud : IHud
         gui.End();
     }
 
-    private void ProcessInput(SharpCraft.Sdk.Universe.IPlayer? player)
+    private void ProcessInput(IHudContext context)
     {
         if (string.IsNullOrWhiteSpace(_inputBuffer))
         {
@@ -120,55 +122,14 @@ public class ChatHud : IHud
         var input = _inputBuffer.Trim();
         AddMessage($"> {input}");
 
-        if (input.StartsWith('/'))
+        if (input.StartsWith('/') && !context.Sdk.Commands.ExecuteCommand(input, context.Player))
         {
-            ExecuteCommand(input[1..], player);
+            var commandName = input.Split(' ', StringSplitOptions.RemoveEmptyEntries)[0].TrimStart('/');
+            AddMessage($"Unknown command: {commandName}", new Vector4(1, 0.3f, 0.3f, 1));
         }
 
         _inputBuffer = string.Empty;
         IsTyping = false;
-    }
-
-    private void ExecuteCommand(string commandLine, SharpCraft.Sdk.Universe.IPlayer? player)
-    {
-        var parts = commandLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length == 0) return;
-
-        var command = parts[0].ToLower();
-        var args = parts[1..];
-
-        switch (command)
-        {
-            case "teleport" or "tp":
-                HandleTeleport(args, player);
-                break;
-            default:
-                AddMessage($"Unknown command: {command}", new Vector4(1, 0.3f, 0.3f, 1));
-                break;
-        }
-    }
-
-    private void HandleTeleport(string[] args, SharpCraft.Sdk.Universe.IPlayer? player)
-    {
-        if (player == null) return;
-
-        if (args.Length != 3)
-        {
-            AddMessage("Usage: /teleport <x> <y> <z>", new Vector4(1, 0.3f, 0.3f, 1));
-            return;
-        }
-
-        if (float.TryParse(args[0], out var x) &&
-            float.TryParse(args[1], out var y) &&
-            float.TryParse(args[2], out var z))
-        {
-            player.Entity.SetPosition(new Vector3(x, y, z));
-            AddMessage($"Teleported to {x}, {y}, {z}", new Vector4(0.3f, 1, 0.3f, 1));
-        }
-        else
-        {
-            AddMessage("Invalid coordinates", new Vector4(1, 0.3f, 0.3f, 1));
-        }
     }
 
     public void OnAwake() { }

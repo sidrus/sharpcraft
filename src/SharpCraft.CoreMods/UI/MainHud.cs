@@ -51,7 +51,7 @@ public class MainHud : IHud
         var pos = new Vector2(viewportSize.X - padding, padding);
 
         gui.SetNextWindowPos(pos, GuiCond.Always, new Vector2(1f, 0f));
-        bool open = true;
+        var open = true;
         if (gui.Begin("SteamInfo", ref open, GuiWindowSettings.NoDecoration | GuiWindowSettings.AlwaysAutoResize | GuiWindowSettings.NoInputs))
         {
             if (avatar.AvatarTextureId.HasValue)

@@ -31,6 +31,12 @@ public class CoreMod(ISharpCraftSdk sdk) : IMod
         RegisterDefaultBlocks();
         RegisterWorldGenerators();
         RegisterHuds();
+        RegisterCommands();
+    }
+
+    private void RegisterCommands()
+    {
+        Commands.DefaultCommands.Register(sdk);
     }
 
     private void RegisterHuds()

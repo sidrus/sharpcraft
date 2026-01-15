@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using SharpCraft.Sdk.Commands;
+using SharpCraft.Sdk.Universe;
 
 namespace SharpCraft.Engine.Commands;
 
@@ -21,7 +22,7 @@ public class CommandRegistry : ICommandRegistry
         }
     }
 
-    public bool ExecuteCommand(string input)
+    public bool ExecuteCommand(string input, IPlayer? player = null)
     {
         if (string.IsNullOrWhiteSpace(input)) return false;
 
@@ -36,7 +37,7 @@ public class CommandRegistry : ICommandRegistry
         {
             try
             {
-                handler(new CommandContext("System", args));
+                handler(new CommandContext(player != null ? "Player" : "System", args, player));
                 return true;
             }
             catch (Exception)

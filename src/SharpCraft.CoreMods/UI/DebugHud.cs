@@ -22,7 +22,7 @@ public class DebugHud : IHud
         gui.SetNextWindowPos(new Vector2(10, 10), GuiCond.FirstUseEver);
         gui.SetNextWindowSize(new Vector2(400, 600), GuiCond.FirstUseEver);
         
-        bool open = true;
+        var open = true;
         if (gui.Begin("Diagnostics HUD", ref open))
         {
             gui.SetWindowFontScale(1.2f);

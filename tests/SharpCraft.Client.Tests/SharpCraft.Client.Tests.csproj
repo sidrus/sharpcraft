@@ -25,6 +25,7 @@
     <ProjectReference Include="..\..\src\SharpCraft.Client\SharpCraft.Client.csproj" />
     <ProjectReference Include="..\..\src\SharpCraft.Engine\SharpCraft.Engine.csproj" />
     <ProjectReference Include="..\..\src\SharpCraft.Sdk\SharpCraft.Sdk.csproj" />
+    <ProjectReference Include="..\..\src\SharpCraft.CoreMods\SharpCraft.CoreMods.csproj" />
   </ItemGroup>
 
 </Project>

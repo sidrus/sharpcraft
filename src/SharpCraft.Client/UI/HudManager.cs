@@ -58,6 +58,8 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
         developerHud.OnVisibilityChanged += UpdateCursorMode;
         RegisterHud(developerHud);
         
+        UpdateCursorMode();
+
         await Task.CompletedTask;
     }
 
@@ -101,26 +103,22 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
                 break;
         }
 
-        UpdateCursorMode();
-
         if (Chat is { IsTyping: false })
         {
             switch (key)
             {
                 case Key.Enter:
                     Chat.StartTyping();
-                    UpdateCursorMode();
                     break;
                 case Key.Slash:
                     Chat.StartTyping("/");
-                    UpdateCursorMode();
                     break;
             }
         }
 
         if (key == Key.AltLeft)
         {
-            UpdateCursorMode();
+            ToggleCursorMode();
         }
     }
 
@@ -128,7 +126,25 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
     {
         var mouse = _input.Mice[0];
 
-        // If menu is open, always show cursor. Otherwise toggle based on Raw mode.
+        var isAnyMenuVisible = (Settings?.IsVisible ?? false) || 
+                             (Developer?.IsVisible ?? false) ||
+                             (Chat?.IsTyping ?? false);
+        
+        if (isAnyMenuVisible)
+        {
+            mouse.Cursor.CursorMode = CursorMode.Normal;
+        }
+        else
+        {
+            mouse.Cursor.CursorMode = CursorMode.Raw;
+        }
+        OnCursorModeChanged?.Invoke();
+    }
+
+    private void ToggleCursorMode()
+    {
+        var mouse = _input.Mice[0];
+        
         var isAnyMenuVisible = (Settings?.IsVisible ?? false) || 
                              (Developer?.IsVisible ?? false) ||
                              (Chat?.IsTyping ?? false);

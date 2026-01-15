@@ -10,7 +10,17 @@ public class GraphicsSettingsHud : IHud, IGraphicsSettings
 {
     public string Name => "GraphicsSettingsHud";
 
-    public bool IsVisible { get; set; }
+    private bool _isVisible;
+    public bool IsVisible
+    {
+        get => _isVisible;
+        set
+        {
+            if (_isVisible == value) return;
+            _isVisible = value;
+            OnVisibilityChanged?.Invoke();
+        }
+    }
 
     private bool _useNormalMap = true;
     public bool UseNormalMap { get => _useNormalMap; set => _useNormalMap = value; }
@@ -95,7 +105,6 @@ public class GraphicsSettingsHud : IHud, IGraphicsSettings
         if (IsVisible != visible)
         {
             IsVisible = visible;
-            OnVisibilityChanged?.Invoke();
         }
     }
 
