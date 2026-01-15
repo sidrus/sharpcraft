@@ -19,14 +19,18 @@ public readonly record struct RenderContext(
     bool UseSpecularMap = true,
     float SpecularMapStrength = 1f,
     bool UseMetallicMap = true,
-    float MetallicStrength = 0f,
+    float MetallicStrength = 1f,
     bool UseRoughnessMap = true,
     float RoughnessStrength = 1f,
     PointLightData[]? PointLights = null,
     float Exposure = 1.0f,
     float Gamma = 1.6f,
     bool IsUnderwater = false,
-    float Time = 0.0f
+    float Time = 0.0f,
+    bool UseIBL = false,
+    uint IrradianceMap = 0,
+    uint PrefilterMap = 0,
+    uint BrdfLut = 0
 )
 {
     public Matrix4x4 ViewProjection => View * Projection;

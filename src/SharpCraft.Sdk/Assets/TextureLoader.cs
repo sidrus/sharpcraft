@@ -44,7 +44,14 @@ public static class TextureLoader
                 var metallicData = metallicImg != null ? ExtractTile(metallicImg, tx, ty, tileW, tileH) : null;
                 var roughnessData = roughnessImg != null ? ExtractTile(roughnessImg, tx, ty, tileW, tileH) : null;
 
-                yield return (name, new TextureData(tileW, tileH, tileData, normalData, aoData, metallicData, roughnessData));
+                yield return (name, new TextureData(
+                    Width: tileW,
+                    Height: tileH,
+                    Data: tileData,
+                    NormalData: normalData,
+                    AoData: aoData,
+                    MetallicData: metallicData,
+                    RoughnessData: roughnessData));
             }
         }
         else

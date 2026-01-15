@@ -66,7 +66,7 @@ public class TextureAtlas(GL gl, IAssetRegistry assets) : IDisposable
             if (data.MetallicData != null)
                 CopyLayer(data.MetallicData, metallicData, xOffset, yOffset, atlasWidth, data.Width, data.Height);
             else
-                FillLayer(metallicData, xOffset, yOffset, atlasWidth, data.Width, data.Height, 255, 255, 255, 255); // Default to white so strength slider works as a global factor when no map is present
+                FillLayer(metallicData, xOffset, yOffset, atlasWidth, data.Width, data.Height, 0, 0, 0, 255); // Default to black (non-metallic)
 
             if (data.RoughnessData != null)
                 CopyLayer(data.RoughnessData, roughnessData, xOffset, yOffset, atlasWidth, data.Width, data.Height);

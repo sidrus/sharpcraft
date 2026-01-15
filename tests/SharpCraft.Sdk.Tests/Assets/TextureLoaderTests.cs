@@ -1,5 +1,7 @@
 ﻿using SharpCraft.Sdk.Assets;
 using SharpCraft.Sdk.Rendering;
+using SharpCraft.Sdk.Resources;
+using AwesomeAssertions;
 
 namespace SharpCraft.Sdk.Tests.Assets;
 
@@ -20,19 +22,19 @@ public class TextureLoaderTests
         var result = TextureLoader.LoadTexturesFromAtlas(material, mapping).ToList();
 
         // Assert
-        Assert.Equal(2, result.Count);
-        Assert.Equal("test1", result[0].name);
-        Assert.Equal(16, result[0].data.Width);
-        Assert.Equal(16, result[0].data.Height);
-        Assert.Equal(16 * 16 * 4, result[0].data.Data.Length);
+        result.Count.Should().Be(2);
+        result[0].name.Should().Be("test1");
+        result[0].data.Width.Should().Be(16);
+        result[0].data.Height.Should().Be(16);
+        result[0].data.Data.Length.Should().Be(16 * 16 * 4);
         
         // Check for purple fallback (255, 0, 255, 255)
-        Assert.Equal(255, result[0].data.Data[0]);
-        Assert.Equal(0, result[0].data.Data[1]);
-        Assert.Equal(255, result[0].data.Data[2]);
-        Assert.Equal(255, result[0].data.Data[3]);
+        result[0].data.Data[0].Should().Be(255);
+        result[0].data.Data[1].Should().Be(0);
+        result[0].data.Data[2].Should().Be(255);
+        result[0].data.Data[3].Should().Be(255);
 
-        Assert.Equal("test2", result[1].name);
+        result[1].name.Should().Be("test2");
     }
 
     [Fact]
@@ -50,9 +52,32 @@ public class TextureLoaderTests
         var result = TextureLoader.LoadTexturesFromAtlas(material, mapping).ToList();
 
         // Assert
-        Assert.Single(result);
-        Assert.Null(result[0].data.MetallicData);
-        Assert.Null(result[0].data.RoughnessData);
+        result.Should().ContainSingle();
+        result[0].data.MetallicData.Should().BeNull();
+        result[0].data.RoughnessData.Should().BeNull();
+        result[0].data.SpecularData.Should().BeNull();
+    }
+
+    [Fact]
+    public void TextureData_ShouldAssignPropertiesCorrectly()
+    {
+        // Arrange
+        var data = new byte[] { 1 };
+        var normal = new byte[] { 2 };
+        var ao = new byte[] { 3 };
+        var metallic = new byte[] { 4 };
+        var roughness = new byte[] { 5 };
+
+        // Act
+        var textureData = new TextureData(1, 1, data, normal, ao, null, metallic, roughness);
+
+        // Assert
+        textureData.Data.Should().BeSameAs(data);
+        textureData.NormalData.Should().BeSameAs(normal);
+        textureData.AoData.Should().BeSameAs(ao);
+        textureData.SpecularData.Should().BeNull();
+        textureData.MetallicData.Should().BeSameAs(metallic);
+        textureData.RoughnessData.Should().BeSameAs(roughness);
     }
 
     [Fact]

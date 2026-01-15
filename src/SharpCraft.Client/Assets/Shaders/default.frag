@@ -24,6 +24,11 @@ uniform sampler2D roughnessMap;
 uniform bool useRoughness;
 uniform float roughnessStrength;
 
+uniform samplerCube irradianceMap;
+uniform samplerCube prefilterMap;
+uniform sampler2D brdfLUT;
+uniform bool useIBL;
+
 layout (std140, binding = 0) uniform SceneData {
     mat4 ViewProjection;
     vec4 ViewPos;
@@ -92,24 +97,51 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 // ----------------------------------------------------------------------------
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+// ----------------------------------------------------------------------------
+vec3 getEnergyCompensation(float NoV, float roughness, vec3 F0) {
+    float energyLoss = (1.0 - NoV) * roughness;
+    return 1.0 + F0 * (1.0 / (1.0 - energyLoss) - 1.0);
+}
+// ----------------------------------------------------------------------------
+float computeSpecularAO(float NoV, float ao, float roughness) {
+    return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
+}
+// ----------------------------------------------------------------------------
+vec3 ACES(vec3 x) {
+    const float a = 2.51;
+    const float b = 0.03;
+    const float c = 2.43;
+    const float d = 0.59;
+    const float e = 0.14;
+    return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+}
+// ----------------------------------------------------------------------------
 vec3 CalcPBRLighting(vec3 L, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness, vec3 lightColor) {
     vec3 H = normalize(V + L);
+    float NoV = max(dot(N, V), 0.0);
+    float NoL = max(dot(N, L), 0.0);
+    float HoV = max(dot(H, V), 0.0);
     
     // Cook-Torrance BRDF
     float NDF = DistributionGGX(N, H, roughness);
     float G   = GeometrySmith(N, V, L, roughness);
-    vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
+    vec3 F    = fresnelSchlick(HoV, F0);
     
     vec3 numerator    = NDF * G * F;
-    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+    float denominator = 4.0 * NoV * NoL + 0.0001;
     vec3 specular = numerator / denominator;
+    
+    // Multi-scatter energy compensation
+    specular *= getEnergyCompensation(NoV, roughness, F0);
     
     vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;
     
-    float NdotL = max(dot(N, L), 0.0);
-    return (kD * albedo / PI + specular) * lightColor * NdotL;
+    return (kD * albedo / PI + specular) * lightColor * NoL;
 }
 
 void main() {
@@ -172,7 +204,31 @@ void main() {
         }
     }
 
-    vec3 ambient = vec3(0.03) * albedo * ao;
+    vec3 ambient;
+    if (useIBL) {
+        float NoV = max(dot(norm, V), 0.0);
+        vec3 F = fresnelSchlickRoughness(NoV, F0, roughness);
+        vec3 kS = F;
+        vec3 kD = 1.0 - kS;
+        kD *= 1.0 - metallic;
+        
+        vec3 irradiance = texture(irradianceMap, norm).rgb;
+        vec3 diffuse = irradiance * albedo;
+        
+        const float MAX_REFLECTION_LOD = 4.0;
+        vec3 R = reflect(-V, norm);
+        vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+        vec2 envBRDF = texture(brdfLUT, vec2(NoV, roughness)).rg;
+        vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
+        
+        // Specular AO
+        specular *= computeSpecularAO(NoV, ao, roughness);
+        
+        ambient = (kD * diffuse + specular) * ao;
+    } else {
+        ambient = vec3(0.03) * albedo * ao;
+    }
+    
     vec3 result = ambient + Lo;
 
     // 3. Fog and Final Output
@@ -180,8 +236,11 @@ void main() {
     float fogFactor = clamp((FragDistance - FogNear) / max(fogDistance, 0.0001), 0.0, 1.0);
     vec3 finalColor = mix(result, FogColor.xyz, fogFactor);
 
-    // HDR Tone Mapping (Exposure)
-    vec3 mapped = vec3(1.0) - exp(-finalColor * Exposure);
+    // Exposure
+    finalColor *= Exposure;
+
+    // ACES Tone Mapping
+    vec3 mapped = ACES(finalColor);
 
     // Gamma Correction
     mapped = pow(mapped, vec3(1.0 / Gamma));

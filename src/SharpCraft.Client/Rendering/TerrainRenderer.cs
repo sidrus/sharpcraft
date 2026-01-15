@@ -76,6 +76,22 @@ public sealed class TerrainRenderer : IRenderer
         _shader.SetUniform("useRoughness", context.UseRoughnessMap ? 1 : 0);
         _shader.SetUniform("roughnessStrength", context.RoughnessStrength);
 
+        _shader.SetUniform("useIBL", context.UseIBL ? 1 : 0);
+        if (context.UseIBL)
+        {
+            _gl.ActiveTexture(TextureUnit.Texture6);
+            _gl.BindTexture(TextureTarget.TextureCubeMap, context.IrradianceMap);
+            _shader.SetUniform("irradianceMap", 6);
+
+            _gl.ActiveTexture(TextureUnit.Texture7);
+            _gl.BindTexture(TextureTarget.TextureCubeMap, context.PrefilterMap);
+            _shader.SetUniform("prefilterMap", 7);
+
+            _gl.ActiveTexture(TextureUnit.Texture8);
+            _gl.BindTexture(TextureTarget.Texture2D, context.BrdfLut);
+            _shader.SetUniform("brdfLUT", 8);
+        }
+
         _gl.BindVertexArray(_vao);
 
         _frustum.Update(context.ViewProjection);

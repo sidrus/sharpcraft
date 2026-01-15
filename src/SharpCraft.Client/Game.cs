@@ -201,7 +201,8 @@ public partial class Game : IDisposable
             Exposure: _hudManager.Settings.Exposure,
             Gamma: _hudManager.Settings.Gamma,
             IsUnderwater: isUnderwater,
-            Time: _time
+            Time: _time,
+            UseIBL: _hudManager.Settings.UseIBL
         );
 
         _renderPipeline.Execute(_world, context);

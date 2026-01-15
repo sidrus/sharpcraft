@@ -46,6 +46,9 @@ public class GraphicsSettingsHud : IHud, IGraphicsSettings
     private float _roughnessStrength = 1.0f;
     public float RoughnessStrength { get => _roughnessStrength; set => _roughnessStrength = value; }
 
+    private bool _useIBL = false;
+    public bool UseIBL { get => _useIBL; set => _useIBL = value; }
+
     private bool _vSync = false;
     public bool VSync { get => _vSync; set => _vSync = value; }
 
@@ -87,6 +90,7 @@ public class GraphicsSettingsHud : IHud, IGraphicsSettings
                 gui.SliderFloat("Metallic Strength", ref _metallicStrength, 0.0f, 10.0f);
                 gui.Checkbox("Enable Roughness Mapping", ref _useRoughnessMap);
                 gui.SliderFloat("Roughness Strength", ref _roughnessStrength, 0.0f, 10.0f);
+                gui.Checkbox("Enable IBL (Approximation)", ref _useIBL);
                 gui.Checkbox("VSync", ref _vSync);
                 gui.SliderFloat("Gamma Correction", ref _gamma, 0.0f, 4.0f);
                 gui.SliderFloat("Exposure", ref _exposure, 0.0f, 10.0f);

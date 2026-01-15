@@ -21,6 +21,8 @@ public interface IGraphicsSettings : IInteractiveHud
     bool UseRoughnessMap { get; set; }
     float RoughnessStrength { get; set; }
     
+    bool UseIBL { get; set; }
+    
     float FogNearFactor { get; set; }
     float FogFarFactor { get; set; }
     int RenderDistance { get; set; }

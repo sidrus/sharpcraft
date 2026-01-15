@@ -269,6 +269,7 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
         public float MetallicStrength { get; set; } = 1.0f;
         public bool UseRoughnessMap { get; set; } = true;
         public float RoughnessStrength { get; set; } = 1.0f;
+        public bool UseIBL { get; set; } = false;
         public float FogNearFactor { get; set; } = 0.3f;
         public float FogFarFactor { get; set; } = 0.95f;
         public int RenderDistance { get; set; } = 8;
