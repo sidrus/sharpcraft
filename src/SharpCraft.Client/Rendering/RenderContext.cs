@@ -20,7 +20,9 @@ public readonly record struct RenderContext(
     float SpecularMapStrength = 1f,
     PointLightData[]? PointLights = null,
     float Exposure = 1.0f,
-    float Gamma = 1.6f
+    float Gamma = 1.6f,
+    bool IsUnderwater = false,
+    float Time = 0.0f
 )
 {
     public Matrix4x4 ViewProjection => View * Projection;

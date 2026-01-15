@@ -65,9 +65,9 @@ public class SpatialSensor : ISensor<SpatialSensorData>
             (int)Math.Floor(pos.Y + 0.5f),
             (int)Math.Floor(pos.Z));
 
-        var isUnderwater = blockAbove.Type == BlockType.Water;
-        var isSwimming = isUnderwater || blockAtMid.Type == BlockType.Water;
-        var isOnWaterSurface = blockBelow.Type == BlockType.Water && !isSwimming;
+        var isUnderwater = blockAbove.IsWater;
+        var isSwimming = isUnderwater || blockAtMid.IsWater;
+        var isOnWaterSurface = blockBelow.IsWater && !isSwimming;
         var isFlying = blockAbove.Type == BlockType.Air && blockBelow.Type == BlockType.Air;
         var isGrounded = blockBelow.IsSolid && blockAbove.Type == BlockType.Air;
 
@@ -78,11 +78,11 @@ public class SpatialSensor : ISensor<SpatialSensorData>
         var blockAtFeet = collisionProvider.GetBlock((int)Math.Floor(pos.X), currentBlockY, (int)Math.Floor(pos.Z));
 
         var submersionDepth = 0f;
-        if (blockAtFeet.Type == BlockType.Water)
+        if (blockAtFeet.IsWater)
         {
             submersionDepth = (currentBlockY + 1) - pos.Y;
         }
-        else if (collisionProvider.GetBlock((int)Math.Floor(pos.X), currentBlockY - 1, (int)Math.Floor(pos.Z)).Type == BlockType.Water)
+        else if (collisionProvider.GetBlock((int)Math.Floor(pos.X), currentBlockY - 1, (int)Math.Floor(pos.Z)).IsWater)
         {
             // If feet are just above water (e.g. at 64.04), depth is negative
             submersionDepth = currentBlockY - pos.Y;

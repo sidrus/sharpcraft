@@ -9,13 +9,17 @@ public class DefaultRenderPipeline(
     ChunkRenderCache cache,
     ChunkMeshManager meshManager,
     TerrainRenderer terrainRenderer,
-    WaterRenderer waterRenderer)
+    WaterRenderer waterRenderer,
+    PostProcessingRenderer postProcessingRenderer)
     : IRenderPipeline
 {
     public ChunkMeshManager MeshManager { get; } = meshManager;
 
     private World? _world = world;
     private RenderContext? _context;
+    private Framebuffer? _framebuffer;
+    private int _lastWidth;
+    private int _lastHeight;
 
     public void OnRender(double deltaTime)
     {
@@ -31,6 +35,19 @@ public class DefaultRenderPipeline(
 
     public void Execute(World world, RenderContext context)
     {
+        if (context.ScreenWidth <= 0 || context.ScreenHeight <= 0) return;
+
+        if (_framebuffer == null || _lastWidth != context.ScreenWidth || _lastHeight != context.ScreenHeight)
+        {
+            _framebuffer?.Dispose();
+            _framebuffer = new Framebuffer(gl, context.ScreenWidth, context.ScreenHeight);
+            _lastWidth = context.ScreenWidth;
+            _lastHeight = context.ScreenHeight;
+        }
+
+        _framebuffer.Bind();
+        gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
         // Update the cache for the entire frame
         var activeChunks = world.GetLoadedChunks();
         cache.Update(activeChunks);
@@ -46,6 +63,10 @@ public class DefaultRenderPipeline(
         gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         gl.Disable(EnableCap.CullFace);
         waterRenderer.Render(world, context);
+
+        _framebuffer.Unbind();
+
+        postProcessingRenderer.Render(_framebuffer.TextureHandle, context.IsUnderwater, context.Time);
     }
 
     public void Dispose()
@@ -63,6 +84,8 @@ public class DefaultRenderPipeline(
                 cache.Dispose();
                 terrainRenderer.Dispose();
                 waterRenderer.Dispose();
+                postProcessingRenderer.Dispose();
+                _framebuffer?.Dispose();
             }
 
             _disposed = true;

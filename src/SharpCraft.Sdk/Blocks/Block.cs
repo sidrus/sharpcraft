@@ -23,6 +23,11 @@ public struct Block
     public bool IsTransparent => Type is BlockType.Air or BlockType.Water;
 
     /// <summary>
+    /// Gets a value indicating whether the block is water.
+    /// </summary>
+    public bool IsWater => Type == BlockType.Water;
+
+    /// <summary>
     /// Gets the friction coefficient of the block.
     /// </summary>
     public float Friction => Type switch

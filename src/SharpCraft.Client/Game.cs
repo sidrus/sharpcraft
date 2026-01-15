@@ -41,12 +41,14 @@ public partial class Game : IDisposable
     private DiagnosticsManager? _diagnosticsManager;
     private readonly LightingSystem _lightSystem = new();
     private IRenderPipeline? _renderPipeline;
+    private PostProcessingRenderer? _postProcessingRenderer;
     private ICamera? _camera;
     private LocalPlayerController? _playerController;
     private TextureAtlas? _atlas;
     private bool _useNormalMap = true;
     private bool _useAoMap = true;
     private bool _useSpecularMap = true;
+    private float _time;
 
     private const double FixedDeltaTime = 1.0 / 60.0;
     private double _accumulator;
@@ -159,22 +161,28 @@ public partial class Game : IDisposable
             return;
         }
 
+        _time += (float)deltaTime;
         var alpha = (float)(_accumulator / FixedDeltaTime);
-
-        _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
         var lights = _lightSystem.GetActivePointLights()
             .Select(l => new PointLightData(l.Position, l.Color, l.Intensity, l.Constant, l.Linear, l.Quadratic))
             .ToArray();
 
+        var cameraPosition = (_camera as FirstPersonCamera)?.GetInterpolatedPosition(alpha) ?? _camera.Position;
+        var block = _world.GetBlock((int)Math.Floor(cameraPosition.X), (int)Math.Floor(cameraPosition.Y), (int)Math.Floor(cameraPosition.Z));
+        
+        // We calculate this separately from the player controller's IsUnderwater to use the 
+        // interpolated camera position for visual smoothness and to support different camera types.
+        var isUnderwater = block.IsWater;
+
         var viewDistance = _world.Size * World.ChunkSize;
         var context = new RenderContext(
             View: _camera.GetViewMatrix(alpha),
             Projection: _camera.GetProjectionMatrix((float)_window.Size.X / _window.Size.Y),
-            CameraPosition: (_camera as FirstPersonCamera)?.GetInterpolatedPosition(alpha) ?? _camera.Position,
-            FogColor: new Vector3(0.53f, 0.81f, 0.92f),
-            FogNear: viewDistance * _hudManager.Settings.FogNearFactor,
-            FogFar: viewDistance * _hudManager.Settings.FogFarFactor,
+            CameraPosition: cameraPosition,
+            FogColor: isUnderwater ? new Vector3(0.0f, 0.4f, 0.8f) : new Vector3(0.53f, 0.81f, 0.92f),
+            FogNear: isUnderwater ? 0.0f : viewDistance * _hudManager.Settings.FogNearFactor,
+            FogFar: isUnderwater ? 20.0f : viewDistance * _hudManager.Settings.FogFarFactor,
             ScreenWidth: _window.Size.X,
             ScreenHeight: _window.Size.Y,
             UseNormalMap: _hudManager.Settings.UseNormalMap,
@@ -185,7 +193,9 @@ public partial class Game : IDisposable
             SpecularMapStrength: _hudManager.Settings.SpecularMapStrength,
             PointLights: lights,
             Exposure: _hudManager.Settings.Exposure,
-            Gamma: _hudManager.Settings.Gamma
+            Gamma: _hudManager.Settings.Gamma,
+            IsUnderwater: isUnderwater,
+            Time: _time
         );
 
         _renderPipeline.Execute(_world, context);
@@ -246,7 +256,7 @@ public partial class Game : IDisposable
 
         var meshManager = new ChunkMeshManager(_world, ResolveUvs);
         var physics = new PhysicsSystem(_world);
-        var entity = new PhysicsEntity(new Transform { Position = new Vector3(0, 80, 0) }, physics);
+        var entity = new PhysicsEntity(new Transform { Position = new Vector3(7, 60, -8) }, physics);
 
         _camera = new FirstPersonCamera(entity, Vector3.UnitY * 1.6f);
         _playerController = new LocalPlayerController(entity, _camera, _world, _inputProvider);
@@ -254,8 +264,9 @@ public partial class Game : IDisposable
         var cache = new ChunkRenderCache(_gl);
         var terrainRenderer = new TerrainRenderer(_gl, cache, meshManager, _atlas, _sdk.Blocks);
         var waterRenderer = new WaterRenderer(_gl, cache, meshManager, _atlas);
+        _postProcessingRenderer = new PostProcessingRenderer(_gl);
         
-        _renderPipeline = new DefaultRenderPipeline(_gl, _world, cache, meshManager, terrainRenderer, waterRenderer);
+        _renderPipeline = new DefaultRenderPipeline(_gl, _world, cache, meshManager, terrainRenderer, waterRenderer, _postProcessingRenderer);
     }
 
     private readonly Dictionary<BlockType, BlockDefinition> _typeToDef = new();
