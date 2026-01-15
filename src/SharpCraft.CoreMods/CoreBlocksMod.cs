@@ -1,10 +1,9 @@
 using SharpCraft.CoreMods.Blocks;
-using SharpCraft.CoreMods.Rendering;
 using SharpCraft.Sdk;
+using SharpCraft.Sdk.Assets;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Lifecycle;
 using SharpCraft.Sdk.Resources;
-using StbImageSharp;
 
 namespace SharpCraft.CoreMods;
 
@@ -46,7 +45,18 @@ public class CoreBlocksMod(ISharpCraftSdk sdk) : IMod
         var aoPath = Path.Combine(assetsDir, "ao.png");
         var specularPath = Path.Combine(assetsDir, "specular.png");
 
-        var textureData = TextureLoader.LoadTextures(Namespace, terrainPath, normalPath, aoPath, specularPath);
+        var textureMapping = new Dictionary<string, int>
+        {
+            { "grass_top", 0 },
+            { "stone", 1 },
+            { "dirt", 2 },
+            { "grass_side", 3 },
+            { "bedrock", 17 },
+            { "sand", 18 },
+            { "water", 19 }
+        };
+
+        var textureData = TextureLoader.LoadTexturesFromAtlas(terrainPath, textureMapping, normalPath, aoPath, specularPath);
 
         foreach (var (name, data) in textureData)
         {

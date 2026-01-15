@@ -4,10 +4,6 @@
     <ProjectReference Include="..\SharpCraft.Sdk\SharpCraft.Sdk.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="StbImageSharp" Version="2.30.15" />
-  </ItemGroup>
-
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
