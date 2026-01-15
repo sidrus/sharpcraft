@@ -75,7 +75,7 @@ public partial class Game : IDisposable
         try
         {
             LogCreatingOpenglContext();
-            _gl = _window!.CreateOpenGL();
+            _gl = _window.CreateOpenGL();
 
             if (SteamClient.IsValid)
             {
@@ -243,6 +243,73 @@ public partial class Game : IDisposable
 
     private void LoadDefaultAssets()
     {
+        RegisterBlocks();
+        LoadTextures();
+    }
+
+    private void LoadTextures()
+    {
+        // Load textures from Assets/Textures/terrain.png and slice it
+        var assetsDir = Path.Combine(AppContext.BaseDirectory, "Assets", "Textures");
+        var terrainPath = Path.Combine(assetsDir, "terrain.png");
+        var normalPath = Path.Combine(assetsDir, "normals.png");
+        var aoPath = Path.Combine(assetsDir, "ao.png");
+        var specularPath = Path.Combine(assetsDir, "specular.png");
+
+        if (File.Exists(terrainPath))
+        {
+            var terrainImg = LoadImage(terrainPath);
+            var normalImg = File.Exists(normalPath) ? LoadImage(normalPath) : null;
+            var aoImg = File.Exists(aoPath) ? LoadImage(aoPath) : null;
+            var specularImg = File.Exists(specularPath) ? LoadImage(specularPath) : null;
+
+            // Map our block textures to their original tile indices in terrain.png
+            var textureMapping = new Dictionary<string, int>
+            {
+                { "grass_top", 0 },
+                { "stone", 1 },
+                { "dirt", 2 },
+                { "grass_side", 3 },
+                { "bedrock", 17 },
+                { "sand", 18 },
+                { "water", 19 }
+            };
+
+            const int terrainAtlasSize = 16; // 16x16 tiles
+            var tileW = terrainImg.Width / terrainAtlasSize;
+            var tileH = terrainImg.Height / terrainAtlasSize;
+
+            foreach (var kvp in textureMapping)
+            {
+                var name = kvp.Key;
+                var tileIndex = kvp.Value;
+
+                var tx = tileIndex % terrainAtlasSize;
+                var ty = tileIndex / terrainAtlasSize;
+
+                var tileData = ExtractTile(terrainImg, tx, ty, tileW, tileH);
+                var normalData = normalImg != null ? ExtractTile(normalImg, tx, ty, tileW, tileH) : null;
+                var aoData = aoImg != null ? ExtractTile(aoImg, tx, ty, tileW, tileH) : null;
+                var specularData = specularImg != null ? ExtractTile(specularImg, tx, ty, tileW, tileH) : null;
+
+                _sdk.Assets.Register($"sharpcraft:{name}", new TextureData(tileW, tileH, tileData, normalData, aoData, specularData));
+            }
+        }
+        else
+        {
+            _logger.LogWarning("terrain.png not found at {Path}, using fallbacks", terrainPath);
+            var textureNames = new[] { "grass_top", "grass_side", "dirt", "stone", "sand", "water", "bedrock" };
+            foreach (var name in textureNames)
+            {
+                var data = new byte[16 * 16 * 4];
+                for (var i = 0; i < data.Length; i += 4) { data[i] = 255; data[i + 1] = 0; data[i + 2] = 255; data[i + 3] = 255; }
+                _sdk.Assets.Register($"sharpcraft:{name}", new TextureData(16, 16, data));
+            }
+        }
+    }
+
+    private void RegisterBlocks()
+    {
         // Define default blocks
         var blocks = new[]
         {
@@ -257,64 +324,6 @@ public partial class Game : IDisposable
         foreach (var def in blocks)
         {
             _sdk.Blocks.Register(def.Id, def);
-        }
-
-        // Load textures from Assets/Textures/terrain.png and slice it
-        var assetsDir = Path.Combine(AppContext.BaseDirectory, "Assets", "Textures");
-        var terrainPath = Path.Combine(assetsDir, "terrain.png");
-        var normalPath = Path.Combine(assetsDir, "normals.png");
-        var aoPath = Path.Combine(assetsDir, "ao.png");
-        var specularPath = Path.Combine(assetsDir, "specular.png");
-
-        if (File.Exists(terrainPath))
-        {
-            var terrainImg = LoadImage(terrainPath);
-            var normalImg = File.Exists(normalPath) ? LoadImage(normalPath) : null;
-            var aoImg = File.Exists(aoPath) ? LoadImage(aoPath) : null;
-            var specularImg = File.Exists(specularPath) ? LoadImage(specularPath) : null;
-            
-            // Map our block textures to their original tile indices in terrain.png
-            var textureMapping = new Dictionary<string, int>
-            {
-                { "grass_top", 0 },
-                { "stone", 1 },
-                { "dirt", 2 },
-                { "grass_side", 3 },
-                { "bedrock", 17 },
-                { "sand", 18 },
-                { "water", 19 }
-            };
-
-            const int terrainAtlasSize = 16; // 16x16 tiles
-            int tileW = terrainImg.Width / terrainAtlasSize;
-            int tileH = terrainImg.Height / terrainAtlasSize;
-
-            foreach (var kvp in textureMapping)
-            {
-                var name = kvp.Key;
-                var tileIndex = kvp.Value;
-                
-                var tx = tileIndex % terrainAtlasSize;
-                var ty = tileIndex / terrainAtlasSize;
-                
-                var tileData = ExtractTile(terrainImg, tx, ty, tileW, tileH);
-                var normalData = normalImg != null ? ExtractTile(normalImg, tx, ty, tileW, tileH) : null;
-                var aoData = aoImg != null ? ExtractTile(aoImg, tx, ty, tileW, tileH) : null;
-                var specularData = specularImg != null ? ExtractTile(specularImg, tx, ty, tileW, tileH) : null;
-                
-                _sdk.Assets.Register($"sharpcraft:{name}", new TextureData(tileW, tileH, tileData, normalData, aoData, specularData));
-            }
-        }
-        else
-        {
-            _logger.LogWarning("terrain.png not found at {Path}, using fallbacks", terrainPath);
-            var textureNames = new[] { "grass_top", "grass_side", "dirt", "stone", "sand", "water", "bedrock" };
-            foreach (var name in textureNames)
-            {
-                var data = new byte[16 * 16 * 4];
-                for (var i = 0; i < data.Length; i += 4) { data[i] = 255; data[i + 1] = 0; data[i + 2] = 255; data[i + 3] = 255; }
-                _sdk.Assets.Register($"sharpcraft:{name}", new TextureData(16, 16, data));
-            }
         }
     }
 

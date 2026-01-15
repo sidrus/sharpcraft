@@ -66,6 +66,8 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     private MovementIntent _pendingIntent;
     private LookDelta _pendingLookDelta;
 
+    private readonly List<object> _components = new();
+
     public void OnUpdate(double deltaTime)
     {
         SensorPass();
@@ -76,7 +78,6 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
 
         _pendingIntent = inputProvider.GetMovementIntent(entity.Forward, entity.Right);
         _pendingIntent = _pendingIntent with { IsFlying = IsFlying };
-
     }
 
     public void OnFixedUpdate(double fixedDeltaTime)
@@ -99,7 +100,7 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
         if (lookDelta == default) return;
 
         _yaw += lookDelta.Yaw;
-        
+
         if (camera is FirstPersonCamera fpc)
         {
             fpc.HandleMouse(0, lookDelta.Pitch);
@@ -113,11 +114,11 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
 
     public T? GetComponent<T>() where T : class
     {
-        throw new NotImplementedException();
+        return _components.OfType<T>().FirstOrDefault();
     }
 
     public void AddComponent<T>(T component) where T : class
     {
-        throw new NotImplementedException();
+        _components.Add(component);
     }
 }

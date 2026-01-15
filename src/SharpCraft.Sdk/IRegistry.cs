@@ -26,7 +26,7 @@ public interface IRegistry<T>
     /// <param name="id">The unique identifier.</param>
     /// <param name="item">The registered object if found.</param>
     /// <returns>True if the object was found; otherwise, false.</returns>
-    bool TryGet(string id, out T item);
+    bool TryGet(string id, out T? item);
 
     /// <summary>
     /// Gets all registered items.

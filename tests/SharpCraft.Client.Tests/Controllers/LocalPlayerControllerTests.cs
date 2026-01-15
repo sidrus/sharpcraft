@@ -36,11 +36,11 @@ public class LocalPlayerControllerTests
         // Entity starts at Y=64.0 (feet at water surface)
         var transform = new Transform { Position = new Vector3(0, 64.0f, 0) };
         var entity = new PhysicsEntity(transform, mockPhysicsSystem.Object);
-        var controller = new LocalPlayerController(entity, mockCamera.Object, world, _inputProvider);
-
         var mockInput = new Mock<IInputProvider>();
         mockInput.Setup(i => i.GetMovementIntent(It.IsAny<Vector3>(), It.IsAny<Vector3>()))
             .Returns(new MovementIntent(Vector3.Zero, true, false, false));
+
+        var controller = new LocalPlayerController(entity, mockCamera.Object, world, mockInput.Object);
 
         // Mock MoveAndResolve to just apply movement
         mockPhysicsSystem.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
@@ -81,11 +81,11 @@ public class LocalPlayerControllerTests
         // At this depth, IsSwimming is true, but SubmersionDepth <= 1.1f
         var transform = new Transform { Position = new Vector3(0, 63.0f, 0) };
         var entity = new PhysicsEntity(transform, mockPhysicsSystem.Object);
-        var controller = new LocalPlayerController(entity, mockCamera.Object, world,_inputProvider);
-
         var mockInput = new Mock<IInputProvider>();
         mockInput.Setup(i => i.GetMovementIntent(It.IsAny<Vector3>(), It.IsAny<Vector3>()))
             .Returns(new MovementIntent(Vector3.Zero, true, false, false));
+
+        var controller = new LocalPlayerController(entity, mockCamera.Object, world, mockInput.Object);
 
         mockPhysicsSystem.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
             .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
@@ -118,11 +118,11 @@ public class LocalPlayerControllerTests
         // Entity starts at Y=62.5 (SubmersionDepth = 1.5m)
         var transform = new Transform { Position = new Vector3(0, 62.5f, 0) };
         var entity = new PhysicsEntity(transform, mockPhysicsSystem.Object);
-        var controller = new LocalPlayerController(entity, mockCamera.Object, world,_inputProvider);
-
         var mockInput = new Mock<IInputProvider>();
         mockInput.Setup(i => i.GetMovementIntent(It.IsAny<Vector3>(), It.IsAny<Vector3>()))
             .Returns(new MovementIntent(Vector3.Zero, true, false, false));
+
+        var controller = new LocalPlayerController(entity, mockCamera.Object, world, mockInput.Object);
 
         mockPhysicsSystem.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
             .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);

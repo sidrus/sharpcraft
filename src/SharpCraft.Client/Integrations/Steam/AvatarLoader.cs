@@ -27,7 +27,7 @@ public class AvatarLoader(IWindow window, GL gl) : IDisposable
 
     private uint CreateTextureFromRgba(byte[] data, uint width, uint height)
     {
-        var handle = gl!.GenTexture();
+        var handle = gl.GenTexture();
         gl.BindTexture(TextureTarget.Texture2D, handle);
 
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.ClampToEdge);

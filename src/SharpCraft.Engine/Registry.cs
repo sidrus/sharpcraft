@@ -29,9 +29,9 @@ public class Registry<T> : IRegistry<T>
         throw new KeyNotFoundException($"Item with ID '{id}' was not found.");
     }
 
-    public bool TryGet(string id, out T item)
+    public bool TryGet(string id, out T? item)
     {
-        return _items.TryGetValue(id, out item!);
+        return _items.TryGetValue(id, out item);
     }
 
     public IEnumerable<KeyValuePair<string, T>> All => _items;

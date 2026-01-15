@@ -18,7 +18,7 @@ public class ScriptSandbox
             "SharpCraft.Sdk", 
             "SharpCraft.Sdk.Blocks", 
             "SharpCraft.Sdk.Messaging",
-            "SharpCraft.Sdk.World"
+            "SharpCraft.Sdk.Universe"
         );
 
     public async Task<T> ExecuteAsync<T>(string code, object? globals = null, CancellationToken ct = default)

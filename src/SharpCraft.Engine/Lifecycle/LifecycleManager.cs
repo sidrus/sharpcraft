@@ -126,18 +126,29 @@ public sealed class LifecycleManager
 
     private void ProcessPending()
     {
-        foreach (var obj in _toAdd)
+        if (_toAdd.Count > 0)
         {
-            _objects.Add(obj);
-            obj.OnAwake();
-            obj.OnStart();
-        }
-        _toAdd.Clear();
+            foreach (var obj in _toAdd)
+            {
+                _objects.Add(obj);
+                obj.OnAwake();
+                obj.OnStart();
+            }
 
-        foreach (var obj in _toRemove.Where(obj => _objects.Remove(obj)))
-        {
-            obj.OnDestroy();
+            _toAdd.Clear();
         }
-        _toRemove.Clear();
+
+        if (_toRemove.Count > 0)
+        {
+            foreach (var obj in _toRemove)
+            {
+                if (_objects.Remove(obj))
+                {
+                    obj.OnDestroy();
+                }
+            }
+
+            _toRemove.Clear();
+        }
     }
 }
