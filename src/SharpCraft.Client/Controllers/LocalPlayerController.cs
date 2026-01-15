@@ -45,7 +45,7 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     /// <summary>
     /// Gets the current pitch angle in degrees.
     /// </summary>
-    public float Pitch => _sensor.LastSense?.Pitch ?? 0f;
+    public float Pitch => camera is FirstPersonCamera fpc ? fpc.Pitch : (_sensor.LastSense?.Pitch ?? 0f);
 
     /// <summary>
     /// Gets the current roll angle in degrees.
@@ -76,7 +76,7 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
         _pendingLookDelta = inputProvider.GetLookDelta();
         HandleLook(_pendingLookDelta);
 
-        _pendingIntent = inputProvider.GetMovementIntent(entity.Forward, entity.Right);
+        _pendingIntent = inputProvider.GetMovementIntent(camera.Forward, camera.Right);
         _pendingIntent = _pendingIntent with { IsFlying = IsFlying };
     }
 
@@ -104,7 +104,7 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
         if (camera is FirstPersonCamera fpc)
         {
             fpc.HandleMouse(0, lookDelta.Pitch);
-            entity.Rotation = Quaternion.CreateFromYawPitchRoll(_yaw * MathF.PI / 180f, fpc.Pitch * MathF.PI / 180f, 0);
+            entity.Rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, _yaw * MathF.PI / 180f);
         }
         else
         {

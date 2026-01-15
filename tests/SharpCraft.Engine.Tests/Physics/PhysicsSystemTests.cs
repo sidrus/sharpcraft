@@ -39,8 +39,13 @@ public class PhysicsSystemTests
     [Fact]
     public void MoveAndResolve_ShouldSnapToWall_WhenCollidingOnX()
     {
-        var world = new FakeCollisionProvider();
-        world.Blocks[new Vector3(11, 10, 10)] = BlockType.Stone;
+        var world = new FakeCollisionProvider
+        {
+            Blocks =
+            {
+                [new Vector3(11, 10, 10)] = BlockType.Stone
+            }
+        };
         var system = new PhysicsSystem(world);
         var startPos = new Vector3(10.5f, 10, 10.5f);
         var velocity = new Vector3(0.5f, 0, 0); // Should hit block at X=11
@@ -58,8 +63,13 @@ public class PhysicsSystemTests
     [Fact]
     public void MoveAndResolve_ShouldSnapToFloor_WhenCollidingOnY()
     {
-        var world = new FakeCollisionProvider();
-        world.Blocks[new Vector3(10, 9, 10)] = BlockType.Stone;
+        var world = new FakeCollisionProvider
+        {
+            Blocks =
+            {
+                [new Vector3(10, 9, 10)] = BlockType.Stone
+            }
+        };
         var system = new PhysicsSystem(world);
         var startPos = new Vector3(10.5f, 10.0f, 10.5f);
         var velocity = new Vector3(0, -0.1f, 0); // Moving down
@@ -77,8 +87,13 @@ public class PhysicsSystemTests
     [Fact]
     public void MoveAndResolve_ShouldSnapToCeiling_WhenCollidingOnY()
     {
-        var world = new FakeCollisionProvider();
-        world.Blocks[new Vector3(10, 12, 10)] = BlockType.Stone;
+        var world = new FakeCollisionProvider
+        {
+            Blocks =
+            {
+                [new Vector3(10, 12, 10)] = BlockType.Stone
+            }
+        };
         var system = new PhysicsSystem(world);
         var startPos = new Vector3(10.5f, 10.0f, 10.5f); // MaxY = 11.8. No overlap with block at Y=12.
         var velocity = new Vector3(0, 0.5f, 0); // Moving up. New MaxY = 12.3.

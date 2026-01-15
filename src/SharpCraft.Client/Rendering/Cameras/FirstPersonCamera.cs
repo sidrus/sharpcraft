@@ -11,6 +11,7 @@ public class FirstPersonCamera(PhysicsEntity parent, Vector3 offset) : ICamera
     public Vector3 GetInterpolatedPosition(float alpha) => Vector3.Lerp(parent.PreviousPosition, parent.Position, alpha) + offset;
 
     public Vector3 Forward => GetForward(1.0f);
+    public Vector3 Right => GetRight(1.0f);
 
     public Vector3 GetForward(float alpha)
     {
@@ -20,6 +21,12 @@ public class FirstPersonCamera(PhysicsEntity parent, Vector3 offset) : ICamera
         var forward = Vector3.Normalize(Vector3.Transform(-Vector3.UnitZ, rotation));
         var pitchRotation = Quaternion.CreateFromAxisAngle(right, pitchRad);
         return Vector3.Transform(forward, pitchRotation);
+    }
+
+    public Vector3 GetRight(float alpha)
+    {
+        var rotation = Quaternion.Lerp(parent.PreviousRotation, parent.Rotation, alpha);
+        return Vector3.Normalize(Vector3.Transform(Vector3.UnitX, rotation));
     }
 
     public Vector3 Up => Vector3.UnitY;
