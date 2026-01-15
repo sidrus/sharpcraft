@@ -63,7 +63,7 @@ public class CoreMod(ISharpCraftSdk sdk) : IMod
         var terrainPath = Path.Combine(assetsDir, "terrain.png");
         var normalPath = Path.Combine(assetsDir, "normals.png");
         var aoPath = Path.Combine(assetsDir, "ao.png");
-        var specularPath = Path.Combine(assetsDir, "specular.png");
+        var specularPath = string.Empty;
         var metallicPath = Path.Combine(assetsDir, "metallic.png");
         var roughnessPath = Path.Combine(assetsDir, "roughness.png");
 
