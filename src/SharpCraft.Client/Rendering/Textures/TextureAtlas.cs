@@ -14,6 +14,8 @@ public class TextureAtlas(GL gl, IAssetRegistry assets) : IDisposable
     private Texture2d? _normalAtlas;
     private Texture2d? _aoAtlas;
     private Texture2d? _specularAtlas;
+    private Texture2d? _metallicAtlas;
+    private Texture2d? _roughnessAtlas;
 
     public void Build()
     {
@@ -32,6 +34,8 @@ public class TextureAtlas(GL gl, IAssetRegistry assets) : IDisposable
         var normalData = new byte[atlasWidth * atlasHeight * 4];
         var aoData = new byte[atlasWidth * atlasHeight * 4];
         var specularData = new byte[atlasWidth * atlasHeight * 4];
+        var metallicData = new byte[atlasWidth * atlasHeight * 4];
+        var roughnessData = new byte[atlasWidth * atlasHeight * 4];
 
         for (var i = 0; i < textures.Count; i++)
         {
@@ -59,6 +63,16 @@ public class TextureAtlas(GL gl, IAssetRegistry assets) : IDisposable
             else
                 FillLayer(specularData, xOffset, yOffset, atlasWidth, data.Width, data.Height, 0, 0, 0, 255); // Default no specular
 
+            if (data.MetallicData != null)
+                CopyLayer(data.MetallicData, metallicData, xOffset, yOffset, atlasWidth, data.Width, data.Height);
+            else
+                FillLayer(metallicData, xOffset, yOffset, atlasWidth, data.Width, data.Height, 0, 0, 0, 255); // Default non-metallic
+
+            if (data.RoughnessData != null)
+                CopyLayer(data.RoughnessData, roughnessData, xOffset, yOffset, atlasWidth, data.Width, data.Height);
+            else
+                FillLayer(roughnessData, xOffset, yOffset, atlasWidth, data.Width, data.Height, 255, 255, 255, 255); // Default full roughness
+
             _uvs[location] = (
                 (float)xOffset / atlasWidth,
                 (float)yOffset / atlasHeight,
@@ -71,11 +85,15 @@ public class TextureAtlas(GL gl, IAssetRegistry assets) : IDisposable
         _normalAtlas?.Dispose();
         _aoAtlas?.Dispose();
         _specularAtlas?.Dispose();
+        _metallicAtlas?.Dispose();
+        _roughnessAtlas?.Dispose();
 
         _diffuseAtlas = new Texture2d(gl, atlasWidth, atlasHeight, diffuseData, InternalFormat.SrgbAlpha);
         _normalAtlas = new Texture2d(gl, atlasWidth, atlasHeight, normalData, InternalFormat.Rgba);
         _aoAtlas = new Texture2d(gl, atlasWidth, atlasHeight, aoData, InternalFormat.Rgba);
         _specularAtlas = new Texture2d(gl, atlasWidth, atlasHeight, specularData, InternalFormat.Rgba);
+        _metallicAtlas = new Texture2d(gl, atlasWidth, atlasHeight, metallicData, InternalFormat.Rgba);
+        _roughnessAtlas = new Texture2d(gl, atlasWidth, atlasHeight, roughnessData, InternalFormat.Rgba);
     }
 
     private static void CopyLayer(byte[] src, byte[] dst, int xOffset, int yOffset, int dstWidth, int srcWidth, int srcHeight)
@@ -119,12 +137,16 @@ public class TextureAtlas(GL gl, IAssetRegistry assets) : IDisposable
     public void Bind(TextureUnit diffuseUnit = TextureUnit.Texture0, 
                      TextureUnit normalUnit = TextureUnit.Texture1, 
                      TextureUnit aoUnit = TextureUnit.Texture2, 
-                     TextureUnit specularUnit = TextureUnit.Texture3)
+                     TextureUnit specularUnit = TextureUnit.Texture3,
+                     TextureUnit metallicUnit = TextureUnit.Texture4,
+                     TextureUnit roughnessUnit = TextureUnit.Texture5)
     {
         _diffuseAtlas?.Bind(diffuseUnit);
         _normalAtlas?.Bind(normalUnit);
         _aoAtlas?.Bind(aoUnit);
         _specularAtlas?.Bind(specularUnit);
+        _metallicAtlas?.Bind(metallicUnit);
+        _roughnessAtlas?.Bind(roughnessUnit);
     }
 
     public bool TryGetUvs(ResourceLocation location, out (float U, float V, float Width, float Height) uv)
@@ -138,5 +160,7 @@ public class TextureAtlas(GL gl, IAssetRegistry assets) : IDisposable
         _normalAtlas?.Dispose();
         _aoAtlas?.Dispose();
         _specularAtlas?.Dispose();
+        _metallicAtlas?.Dispose();
+        _roughnessAtlas?.Dispose();
     }
 }

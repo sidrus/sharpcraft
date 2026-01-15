@@ -34,11 +34,17 @@ public class GraphicsSettingsHud : IHud, IGraphicsSettings
     private float _aoMapStrength = 0.5f;
     public float AoMapStrength { get => _aoMapStrength; set => _aoMapStrength = value; }
 
-    private bool _useSpecularMap = true;
-    public bool UseSpecularMap { get => _useSpecularMap; set => _useSpecularMap = value; }
+    private bool _useMetallicMap = true;
+    public bool UseMetallicMap { get => _useMetallicMap; set => _useMetallicMap = value; }
 
-    private float _specularMapStrength = 0.5f;
-    public float SpecularMapStrength { get => _specularMapStrength; set => _specularMapStrength = value; }
+    private float _metallicStrength = 1.0f;
+    public float MetallicStrength { get => _metallicStrength; set => _metallicStrength = value; }
+
+    private bool _useRoughnessMap = true;
+    public bool UseRoughnessMap { get => _useRoughnessMap; set => _useRoughnessMap = value; }
+
+    private float _roughnessStrength = 1.0f;
+    public float RoughnessStrength { get => _roughnessStrength; set => _roughnessStrength = value; }
 
     private bool _vSync = false;
     public bool VSync { get => _vSync; set => _vSync = value; }
@@ -77,8 +83,10 @@ public class GraphicsSettingsHud : IHud, IGraphicsSettings
                 gui.SliderFloat("Normal Strength", ref _normalStrength, 0.0f, 10.0f);
                 gui.Checkbox("Enable Ambient Occlusion", ref _useAoMap);
                 gui.SliderFloat("Ambient Occlusion Strength", ref _aoMapStrength, 0.0f, 10.0f);
-                gui.Checkbox("Enable Specular Mapping", ref _useSpecularMap);
-                gui.SliderFloat("Specular Strength", ref _specularMapStrength, 0.0f, 10.0f);
+                gui.Checkbox("Enable Metallic Mapping", ref _useMetallicMap);
+                gui.SliderFloat("Metallic Strength", ref _metallicStrength, 0.0f, 10.0f);
+                gui.Checkbox("Enable Roughness Mapping", ref _useRoughnessMap);
+                gui.SliderFloat("Roughness Strength", ref _roughnessStrength, 0.0f, 10.0f);
                 gui.Checkbox("VSync", ref _vSync);
                 gui.SliderFloat("Gamma Correction", ref _gamma, 0.0f, 4.0f);
                 gui.SliderFloat("Exposure", ref _exposure, 0.0f, 10.0f);

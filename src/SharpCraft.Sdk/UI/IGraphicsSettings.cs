@@ -15,8 +15,11 @@ public interface IGraphicsSettings : IInteractiveHud
     bool UseAoMap { get; set; }
     float AoMapStrength { get; set; }
     
-    bool UseSpecularMap { get; set; }
-    float SpecularMapStrength { get; set; }
+    bool UseMetallicMap { get; set; }
+    float MetallicStrength { get; set; }
+    
+    bool UseRoughnessMap { get; set; }
+    float RoughnessStrength { get; set; }
     
     float FogNearFactor { get; set; }
     float FogFarFactor { get; set; }

@@ -64,6 +64,8 @@ public class CoreMod(ISharpCraftSdk sdk) : IMod
         var normalPath = Path.Combine(assetsDir, "normals.png");
         var aoPath = Path.Combine(assetsDir, "ao.png");
         var specularPath = Path.Combine(assetsDir, "specular.png");
+        var metallicPath = Path.Combine(assetsDir, "metallic.png");
+        var roughnessPath = Path.Combine(assetsDir, "roughness.png");
 
         var textureMapping = new Dictionary<string, int>
         {
@@ -76,7 +78,7 @@ public class CoreMod(ISharpCraftSdk sdk) : IMod
             { "water", 19 }
         };
 
-        var textureData = TextureLoader.LoadTexturesFromAtlas(terrainPath, textureMapping, normalPath, aoPath, specularPath);
+        var textureData = TextureLoader.LoadTexturesFromAtlas(terrainPath, textureMapping, normalPath, aoPath, specularPath, metallicPath, roughnessPath);
 
         foreach (var (name, data) in textureData)
         {

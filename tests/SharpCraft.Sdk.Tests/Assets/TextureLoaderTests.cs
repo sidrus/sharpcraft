@@ -34,6 +34,25 @@ public class TextureLoaderTests
     }
 
     [Fact]
+    public void LoadTexturesFromAtlas_WithMetallicAndRoughness_ShouldHandleThem()
+    {
+        // Arrange
+        var mapping = new Dictionary<string, int> { { "test", 0 } };
+
+        // Act
+        var result = TextureLoader.LoadTexturesFromAtlas(
+            "non_existent_albedo.png", 
+            mapping, 
+            metallicPath: "non_existent_metallic.png",
+            roughnessPath: "non_existent_roughness.png").ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Null(result[0].data.MetallicData);
+        Assert.Null(result[0].data.RoughnessData);
+    }
+
+    [Fact]
     public void LoadTexturesFromAtlas_WhenFileExists_ShouldExtractTiles()
     {
         // Create a dummy image

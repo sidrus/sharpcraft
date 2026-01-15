@@ -265,8 +265,10 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
         public float NormalStrength { get; set; } = 0.5f;
         public bool UseAoMap { get; set; } = true;
         public float AoMapStrength { get; set; } = 0.5f;
-        public bool UseSpecularMap { get; set; } = true;
-        public float SpecularMapStrength { get; set; } = 0.5f;
+        public bool UseMetallicMap { get; set; } = true;
+        public float MetallicStrength { get; set; } = 1.0f;
+        public bool UseRoughnessMap { get; set; } = true;
+        public float RoughnessStrength { get; set; } = 1.0f;
         public float FogNearFactor { get; set; } = 0.3f;
         public float FogFarFactor { get; set; } = 0.95f;
         public int RenderDistance { get; set; } = 8;

@@ -49,7 +49,8 @@ public partial class Game : IDisposable
     private TextureAtlas? _atlas;
     private bool _useNormalMap = true;
     private bool _useAoMap = true;
-    private bool _useSpecularMap = true;
+    private bool _useMetallicMap = true;
+    private bool _useRoughnessMap = true;
     private float _time;
 
     private const double FixedDeltaTime = 1.0 / 60.0;
@@ -192,8 +193,10 @@ public partial class Game : IDisposable
             NormalStrength: _hudManager.Settings.NormalStrength,
             UseAoMap: _hudManager.Settings.UseAoMap,
             AoMapStrength: _hudManager.Settings.AoMapStrength,
-            UseSpecularMap: _hudManager.Settings.UseSpecularMap,
-            SpecularMapStrength: _hudManager.Settings.SpecularMapStrength,
+            UseMetallicMap: _hudManager.Settings.UseMetallicMap,
+            MetallicStrength: _hudManager.Settings.MetallicStrength,
+            UseRoughnessMap: _hudManager.Settings.UseRoughnessMap,
+            RoughnessStrength: _hudManager.Settings.RoughnessStrength,
             PointLights: lights,
             Exposure: _hudManager.Settings.Exposure,
             Gamma: _hudManager.Settings.Gamma,
@@ -347,9 +350,13 @@ public partial class Game : IDisposable
                     _useNormalMap = !_useNormalMap;
                     LogNormalMappingToggledState(_useNormalMap);
                     break;
-                case Key.H:
-                    _useSpecularMap = !_useSpecularMap;
-                    LogSpecularMappingToggledState(_useSpecularMap);
+                case Key.M:
+                    _useMetallicMap = !_useMetallicMap;
+                    LogMetallicMappingToggledState(_useMetallicMap);
+                    break;
+                case Key.R:
+                    _useRoughnessMap = !_useRoughnessMap;
+                    LogRoughnessMappingToggledState(_useRoughnessMap);
                     break;
                 case Key.L:
                     _useAoMap = !_useAoMap;
@@ -410,8 +417,11 @@ public partial class Game : IDisposable
     [LoggerMessage(LogLevel.Information, "Normal mapping toggled: {state}")]
     partial void LogNormalMappingToggledState(bool state);
 
-    [LoggerMessage(LogLevel.Information, "Specular mapping toggled: {state}")]
-    partial void LogSpecularMappingToggledState(bool state);
+    [LoggerMessage(LogLevel.Information, "Metallic mapping toggled: {state}")]
+    partial void LogMetallicMappingToggledState(bool state);
+
+    [LoggerMessage(LogLevel.Information, "Roughness mapping toggled: {state}")]
+    partial void LogRoughnessMappingToggledState(bool state);
 
     [LoggerMessage(LogLevel.Information, "AO mapping toggled: {state}")]
     partial void LogAoMappingToggledState(bool state);

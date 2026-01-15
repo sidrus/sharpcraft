@@ -32,7 +32,13 @@ public class WaterRenderer : IRenderer
     public void Render(World world, RenderContext context)
     {
         _shader.Use();
-        _atlas.Bind(TextureUnit.Texture0, TextureUnit.Texture1, TextureUnit.Texture2, TextureUnit.Texture3);
+        _atlas.Bind(
+            TextureUnit.Texture0, 
+            TextureUnit.Texture1, 
+            TextureUnit.Texture2, 
+            TextureUnit.Texture3,
+            TextureUnit.Texture4,
+            TextureUnit.Texture5);
 
         _shader.SetUniform("textureAtlas", 0);
         _shader.SetUniform("normalMap", 1);
@@ -43,9 +49,13 @@ public class WaterRenderer : IRenderer
         _shader.SetUniform("useAO", context.UseAoMap ? 1 : 0);
         _shader.SetUniform("aoMapStrength", context.AoMapStrength);
 
-        _shader.SetUniform("specularMap", 3);
-        _shader.SetUniform("useSpecular", context.UseSpecularMap ? 1 : 0);
-        _shader.SetUniform("specularMapStrength", context.SpecularMapStrength);
+        _shader.SetUniform("metallicMap", 4);
+        _shader.SetUniform("useMetallic", context.UseMetallicMap ? 1 : 0);
+        _shader.SetUniform("metallicStrength", context.MetallicStrength);
+
+        _shader.SetUniform("roughnessMap", 5);
+        _shader.SetUniform("useRoughness", context.UseRoughnessMap ? 1 : 0);
+        _shader.SetUniform("roughnessStrength", context.RoughnessStrength);
 
         _gl.BindVertexArray(_vao);
 

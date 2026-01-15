@@ -15,5 +15,7 @@ public record TextureData(
     byte[] Data,
     byte[]? NormalData = null,
     byte[]? AoData = null,
-    byte[]? SpecularData = null
+    byte[]? SpecularData = null,
+    byte[]? MetallicData = null,
+    byte[]? RoughnessData = null
 );
