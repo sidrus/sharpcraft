@@ -1,4 +1,6 @@
-﻿namespace SharpCraft.Sdk.Universe;
+﻿using SharpCraft.Sdk.Resources;
+
+namespace SharpCraft.Sdk.Universe;
 
 /// <summary>
 /// Provides access to chunk data during generation.
@@ -22,5 +24,5 @@ public interface IChunkData
     /// <param name="y">Local Y [0, 255].</param>
     /// <param name="z">Local Z [0, 15].</param>
     /// <param name="blockId">The namespaced block ID (e.g., "minecraft:stone").</param>
-    void SetBlock(int x, int y, int z, string blockId);
+    void SetBlock(int x, int y, int z, ResourceLocation blockId);
 }

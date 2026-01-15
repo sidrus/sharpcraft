@@ -1,4 +1,6 @@
-﻿namespace SharpCraft.Sdk;
+﻿using SharpCraft.Sdk.Resources;
+
+namespace SharpCraft.Sdk;
 
 /// <summary>
 /// Provides a versioned registry for engine objects.
@@ -7,18 +9,23 @@
 public interface IRegistry<T>
 {
     /// <summary>
+    /// Gets the total number of registered objects in the registry.
+    /// </summary>
+    int Count { get; }
+
+    /// <summary>
     /// Registers an object with the given unique identifier.
     /// </summary>
     /// <param name="id">The unique identifier (e.g., "mod:my_block").</param>
     /// <param name="item">The object to register.</param>
-    void Register(string id, T item);
+    void Register(ResourceLocation id, T item);
 
     /// <summary>
     /// Retrieves an object by its identifier.
     /// </summary>
     /// <param name="id">The unique identifier.</param>
     /// <returns>The registered object.</returns>
-    T Get(string id);
+    T Get(ResourceLocation id);
 
     /// <summary>
     /// Attempts to retrieve an object by its identifier.
@@ -26,10 +33,10 @@ public interface IRegistry<T>
     /// <param name="id">The unique identifier.</param>
     /// <param name="item">The registered object if found.</param>
     /// <returns>True if the object was found; otherwise, false.</returns>
-    bool TryGet(string id, out T? item);
+    bool TryGet(ResourceLocation id, out T? item);
 
     /// <summary>
     /// Gets all registered items.
     /// </summary>
-    IEnumerable<KeyValuePair<string, T>> All { get; }
+    IEnumerable<KeyValuePair<ResourceLocation, T>> All { get; }
 }

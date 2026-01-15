@@ -1,4 +1,5 @@
 ﻿using SharpCraft.Sdk.Blocks;
+using SharpCraft.Sdk.Resources;
 using SharpCraft.Sdk.Universe;
 
 namespace SharpCraft.Engine.Universe;
@@ -11,11 +12,11 @@ public class ChunkDataWrapper(Chunk chunk) : IChunkData
     public int X => (int)(chunk.WorldPosition.X / Chunk.Size);
     public int Z => (int)(chunk.WorldPosition.Z / Chunk.Size);
 
-    public void SetBlock(int x, int y, int z, string blockId)
+    public void SetBlock(int x, int y, int z, ResourceLocation blockId)
     {
         // Simple mapping for Phase 1. 
         // In a full implementation, this would use a registry-based lookup.
-        var type = blockId.ToLower() switch
+        var type = blockId.ToString().ToLower() switch
         {
             "sharpcraft:air" => BlockType.Air,
             "sharpcraft:dirt" => BlockType.Dirt,

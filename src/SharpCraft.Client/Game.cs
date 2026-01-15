@@ -193,10 +193,11 @@ public partial class Game : IDisposable
         var inputContext = _window.CreateInput();
         _input = new InputManager(inputContext);
         _inputProvider = new KeyboardMouseInputProvider(inputContext);
+
+
         _hudManager = new HudManager(_gl, _window, inputContext, _loggerFactory.CreateLogger<HudManager>());
         // HUD initialization is handled synchronously to maintain GL context on main thread
         _hudManager.InitializeAsync().Wait();
-
         if (_hudManager.Settings != null)
         {
             _hudManager.Settings.OnVisibilityChanged += () =>
@@ -210,7 +211,6 @@ public partial class Game : IDisposable
         }
 
         // Initialize Assets and Atlas
-        LoadDefaultAssets();
         _atlas = new TextureAtlas(_gl, _sdk.Assets);
         _atlas.Build();
 
@@ -226,22 +226,6 @@ public partial class Game : IDisposable
         var waterRenderer = new WaterRenderer(_gl, cache, meshManager, _atlas);
         
         _renderPipeline = new DefaultRenderPipeline(_gl, _world, cache, meshManager, terrainRenderer, waterRenderer);
-
-        _lightSystem.AddPointLight(new PointLight
-        {
-            Position = new Vector3(3, 66, -10),
-            Color = new Vector3(1.0f, 0.6f, 0.1f),
-            Intensity = 5f
-        });
-        _lightSystem.AddPointLight(new PointLight
-        {
-            Position = _camera.Position,
-            Color = new Vector3(1.0f, 1.0f, 1.0f)
-        });
-    }
-
-    private void LoadDefaultAssets()
-    {
     }
 
     private readonly Dictionary<BlockType, BlockDefinition> _typeToDef = new();
@@ -252,14 +236,16 @@ public partial class Game : IDisposable
 
         if (!_typeToDef.TryGetValue(type, out var def))
         {
-            foreach (var registered in _sdk.Blocks.All)
+            foreach (var registered in _sdk.Blocks.All.Select(r => r.Value))
             {
-                if (registered.Value.Type == type)
+                if (registered.Type != type)
                 {
-                    def = registered.Value;
-                    _typeToDef[type] = def;
-                    break;
+                    continue;
                 }
+
+                def = registered;
+                _typeToDef[type] = def;
+                break;
             }
         }
 

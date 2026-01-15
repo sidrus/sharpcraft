@@ -35,8 +35,7 @@ public class TextureAtlas(GL gl, IAssetRegistry assets) : IDisposable
 
         for (var i = 0; i < textures.Count; i++)
         {
-            var (id, data) = textures[i];
-            var location = ResourceLocation.Parse(id);
+            var (location, data) = textures[i];
             var row = i / tilesPerRow;
             var col = i % tilesPerRow;
 
@@ -99,7 +98,7 @@ public class TextureAtlas(GL gl, IAssetRegistry assets) : IDisposable
         }
     }
 
-    private void FillLayer(byte[] dst, int xOffset, int yOffset, int dstWidth, int tileW, int tileH, byte r, byte g, byte b, byte a)
+    private static void FillLayer(byte[] dst, int xOffset, int yOffset, int dstWidth, int tileW, int tileH, byte r, byte g, byte b, byte a)
     {
         for (var y = 0; y < tileH; y++)
         {

@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
+using SharpCraft.Sdk.Resources;
 using SharpCraft.Sdk.Universe;
 using IWorldGenerator = SharpCraft.Sdk.Universe.IWorldGenerator;
 
@@ -91,8 +92,8 @@ public class WorldGenerationTests
         registry.Register("test:2", generator2);
 
         registry.All.Should().HaveCount(2);
-        registry.All.Should().Contain(new KeyValuePair<string, IWorldGenerator>("test:1", generator1));
-        registry.All.Should().Contain(new KeyValuePair<string, IWorldGenerator>("test:2", generator2));
+        registry.All.Should().Contain(new KeyValuePair<ResourceLocation, IWorldGenerator>("test:1", generator1));
+        registry.All.Should().Contain(new KeyValuePair<ResourceLocation, IWorldGenerator>("test:2", generator2));
     }
 
     [Fact]

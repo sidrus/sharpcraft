@@ -1,6 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using SharpCraft.Sdk;
 
+using SharpCraft.Sdk.Resources;
+
 namespace SharpCraft.Engine;
 
 /// <summary>
@@ -9,9 +11,11 @@ namespace SharpCraft.Engine;
 /// <typeparam name="T">The type of the object being registered.</typeparam>
 public class Registry<T> : IRegistry<T>
 {
-    private readonly ConcurrentDictionary<string, T> _items = new();
+    private readonly ConcurrentDictionary<ResourceLocation, T> _items = new();
 
-    public virtual void Register(string id, T item)
+    public int Count => _items.Count;
+
+    public virtual void Register(ResourceLocation id, T item)
     {
         if (!_items.TryAdd(id, item))
         {
@@ -19,7 +23,7 @@ public class Registry<T> : IRegistry<T>
         }
     }
 
-    public T Get(string id)
+    public T Get(ResourceLocation id)
     {
         if (_items.TryGetValue(id, out var item))
         {
@@ -29,10 +33,10 @@ public class Registry<T> : IRegistry<T>
         throw new KeyNotFoundException($"Item with ID '{id}' was not found.");
     }
 
-    public bool TryGet(string id, out T? item)
+    public bool TryGet(ResourceLocation id, out T? item)
     {
         return _items.TryGetValue(id, out item);
     }
 
-    public IEnumerable<KeyValuePair<string, T>> All => _items;
+    public IEnumerable<KeyValuePair<ResourceLocation, T>> All => _items;
 }

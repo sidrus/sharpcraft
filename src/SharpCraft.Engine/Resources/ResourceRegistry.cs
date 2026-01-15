@@ -8,13 +8,8 @@ namespace SharpCraft.Engine.Resources;
 /// <typeparam name="T">The type of the resource.</typeparam>
 public class ResourceRegistry<T> : Registry<T>
 {
-    public override void Register(string id, T item)
+    public override void Register(ResourceLocation id, T item)
     {
-        if (!ResourceLocation.TryParse(id, out _))
-        {
-            throw new ArgumentException($"Invalid resource ID: '{id}'. All resources must follow the 'namespace:path' pattern.", nameof(id));
-        }
-
         base.Register(id, item);
     }
 }

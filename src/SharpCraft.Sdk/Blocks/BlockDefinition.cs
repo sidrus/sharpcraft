@@ -15,7 +15,7 @@ namespace SharpCraft.Sdk.Blocks;
 /// <param name="TextureBottom">The texture for the bottom face.</param>
 /// <param name="TextureSides">The texture for the side faces.</param>
 public record BlockDefinition(
-    string Id,
+    ResourceLocation Id,
     string Name,
     BlockType Type = BlockType.Air,
     bool IsSolid = true,

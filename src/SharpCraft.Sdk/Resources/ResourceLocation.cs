@@ -9,6 +9,10 @@ public record ResourceLocation(string Namespace, string Path)
 {
     public override string ToString() => $"{Namespace}:{Path}";
 
+    public static implicit operator ResourceLocation(string location) => Parse(location);
+
+    public static implicit operator string(ResourceLocation location) => location.ToString();
+
     public static ResourceLocation Parse(string location)
     {
         var parts = location.Split(':');
