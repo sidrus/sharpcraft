@@ -3,9 +3,11 @@ using SharpCraft.Client.Controllers;
 using SharpCraft.Client.Rendering.Cameras;
 using SharpCraft.Sdk.Numerics;
 using SharpCraft.Engine.Physics;
+using SharpCraft.Engine.Blocks;
 using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk.Input;
 using SharpCraft.Sdk.Physics;
+using SharpCraft.Sdk.Blocks;
 using Moq;
 using AwesomeAssertions;
 using Xunit;
@@ -14,13 +16,26 @@ namespace SharpCraft.Client.Tests.Controllers;
 
 public class PitchClampingTests
 {
+    private static IBlockRegistry CreateRegistry()
+    {
+        var registry = new BlockRegistry();
+        registry.Register(BlockIds.Air, new BlockDefinition(BlockIds.Air, "Air", IsSolid: false, IsTransparent: true));
+        registry.Register(BlockIds.Water, new BlockDefinition(BlockIds.Water, "Water", IsSolid: false, IsTransparent: true));
+        registry.Register(BlockIds.Stone, new BlockDefinition(BlockIds.Stone, "Stone"));
+        registry.Register(BlockIds.Grass, new BlockDefinition(BlockIds.Grass, "Grass"));
+        registry.Register(BlockIds.Dirt, new BlockDefinition(BlockIds.Dirt, "Dirt"));
+        registry.Register(BlockIds.Sand, new BlockDefinition(BlockIds.Sand, "Sand"));
+        registry.Register(BlockIds.Bedrock, new BlockDefinition(BlockIds.Bedrock, "Bedrock"));
+        return registry;
+    }
+
     [Fact]
     public void Pitch_ShouldBeClamped_WhenLookDeltaIsLarge()
     {
         // Arrange
         var mockPhysicsSystem = new Mock<IPhysicsSystem>();
         var entity = new PhysicsEntity(new Transform(), mockPhysicsSystem.Object);
-        var world = new World();
+        var world = new World(CreateRegistry());
         var camera = new FirstPersonCamera(entity, Vector3.Zero);
         var mockInput = new Mock<IInputProvider>();
         
@@ -47,7 +62,7 @@ public class PitchClampingTests
         // Arrange
         var mockPhysicsSystem = new Mock<IPhysicsSystem>();
         var entity = new PhysicsEntity(new Transform(), mockPhysicsSystem.Object);
-        var world = new World();
+        var world = new World(CreateRegistry());
         var camera = new FirstPersonCamera(entity, Vector3.Zero);
         var mockInput = new Mock<IInputProvider>();
         
@@ -73,7 +88,7 @@ public class PitchClampingTests
         // Arrange
         var mockPhysicsSystem = new Mock<IPhysicsSystem>();
         var entity = new PhysicsEntity(new Transform(), mockPhysicsSystem.Object);
-        var world = new World();
+        var world = new World(CreateRegistry());
         var camera = new FirstPersonCamera(entity, Vector3.Zero);
         var mockInput = new Mock<IInputProvider>();
         var controller = new LocalPlayerController(entity, camera, world, mockInput.Object);

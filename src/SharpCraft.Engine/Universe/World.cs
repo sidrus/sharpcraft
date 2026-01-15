@@ -3,16 +3,22 @@ using System.Numerics;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
 using SharpCraft.Sdk.Physics;
+using SharpCraft.Sdk.Resources;
 
 namespace SharpCraft.Engine.Universe;
 
 /// <summary>
 /// Represents the game world, containing all chunks and entities.
 /// </summary>
-public class World(int seed = 12345) : ICollisionProvider
+public class World(IBlockRegistry blockRegistry, int seed = 12345) : ICollisionProvider
 {
     private readonly ConcurrentDictionary<Vector2<int>, Chunk> _chunks = new();
     private readonly IWorldGenerator _generator = new DefaultWorldGenerator(seed);
+
+    /// <summary>
+    /// Gets the block registry associated with this world.
+    /// </summary>
+    public IBlockRegistry Blocks => blockRegistry;
 
     /// <summary>
     /// Gets the current size of the world (render distance).
@@ -127,7 +133,7 @@ public class World(int seed = 12345) : ICollisionProvider
     {
         if (worldY is < 0 or >= Chunk.Height)
         {
-            return new Block { Type = BlockType.Air };
+            return new Block { Id = BlockIds.Air };
         }
 
         var chunkX = worldX >> 4;
@@ -141,7 +147,7 @@ public class World(int seed = 12345) : ICollisionProvider
             return chunk.GetBlock(localX, worldY, localZ);
         }
 
-        return new Block { Type = BlockType.Air };
+        return new Block { Id = BlockIds.Air };
     }
 
     /// <summary>
@@ -150,8 +156,8 @@ public class World(int seed = 12345) : ICollisionProvider
     /// <param name="worldX">The world X coordinate.</param>
     /// <param name="worldY">The world Y coordinate.</param>
     /// <param name="worldZ">The world Z coordinate.</param>
-    /// <param name="type">The new block type.</param>
-    public void SetBlock(int worldX, int worldY, int worldZ, BlockType type)
+    /// <param name="id">The new block identifier.</param>
+    public void SetBlock(int worldX, int worldY, int worldZ, ResourceLocation id)
     {
         if (worldY is < 0 or >= Chunk.Height)
         {
@@ -165,7 +171,7 @@ public class World(int seed = 12345) : ICollisionProvider
 
         var coord = new Vector2<int>(chunkX, chunkZ);
         var chunk = GetOrCreateChunk(coord);
-        chunk.SetBlock(localX, worldY, localZ, type);
+        chunk.SetBlock(localX, worldY, localZ, id);
     }
 
     /// <summary>

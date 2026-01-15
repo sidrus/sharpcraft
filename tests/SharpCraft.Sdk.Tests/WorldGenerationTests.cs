@@ -18,12 +18,12 @@ public class WorldGenerationTests
             {
                 for (var z = 0; z < 16; z++)
                 {
-                    chunk.SetBlock(x, 0, z, "sharpcraft:bedrock");
+                    chunk.SetBlock(x, 0, z, BlockIds.Bedrock);
                     for (var y = 1; y < 4; y++)
                     {
-                        chunk.SetBlock(x, y, z, "sharpcraft:stone");
+                        chunk.SetBlock(x, y, z, BlockIds.Stone);
                     }
-                    chunk.SetBlock(x, 4, z, "sharpcraft:grass");
+                    chunk.SetBlock(x, 4, z, BlockIds.Grass);
                 }
             }
         }
@@ -41,10 +41,10 @@ public class WorldGenerationTests
         bridge.GenerateChunk(chunk);
 
         // Assert
-        chunk.GetBlock(0, 0, 0).Type.Should().Be(BlockType.Bedrock);
-        chunk.GetBlock(0, 1, 0).Type.Should().Be(BlockType.Stone);
-        chunk.GetBlock(0, 4, 0).Type.Should().Be(BlockType.Grass);
-        chunk.GetBlock(0, 5, 0).Type.Should().Be(BlockType.Air);
+        chunk.GetBlock(0, 0, 0).Id.Should().Be(BlockIds.Bedrock);
+        chunk.GetBlock(0, 1, 0).Id.Should().Be(BlockIds.Stone);
+        chunk.GetBlock(0, 4, 0).Id.Should().Be(BlockIds.Grass);
+        chunk.GetBlock(0, 5, 0).Id.Should().Be(BlockIds.Air);
     }
 
     [Fact]

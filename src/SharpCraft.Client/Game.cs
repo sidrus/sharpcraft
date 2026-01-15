@@ -228,28 +228,11 @@ public partial class Game : IDisposable
         _renderPipeline = new DefaultRenderPipeline(_gl, _world, cache, meshManager, terrainRenderer, waterRenderer);
     }
 
-    private readonly Dictionary<BlockType, BlockDefinition> _typeToDef = new();
-
-    private void ResolveUvs(BlockType type, Direction dir, Span<float> uvs)
+    private void ResolveUvs(ResourceLocation id, Direction dir, Span<float> uvs)
     {
         if (_atlas == null) return;
 
-        if (!_typeToDef.TryGetValue(type, out var def))
-        {
-            foreach (var registered in _sdk.Blocks.All.Select(r => r.Value))
-            {
-                if (registered.Type != type)
-                {
-                    continue;
-                }
-
-                def = registered;
-                _typeToDef[type] = def;
-                break;
-            }
-        }
-
-        if (def == null)
+        if (!_sdk.Blocks.TryGet(id, out var def))
         {
             // Default UVs
             for (var i = 0; i < 8; i++) uvs[i] = 0;

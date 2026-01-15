@@ -35,14 +35,12 @@ public class DefaultPlayerMotor : IMotor
     private (float gravity, float terminalVelocity, float walkSpeed, bool canJump) CalculatePhysicsState(IPhysicsEntity entity, MovementIntent intent)
     {
         var isGrounded = SensorData?.IsGrounded ?? entity.IsGrounded;
-        var blockBelow = SensorData?.BlockBelow ?? default;
-
-        var canJump = isGrounded && blockBelow.IsSolid;
+        var canJump = isGrounded && (SensorData?.BelowIsSolid ?? false);
 
         var gravity = PhysicsConstants.DefaultGravity;
         var density = PhysicsConstants.AirDensity;
         var walkSpeed = WalkSpeed;
-        var friction = canJump ? blockBelow.Friction : PhysicsConstants.AirFriction;
+        var friction = canJump ? (SensorData?.BelowFriction ?? 0.5f) : PhysicsConstants.AirFriction;
 
         if (intent.IsFlying)
         {

@@ -9,44 +9,44 @@ public static class CoreBlocks
     public static readonly BlockDefinition[] Definitions =
     [
         new(
-            "sharpcraft:grass",
+            BlockIds.Air,
+            "Air",
+            IsSolid: false,
+            IsTransparent: true
+        ),
+        new(
+            BlockIds.Grass,
             "Grass",
-            Type: BlockType.Grass,
-            TextureTop: new ResourceLocation(CoreBlocksMod.Namespace, "grass_top"),
-            TextureBottom: new ResourceLocation(CoreBlocksMod.Namespace, "dirt"),
-            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "grass_side")
+            TextureTop: new ResourceLocation(CoreBlocksMod.Namespace, "textures/block/grass_top"),
+            TextureBottom: new ResourceLocation(CoreBlocksMod.Namespace, "textures/block/dirt"),
+            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "textures/block/grass_side")
         ),
         new(
-            "sharpcraft:dirt",
+            BlockIds.Dirt,
             "Dirt",
-            Type: BlockType.Dirt,
-            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "dirt")
+            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "textures/block/dirt")
         ),
         new(
-            "sharpcraft:stone",
+            BlockIds.Stone,
             "Stone",
-            Type: BlockType.Stone,
-            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "stone")
+            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "textures/block/stone")
         ),
         new(
-            "sharpcraft:sand",
+            BlockIds.Sand,
             "Sand",
-            Type: BlockType.Sand,
-            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "sand")
+            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "textures/block/sand")
         ),
         new(
-            "sharpcraft:water",
+            BlockIds.Water,
             "Water",
-            Type: BlockType.Water,
             IsSolid: false,
             IsTransparent: true,
-            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "water")
+            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "textures/block/water")
         ),
         new(
-            "sharpcraft:bedrock",
+            BlockIds.Bedrock,
             "Bedrock",
-            Type: BlockType.Bedrock,
-            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "bedrock")
+            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "textures/block/bedrock")
         )
     ];
 }

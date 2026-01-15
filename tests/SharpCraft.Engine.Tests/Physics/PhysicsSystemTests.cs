@@ -1,8 +1,10 @@
 ﻿using System.Numerics;
 using SharpCraft.Engine.Physics;
+using SharpCraft.Engine.Blocks;
 using AwesomeAssertions;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Physics;
+using SharpCraft.Sdk.Resources;
 
 namespace SharpCraft.Engine.Tests.Physics;
 
@@ -10,15 +12,23 @@ public class PhysicsSystemTests
 {
     private class FakeCollisionProvider : ICollisionProvider
     {
-        public Dictionary<Vector3, BlockType> Blocks = new();
+        public Dictionary<Vector3, ResourceLocation> BlockMap = new();
+
+        public IBlockRegistry Blocks { get; } = new BlockRegistry();
+
+        public FakeCollisionProvider()
+        {
+            Blocks.Register(BlockIds.Air, new BlockDefinition(BlockIds.Air, "Air", IsSolid: false, IsTransparent: true));
+            Blocks.Register(BlockIds.Stone, new BlockDefinition(BlockIds.Stone, "Stone"));
+        }
 
         public Block GetBlock(int worldX, int worldY, int worldZ)
         {
-            if (Blocks.TryGetValue(new Vector3(worldX, worldY, worldZ), out var type))
+            if (BlockMap.TryGetValue(new Vector3(worldX, worldY, worldZ), out var id))
             {
-                return new Block { Type = type };
+                return new Block { Id = id };
             }
-            return new Block { Type = BlockType.Air };
+            return new Block { Id = BlockIds.Air };
         }
     }
 
@@ -39,13 +49,9 @@ public class PhysicsSystemTests
     [Fact]
     public void MoveAndResolve_ShouldSnapToWall_WhenCollidingOnX()
     {
-        var world = new FakeCollisionProvider
-        {
-            Blocks =
-            {
-                [new Vector3(11, 10, 10)] = BlockType.Stone
-            }
-        };
+        var world = new FakeCollisionProvider();
+        world.BlockMap[new Vector3(11, 10, 10)] = BlockIds.Stone;
+        
         var system = new PhysicsSystem(world);
         var startPos = new Vector3(10.5f, 10, 10.5f);
         var velocity = new Vector3(0.5f, 0, 0); // Should hit block at X=11
@@ -63,13 +69,9 @@ public class PhysicsSystemTests
     [Fact]
     public void MoveAndResolve_ShouldSnapToFloor_WhenCollidingOnY()
     {
-        var world = new FakeCollisionProvider
-        {
-            Blocks =
-            {
-                [new Vector3(10, 9, 10)] = BlockType.Stone
-            }
-        };
+        var world = new FakeCollisionProvider();
+        world.BlockMap[new Vector3(10, 9, 10)] = BlockIds.Stone;
+
         var system = new PhysicsSystem(world);
         var startPos = new Vector3(10.5f, 10.0f, 10.5f);
         var velocity = new Vector3(0, -0.1f, 0); // Moving down
@@ -87,13 +89,9 @@ public class PhysicsSystemTests
     [Fact]
     public void MoveAndResolve_ShouldSnapToCeiling_WhenCollidingOnY()
     {
-        var world = new FakeCollisionProvider
-        {
-            Blocks =
-            {
-                [new Vector3(10, 12, 10)] = BlockType.Stone
-            }
-        };
+        var world = new FakeCollisionProvider();
+        world.BlockMap[new Vector3(10, 12, 10)] = BlockIds.Stone;
+
         var system = new PhysicsSystem(world);
         var startPos = new Vector3(10.5f, 10.0f, 10.5f); // MaxY = 11.8. No overlap with block at Y=12.
         var velocity = new Vector3(0, 0.5f, 0); // Moving up. New MaxY = 12.3.

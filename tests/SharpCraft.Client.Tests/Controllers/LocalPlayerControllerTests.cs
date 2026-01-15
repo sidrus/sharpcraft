@@ -2,12 +2,12 @@
 using SharpCraft.Client.Controllers;
 using SharpCraft.Client.Rendering.Cameras;
 using SharpCraft.Engine.Physics;
+using SharpCraft.Engine.Blocks;
 using SharpCraft.Sdk.Physics;
 using Moq;
 using AwesomeAssertions;
 using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk.Blocks;
-
 using SharpCraft.Sdk.Input;
 
 namespace SharpCraft.Client.Tests.Controllers;
@@ -16,17 +16,30 @@ public class LocalPlayerControllerTests
 {
     private readonly IInputProvider _inputProvider = Mock.Of<IInputProvider>();
 
+    private static IBlockRegistry CreateRegistry()
+    {
+        var registry = new BlockRegistry();
+        registry.Register(BlockIds.Air, new BlockDefinition(BlockIds.Air, "Air", IsSolid: false, IsTransparent: true));
+        registry.Register(BlockIds.Water, new BlockDefinition(BlockIds.Water, "Water", IsSolid: false, IsTransparent: true));
+        registry.Register(BlockIds.Stone, new BlockDefinition(BlockIds.Stone, "Stone"));
+        registry.Register(BlockIds.Grass, new BlockDefinition(BlockIds.Grass, "Grass"));
+        registry.Register(BlockIds.Dirt, new BlockDefinition(BlockIds.Dirt, "Dirt"));
+        registry.Register(BlockIds.Sand, new BlockDefinition(BlockIds.Sand, "Sand"));
+        registry.Register(BlockIds.Bedrock, new BlockDefinition(BlockIds.Bedrock, "Bedrock"));
+        return registry;
+    }
+
     [Fact]
     public void Update_WhenHoldingSpaceOnWaterSurface_ShouldEventuallySubmergeDeeply()
     {
         // Setup
-        var world = new World();
+        var world = new World(CreateRegistry());
         // Water at Y=63 (occupies 63.0 to 64.0)
         for (var x = -5; x <= 5; x++)
         {
             for (var z = -5; z <= 5; z++)
             {
-                world.SetBlock(x, 63, z, BlockType.Water);
+                world.SetBlock(x, 63, z, BlockIds.Water);
             }
         }
 
@@ -64,13 +77,13 @@ public class LocalPlayerControllerTests
     public void Update_WhenHoldingSpaceAtShallowSwimmingDepth_ShouldNotSink()
     {
         // Setup
-        var world = new World();
+        var world = new World(CreateRegistry());
         // Water at Y=63 (occupies 63.0 to 64.0)
         for (var x = -5; x <= 5; x++)
         {
             for (var z = -5; z <= 5; z++)
             {
-                world.SetBlock(x, 63, z, BlockType.Water);
+                world.SetBlock(x, 63, z, BlockIds.Water);
             }
         }
 
@@ -103,12 +116,12 @@ public class LocalPlayerControllerTests
     public void Update_WhenJumpingFromDepth_ShouldBeAbleToReachAboveSurface()
     {
         // Setup
-        var world = new World();
+        var world = new World(CreateRegistry());
         for (var x = -5; x <= 5; x++)
         {
             for (var z = -5; z <= 5; z++)
             {
-                world.SetBlock(x, 63, z, BlockType.Water);
+                world.SetBlock(x, 63, z, BlockIds.Water);
             }
         }
 
@@ -144,7 +157,7 @@ public class LocalPlayerControllerTests
     public void Properties_WhenAccessedBeforeSense_ShouldNotThrow()
     {
         // Setup
-        var world = new World();
+        var world = new World(CreateRegistry());
         var mockCamera = new Mock<ICamera>();
         var mockPhysicsSystem = new Mock<IPhysicsSystem>();
         var entity = new PhysicsEntity(new Transform(), mockPhysicsSystem.Object);

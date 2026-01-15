@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using SharpCraft.Engine.Physics;
+using SharpCraft.Engine.Blocks;
 using SharpCraft.Sdk.Physics;
 using AwesomeAssertions;
 using Moq;
@@ -12,6 +13,14 @@ public class SpatialSensorTests
 {
     private readonly Mock<IPhysicsSystem> _physicsMock = new();
     private readonly Mock<ICollisionProvider> _collisionProviderMock = new();
+    private readonly IBlockRegistry _blockRegistry = new BlockRegistry();
+
+    public SpatialSensorTests()
+    {
+        _blockRegistry.Register(BlockIds.Air, new BlockDefinition(BlockIds.Air, "Air", IsSolid: false, IsTransparent: true));
+        _blockRegistry.Register(BlockIds.Water, new BlockDefinition(BlockIds.Water, "Water", IsSolid: false, IsTransparent: true));
+        _collisionProviderMock.Setup(c => c.Blocks).Returns(_blockRegistry);
+    }
 
     [Fact]
     public void SpatialSensor_Sense_ShouldPopulateBasicData()
@@ -21,7 +30,7 @@ public class SpatialSensorTests
         var entity = new PhysicsEntity(new Transform { Position = new Vector3(0.5f, 1.0f, 0.5f) }, _physicsMock.Object);
         
         _collisionProviderMock.Setup(w => w.GetBlock(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
-            .Returns(new Block { Type = BlockType.Air });
+            .Returns(new Block { Id = BlockIds.Air });
 
         // Act
         // We use a custom sensor that overrides CreateData to use our mock, 
@@ -50,7 +59,7 @@ public class SpatialSensorTests
         var entity = new PhysicsEntity(transform, _physicsMock.Object);
         
         _collisionProviderMock.Setup(w => w.GetBlock(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
-            .Returns(new Block { Type = BlockType.Air });
+            .Returns(new Block { Id = BlockIds.Air });
 
         // Act
         var result = sensor.Sense(null!, entity);

@@ -75,7 +75,9 @@ public sealed class PhysicsSystem(ICollisionProvider world) : IPhysicsSystem
             {
                 for (var z = minZ; z <= maxZ; z++)
                 {
-                    if (world.GetBlock(x, y, z).IsSolid)
+                    var block = world.GetBlock(x, y, z);
+                    var def = world.Blocks.Get(block.Id);
+                    if (def.IsSolid)
                     {
                         var blockAABB = new AABB(new Vector3(x, y, z), new Vector3(x + 1, y + 1, z + 1));
                         if (entityAABB.Intersects(blockAABB))

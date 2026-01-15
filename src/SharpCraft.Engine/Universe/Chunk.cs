@@ -2,6 +2,7 @@
 using SharpCraft.Sdk;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
+using SharpCraft.Sdk.Resources;
 
 namespace SharpCraft.Engine.Universe;
 
@@ -64,10 +65,11 @@ public class Chunk(Vector2<int> coord)
     {
         if (x < 0 || x >= Size || y < 0 || y >= Height || z < 0 || z >= Size)
         {
-            return new Block { Type = BlockType.Air };
+            return new Block { Id = BlockIds.Air };
         }
 
-        return _blocks[x, y, z];
+        var block = _blocks[x, y, z];
+        return block.Id == null ? new Block { Id = BlockIds.Air } : block;
     }
 
     /// <summary>
@@ -76,22 +78,22 @@ public class Chunk(Vector2<int> coord)
     /// <param name="x">Local X [0, Size-1].</param>
     /// <param name="y">Local Y [0, Height-1].</param>
     /// <param name="z">Local Z [0, Size-1].</param>
-    /// <param name="type">The new block type.</param>
-    public void SetBlock(int x, int y, int z, BlockType type)
+    /// <param name="id">The new block identifier.</param>
+    public void SetBlock(int x, int y, int z, ResourceLocation id)
     {
         if (x < 0 || x >= Size || y < 0 || y >= Height || z < 0 || z >= Size)
         {
             return;
         }
 
-        _blocks[x, y, z].Type = type;
+        _blocks[x, y, z].Id = id;
         IsDirty = true;
     }
 
     /// <summary>
     /// A delegate that resolves UV coordinates for a block type and face direction.
     /// </summary>
-    public delegate void UvResolver(BlockType type, Direction dir, Span<float> uvs);
+    public delegate void UvResolver(ResourceLocation id, Direction dir, Span<float> uvs);
 
     /// <summary>
     /// Generates the visual meshes for the chunk.
@@ -117,30 +119,31 @@ public class Chunk(Vector2<int> coord)
                 for (var z = 0; z < Size; z++)
                 {
                     var block = _blocks[x, y, z];
-                    if (block.Type == BlockType.Air) continue;
+                    if (block.IsAir) continue;
 
-                    var isTransparent = block.IsTransparent;
+                    var def = world.Blocks.Get(block.Id);
+                    var isTransparent = def.IsTransparent;
                     var vList = isTransparent ? transparentVerts : opaqueVerts;
                     var iList = isTransparent ? transparentIndices : opaqueIndices;
                     ref var offset = ref isTransparent ? ref transparentIndexOffset : ref opaqueIndexOffset;
 
                     if (ShouldRenderFace(world, x, y, z - 1, isTransparent)) // North (-Z)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.North, block.Type, uvResolver);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.North, block.Id, uvResolver);
 
                     if (ShouldRenderFace(world, x, y, z + 1, isTransparent)) // South (+Z)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.South, block.Type, uvResolver);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.South, block.Id, uvResolver);
 
                     if (ShouldRenderFace(world, x + 1, y, z, isTransparent)) // East (+X)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.East, block.Type, uvResolver);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.East, block.Id, uvResolver);
 
                     if (ShouldRenderFace(world, x - 1, y, z, isTransparent)) // West (-X)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.West, block.Type, uvResolver);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.West, block.Id, uvResolver);
 
                     if (ShouldRenderFace(world, x, y + 1, z, isTransparent)) // Up (+Y)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.Up, block.Type, uvResolver);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.Up, block.Id, uvResolver);
 
                     if (ShouldRenderFace(world, x, y - 1, z, isTransparent)) // Down (-Y)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.Down, block.Type, uvResolver);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.Down, block.Id, uvResolver);
                 }
             }
         }
@@ -163,14 +166,16 @@ public class Chunk(Vector2<int> coord)
         if (x is >= 0 and < Size && y is >= 0 and < Height && z is >= 0 and < Size)
         {
             var neighbor = _blocks[x, y, z];
-            if (neighbor.Type == BlockType.Air) return true;
+            if (neighbor.IsAir) return true;
+
+            var neighborDef = world.Blocks.Get(neighbor.Id);
 
             // If we are water, don't render against water
-            if (currentIsTransparent) return !neighbor.IsTransparent;
+            if (currentIsTransparent) return !neighborDef.IsTransparent;
 
             // If we are solid (e.g. Sand), don't render against Water to prevent Z-fighting
             // Only render solid faces against Air or non-water transparency (like Glass)
-            return neighbor.IsTransparent && neighbor.Type != BlockType.Water;
+            return neighborDef.IsTransparent && neighbor.Id != BlockIds.Water;
         }
 
         // 2. Check neighboring chunk
@@ -180,13 +185,15 @@ public class Chunk(Vector2<int> coord)
         if (y is < 0 or >= Height) return true;
 
         var neighborBlock = world.GetBlock(worldX, y, worldZ);
-        if (neighborBlock.Type == BlockType.Air) return true;
-        if (currentIsTransparent) return !neighborBlock.IsTransparent;
-        return neighborBlock.IsTransparent && neighborBlock.Type != BlockType.Water;
+        if (neighborBlock.IsAir) return true;
+
+        var neighborBlockDef = world.Blocks.Get(neighborBlock.Id);
+        if (currentIsTransparent) return !neighborBlockDef.IsTransparent;
+        return neighborBlockDef.IsTransparent && neighborBlock.Id != BlockIds.Water;
     }
 
     private static void AddFace(List<float> vertices, List<uint> indices, ref uint offset,
-        int x, int y, int z, Direction dir, BlockType type, UvResolver uvResolver)
+        int x, int y, int z, Direction dir, ResourceLocation id, UvResolver uvResolver)
     {
         // Two triangles per face
         indices.Add(offset);
@@ -244,7 +251,7 @@ public class Chunk(Vector2<int> coord)
 
         // Texture data
         Span<float> uvs = stackalloc float[8];
-        uvResolver(type, dir, uvs);
+        uvResolver(id, dir, uvs);
 
         // Normals
         float nx = 0, ny = 0, nz = 0;

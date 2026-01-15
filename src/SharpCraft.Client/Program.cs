@@ -69,7 +69,7 @@ catch (Exception e)
 
 // World Generation
 logger.LogInformation("Generating world...");
-var world = new World(seed: 42);
+var world = new World(blocks, seed: 42);
 await world.GenerateAsync(32, System.Numerics.Vector3.Zero);
 logger.LogInformation("World generation complete");
 

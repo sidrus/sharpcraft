@@ -65,11 +65,15 @@ public class SpatialSensor : ISensor<SpatialSensorData>
             (int)Math.Floor(pos.Y + 0.5f),
             (int)Math.Floor(pos.Z));
 
-        var isUnderwater = blockAbove.Type == BlockType.Water;
-        var isSwimming = isUnderwater || blockAtMid.Type == BlockType.Water;
-        var isOnWaterSurface = blockBelow.Type == BlockType.Water && !isSwimming;
-        var isFlying = blockAbove.Type == BlockType.Air && blockBelow.Type == BlockType.Air;
-        var isGrounded = blockBelow.IsSolid && blockAbove.Type == BlockType.Air;
+        var defBelow = collisionProvider.Blocks.Get(blockBelow.Id);
+        var defAbove = collisionProvider.Blocks.Get(blockAbove.Id);
+        var defMid = collisionProvider.Blocks.Get(blockAtMid.Id);
+
+        var isUnderwater = blockAbove.Id == BlockIds.Water;
+        var isSwimming = isUnderwater || blockAtMid.Id == BlockIds.Water;
+        var isOnWaterSurface = blockBelow.Id == BlockIds.Water && !isSwimming;
+        var isFlying = blockAbove.IsAir && blockBelow.IsAir;
+        var isGrounded = defBelow.IsSolid && blockAbove.IsAir;
 
         // Calculate SubmersionDepth (how deep the feet are into water)
         // Water surface is at floor(Y) + 1.0 if the block at floor(Y) is water.
@@ -78,11 +82,11 @@ public class SpatialSensor : ISensor<SpatialSensorData>
         var blockAtFeet = collisionProvider.GetBlock((int)Math.Floor(pos.X), currentBlockY, (int)Math.Floor(pos.Z));
 
         var submersionDepth = 0f;
-        if (blockAtFeet.Type == BlockType.Water)
+        if (blockAtFeet.Id == BlockIds.Water)
         {
             submersionDepth = (currentBlockY + 1) - pos.Y;
         }
-        else if (collisionProvider.GetBlock((int)Math.Floor(pos.X), currentBlockY - 1, (int)Math.Floor(pos.Z)).Type == BlockType.Water)
+        else if (collisionProvider.GetBlock((int)Math.Floor(pos.X), currentBlockY - 1, (int)Math.Floor(pos.Z)).Id == BlockIds.Water)
         {
             // If feet are just above water (e.g. at 64.04), depth is negative
             submersionDepth = currentBlockY - pos.Y;
@@ -96,6 +100,8 @@ public class SpatialSensor : ISensor<SpatialSensorData>
         {
             BlockBelow = blockBelow,
             BlockAbove = blockAbove,
+            BelowFriction = defBelow.Friction,
+            BelowIsSolid = defBelow.IsSolid,
             IsUnderwater = isUnderwater,
             IsSwimming = isSwimming,
             IsFlying = isFlying,

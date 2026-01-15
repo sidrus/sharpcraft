@@ -5,6 +5,4 @@ namespace SharpCraft.Sdk.Assets;
 /// <summary>
 /// A registry for assets like textures.
 /// </summary>
-public interface IAssetRegistry : IRegistry<TextureData>
-{
-}
+public interface IAssetRegistry : IRegistry<TextureData>;

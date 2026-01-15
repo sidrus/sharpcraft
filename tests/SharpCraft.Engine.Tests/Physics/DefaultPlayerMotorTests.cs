@@ -74,7 +74,9 @@ public class DefaultPlayerMotorTests
             SensorData = new SpatialSensorData
             {
                 IsGrounded = true,
-                BlockBelow = new Block { Type = BlockType.Stone } // Solid block
+                BlockBelow = new Block { Id = BlockIds.Stone },
+                BelowIsSolid = true,
+                BelowFriction = 0.5f
             }
         };
 
