@@ -30,6 +30,7 @@ public partial class Game : IDisposable
     private readonly ILogger<Game> _logger;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ISharpCraftSdk _sdk;
+    private readonly IEnumerable<SharpCraft.Sdk.Lifecycle.IMod> _mods;
     private InputManager? _input;
     private KeyboardMouseInputProvider? _inputProvider;
     private HudManager? _hudManager;
@@ -47,11 +48,12 @@ public partial class Game : IDisposable
     private Vector2<int>? _lastPlayerChunk;
     private Task? _worldUpdateTask;
 
-    public Game(IWindow window, World world, ILoggerFactory loggerFactory, ISharpCraftSdk sdk)
+    public Game(IWindow window, World world, ILoggerFactory loggerFactory, ISharpCraftSdk sdk, IEnumerable<SharpCraft.Sdk.Lifecycle.IMod> mods)
     {
         _world = world;
         _loggerFactory = loggerFactory;
         _sdk = sdk;
+        _mods = mods;
         _logger = loggerFactory.CreateLogger<Game>();
 
         _window = window;
@@ -173,7 +175,7 @@ public partial class Game : IDisposable
         );
 
         _renderPipeline.Execute(_world, context);
-        _hudManager.Render((float)deltaTime, _world, _playerController, _renderPipeline.MeshManager, _lightSystem);
+        _hudManager.Render((float)deltaTime, _world, _playerController, _renderPipeline.MeshManager, _lightSystem, _sdk, _mods);
     }
 
     private void InitializeGraphicsState()

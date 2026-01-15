@@ -44,6 +44,12 @@ public class DebugHud : Hud
                     DrawEnvironmentTab(context.Player);
                     ImGui.EndTabItem();
                 }
+
+                if (ImGui.BeginTabItem("Mods"))
+                {
+                    DrawModsTab(context);
+                    ImGui.EndTabItem();
+                }
                 
                 ImGui.EndTabBar();
             }
@@ -131,5 +137,55 @@ public class DebugHud : Hud
             Gui.Property("Friction", player.Friction.ToString("F2"));
             Gui.Property("Is Solid", $"{player.BlockBelow.IsSolid}");
         });
+    }
+
+    private static void DrawModsTab(HudContext context)
+    {
+        if (context.LoadedMods == null || context.Sdk == null)
+        {
+            ImGui.Text("No mod information available.");
+            return;
+        }
+
+        foreach (var mod in context.LoadedMods)
+        {
+            var manifest = mod.Manifest;
+            if (ImGui.CollapsingHeader($"{manifest.Name} ({manifest.Version})###{manifest.Id}"))
+            {
+                ImGui.Indent();
+                ImGui.Text($"ID: {manifest.Id}");
+                ImGui.Text($"Author: {manifest.Author}");
+                ImGui.Spacing();
+
+                ImGui.Text("Resources:");
+                DrawResourceCount("Blocks", context.Sdk.Blocks.All, manifest.Id);
+                DrawResourceCount("Assets", context.Sdk.Assets.All, manifest.Id);
+                DrawCommandCount(context.Sdk.Commands.All, manifest.Id);
+                DrawResourceCount("World Generators", context.Sdk.World.All, manifest.Id);
+                
+                ImGui.Unindent();
+                ImGui.Spacing();
+            }
+        }
+    }
+
+    private static void DrawResourceCount<T>(string label, IEnumerable<KeyValuePair<SharpCraft.Sdk.Resources.ResourceLocation, T>> registry, string modId)
+    {
+        var count = registry.Count(kv => kv.Key.Namespace == modId);
+        if (count > 0)
+        {
+            ImGui.Text($"- {label}: {count}");
+        }
+    }
+
+    private static void DrawCommandCount(IReadOnlyDictionary<string, Action<SharpCraft.Sdk.Commands.CommandContext>> commands, string modId)
+    {
+        // Commands are registered by name, usually "modid:command" or just "command" (if they didn't follow namespacing)
+        // Let's assume they might use namespacing in their names.
+        var count = commands.Count(kv => kv.Key.StartsWith($"{modId}:"));
+        if (count > 0)
+        {
+            ImGui.Text($"- Commands: {count}");
+        }
     }
 }

@@ -13,6 +13,11 @@ public record CommandContext(string Caller, string[] Args);
 public interface ICommandRegistry
 {
     /// <summary>
+    /// Gets all registered commands.
+    /// </summary>
+    IReadOnlyDictionary<string, Action<CommandContext>> All { get; }
+
+    /// <summary>
     /// Registers a command.
     /// </summary>
     /// <param name="name">The name of the command (without the slash).</param>

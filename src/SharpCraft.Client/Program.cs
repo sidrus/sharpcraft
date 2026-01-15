@@ -86,7 +86,7 @@ var opts = WindowOptions.Default with
 
 logger.LogInformation("Creating game window...");
 using var window = Window.Create(opts);
-using var game = new Game(window, world, loggerFactory, sdk);
+using var game = new Game(window, world, loggerFactory, sdk, modLoader.LoadedMods);
 
 // Game Loop
 logger.LogInformation("Entering game loop...");

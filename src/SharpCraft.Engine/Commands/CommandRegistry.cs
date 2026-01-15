@@ -10,6 +10,8 @@ public class CommandRegistry : ICommandRegistry
 {
     private readonly ConcurrentDictionary<string, Action<CommandContext>> _commands = new();
 
+    public IReadOnlyDictionary<string, Action<CommandContext>> All => _commands;
+
     public void RegisterCommand(string name, Action<CommandContext> handler)
     {
         name = name.TrimStart('/').ToLower();

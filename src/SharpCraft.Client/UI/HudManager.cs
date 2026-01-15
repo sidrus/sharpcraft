@@ -7,6 +7,7 @@ using SharpCraft.Client.UI.Debug;
 using SharpCraft.Client.UI.Main;
 using SharpCraft.Client.UI.Settings;
 using SharpCraft.Engine.Universe;
+using SharpCraft.Sdk;
 using SharpCraft.Sdk.Lifecycle;
 using Silk.NET.Input;
 using Silk.NET.OpenGL;
@@ -182,20 +183,24 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
     private LocalPlayerController? _player;
     private ChunkMeshManager? _meshManager;
     private LightingSystem? _lighting;
+    private ISharpCraftSdk? _sdk;
+    private IEnumerable<IMod>? _mods;
 
-    public void SetContext(World world, LocalPlayerController? player, ChunkMeshManager? meshManager, LightingSystem? lighting)
+    public void SetContext(World world, LocalPlayerController? player, ChunkMeshManager? meshManager, LightingSystem? lighting, ISharpCraftSdk? sdk = null, IEnumerable<IMod>? mods = null)
     {
         _world = world;
         _player = player;
         _meshManager = meshManager;
         _lighting = lighting;
+        _sdk = sdk;
+        _mods = mods;
     }
 
     public void OnRender(double deltaTime)
     {
         if (_world == null) return;
 
-        var context = new HudContext(_world, _player, _meshManager, _lighting);
+        var context = new HudContext(_world, _player, _meshManager, _lighting, _sdk, _mods);
         foreach (var hud in _huds)
         {
             hud.Value.Draw(deltaTime, context);
@@ -203,9 +208,9 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
         _controller.Render();
     }
 
-    public void Render(float deltaTime, World world, LocalPlayerController? player, ChunkMeshManager? meshManager, LightingSystem? lighting)
+    public void Render(float deltaTime, World world, LocalPlayerController? player, ChunkMeshManager? meshManager, LightingSystem? lighting, ISharpCraftSdk? sdk = null, IEnumerable<IMod>? mods = null)
     {
-        SetContext(world, player, meshManager, lighting);
+        SetContext(world, player, meshManager, lighting, sdk, mods);
         OnRender(deltaTime);
     }
 
