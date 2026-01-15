@@ -1,6 +1,4 @@
-﻿using SharpCraft.Sdk.Resources;
-
-namespace SharpCraft.Sdk.Blocks;
+﻿namespace SharpCraft.Sdk.Blocks;
 
 /// <summary>
 /// Represents a single block in the world.
@@ -8,29 +6,32 @@ namespace SharpCraft.Sdk.Blocks;
 public struct Block
 {
     /// <summary>
-    /// Gets or sets the unique identifier of the block type.
+    /// Gets or sets the type of the block.
     /// </summary>
-    public ResourceLocation Id { get; set; }
+    public BlockType Type { get; set; }
 
     /// <summary>
-    /// Gets a value indicating whether this block is air.
+    /// Gets a value indicating whether the block is solid (collidable).
     /// </summary>
-    public bool IsAir => Id == null || Id == BlockIds.Air;
-}
+    public bool IsSolid => Type != BlockType.Air &&
+                           Type != BlockType.Water &&
+                           Type != BlockType.Lava;
 
-/// <summary>
-/// Common block identifiers.
-/// </summary>
-public static class BlockIds
-{
-    private const string SharpcraftNamespace = "sharpcraft";
-    
-    public static readonly ResourceLocation Air = new(SharpcraftNamespace, "blocks/air/default");
-    public static readonly ResourceLocation Grass = new(SharpcraftNamespace, "blocks/grass/default");
-    public static readonly ResourceLocation Dirt = new(SharpcraftNamespace, "blocks/dirt/default");
-    public static readonly ResourceLocation Stone = new(SharpcraftNamespace, "blocks/stone/default");
-    public static readonly ResourceLocation Sand = new(SharpcraftNamespace, "blocks/sand/default");
-    public static readonly ResourceLocation Water = new(SharpcraftNamespace, "blocks/water/default");
-    public static readonly ResourceLocation Bedrock = new(SharpcraftNamespace, "blocks/bedrock/default");
-    public static readonly ResourceLocation Lava = new(SharpcraftNamespace, "blocks/lava/default");
+    /// <summary>
+    /// Gets a value indicating whether the block is transparent.
+    /// </summary>
+    public bool IsTransparent => Type is BlockType.Air or BlockType.Water;
+
+    /// <summary>
+    /// Gets the friction coefficient of the block.
+    /// </summary>
+    public float Friction => Type switch
+    {
+        BlockType.Grass => 0.5f,
+        BlockType.Dirt => 0.5f,
+        BlockType.Stone => 0.5f,
+        BlockType.Air => 0.01f,
+        BlockType.Water => 1f,
+        _ => 0.8f
+    };
 }

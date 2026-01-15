@@ -30,14 +30,14 @@ public class SuperFlatGenerator : IWorldGenerator
         {
             for (int z = 0; z < 16; z++)
             {
-                chunk.SetBlock(x, 0, z, "sharpcraft:blocks/bedrock/default");
+                chunk.SetBlock(x, 0, z, "sharpcraft:bedrock");
                 
                 for (int y = 1; y < 4; y++)
                 {
-                    chunk.SetBlock(x, y, z, "sharpcraft:blocks/stone/default");
+                    chunk.SetBlock(x, y, z, "sharpcraft:dirt");
                 }
                 
-                chunk.SetBlock(x, 4, z, "sharpcraft:blocks/grass/default");
+                chunk.SetBlock(x, 4, z, "sharpcraft:grass");
             }
         }
     }
@@ -91,11 +91,11 @@ public class DesertGenerator : IWorldGenerator
             for (int z = 0; z < 16; z++)
             {
                 // Simple desert: bedrock + sand
-                chunk.SetBlock(x, 0, z, "sharpcraft:blocks/bedrock/default");
+                chunk.SetBlock(x, 0, z, "sharpcraft:bedrock");
                 
                 for (int y = 1; y < 5; y++)
                 {
-                    chunk.SetBlock(x, y, z, "sharpcraft:blocks/sand/default");
+                    chunk.SetBlock(x, y, z, "sharpcraft:sand");
                 }
             }
         }
@@ -122,11 +122,11 @@ The `GenerateChunk` method is called frequently on background threads. Avoid:
 For procedural terrain, use a noise library (like Simplex or Perlin noise). Ensure you initialize your noise generators using the provided `seed`.
 
 ### 3. Block IDs
-Always use namespaced IDs for `SetBlock`. Built-in blocks use the `sharpcraft` namespace and follow the `blocks/<type>/<variant>` pattern:
-- `sharpcraft:blocks/air/default`
-- `sharpcraft:blocks/stone/default`
-- `sharpcraft:blocks/dirt/default`
-- `sharpcraft:blocks/grass/default`
-- `sharpcraft:blocks/sand/default`
-- `sharpcraft:blocks/water/default`
-- `sharpcraft:blocks/bedrock/default`
+Always use namespaced IDs for `SetBlock`. Built-in blocks use the `sharpcraft` namespace:
+- `sharpcraft:air`
+- `sharpcraft:stone`
+- `sharpcraft:dirt`
+- `sharpcraft:grass`
+- `sharpcraft:sand`
+- `sharpcraft:water`
+- `sharpcraft:bedrock`

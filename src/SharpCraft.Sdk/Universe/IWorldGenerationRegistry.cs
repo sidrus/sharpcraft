@@ -3,4 +3,6 @@
 /// <summary>
 /// Registry for world generators.
 /// </summary>
-public interface IWorldGenerationRegistry : IRegistry<IWorldGenerator>;
+public interface IWorldGenerationRegistry : IRegistry<IWorldGenerator>
+{
+}

@@ -3,4 +3,6 @@
 /// <summary>
 /// Registry for block definitions.
 /// </summary>
-public interface IBlockRegistry : IRegistry<BlockDefinition>;
+public interface IBlockRegistry : IRegistry<BlockDefinition>
+{
+}

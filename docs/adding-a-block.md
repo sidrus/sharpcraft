@@ -44,12 +44,12 @@ public class StoneMod : IMod
     {
         // Define the block properties
         var smoothStone = new BlockDefinition(
-            Id: "my_stone_mod:blocks/stone/smooth",
+            Id: "my_stone_mod:smooth_stone",
             Name: "Smooth Stone",
             IsSolid: true,
             Friction: 0.6f,
-            TextureTop: "my_stone_mod:textures/block/smooth_stone_top",
-            TextureSides: "my_stone_mod:textures/block/smooth_stone_side"
+            TextureTop: "textures/blocks/smooth_stone_top.png",
+            TextureSides: "textures/blocks/smooth_stone_side.png"
         );
 
         // Register the block in the global registry
@@ -89,7 +89,7 @@ using SharpCraft.Sdk.Blocks;
 
 // Define the block
 var scriptedStone = new BlockDefinition(
-    Id: "script_stone_mod:blocks/stone/magic",
+    Id: "script_stone_mod:magic_stone",
     Name: "Magic Stone",
     IsSolid: true,
     Friction: 0.8f
@@ -109,7 +109,7 @@ The `BlockDefinition` record supports several properties:
 
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `Id` | `string` | *Required* | Unique ID in `namespace:blocks/type/variant` format. |
+| `Id` | `string` | *Required* | Unique ID in `namespace:id` format. |
 | `Name` | `string` | *Required* | Display name in the UI. |
 | `IsSolid` | `bool` | `true` | Whether the block has collision. |
 | `IsTransparent` | `bool` | `false` | Whether light passes through and adjacent faces are rendered. |

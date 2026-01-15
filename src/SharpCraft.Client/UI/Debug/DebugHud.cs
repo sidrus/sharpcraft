@@ -127,8 +127,9 @@ public class DebugHud : Hud
         if (player == null) return;
 
         Gui.Panel("Environment", () => {
-            Gui.Property("Standing on", player.BlockBelow.Id?.ToString() ?? "None");
+            Gui.Property("Standing on", player.BlockBelow.Type.ToString());
             Gui.Property("Friction", player.Friction.ToString("F2"));
+            Gui.Property("Is Solid", $"{player.BlockBelow.IsSolid}");
         });
     }
 }

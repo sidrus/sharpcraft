@@ -7,4 +7,6 @@ namespace SharpCraft.Engine.Assets;
 /// <summary>
 /// Runtime implementation of the asset registry.
 /// </summary>
-public class AssetRegistry : ResourceRegistry<TextureData>, IAssetRegistry;
+public class AssetRegistry : ResourceRegistry<TextureData>, IAssetRegistry
+{
+}

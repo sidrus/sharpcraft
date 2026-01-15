@@ -1,17 +1,12 @@
-﻿namespace SharpCraft.Sdk.Physics;
+﻿using SharpCraft.Sdk.Blocks;
 
-using Blocks;
+namespace SharpCraft.Sdk.Physics;
 
 /// <summary>
 /// Provides an interface for accessing blocks in the world for collision detection.
 /// </summary>
 public interface ICollisionProvider
 {
-    /// <summary>
-    /// Gets the block registry associated with the collision provider.
-    /// </summary>
-    public IBlockRegistry Blocks { get; }
-
     /// <summary>
     /// Gets the block at the specified world coordinates.
     /// </summary>

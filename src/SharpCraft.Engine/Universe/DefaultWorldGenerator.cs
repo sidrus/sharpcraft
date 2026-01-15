@@ -1,6 +1,5 @@
 ﻿using SharpCraft.Engine.Universe.Noise;
 using SharpCraft.Sdk.Blocks;
-using SharpCraft.Sdk.Resources;
 using SharpCraft.Sdk.Universe;
 
 namespace SharpCraft.Engine.Universe;
@@ -26,8 +25,8 @@ public class DefaultWorldGenerator(int seed = 12345) : IWorldGenerator
                 var height = GetTerrainHeight(worldX, worldZ);
                 for (var y = 0; y < Chunk.Height; y++)
                 {
-                    var id = GetBlockId(worldX, y, worldZ, height);
-                    chunk.SetBlock(x, y, z, id);
+                    var type = GetBlockType(worldX, y, worldZ, height);
+                    chunk.SetBlock(x, y, z, type);
                 }
             }
         }
@@ -43,18 +42,18 @@ public class DefaultWorldGenerator(int seed = 12345) : IWorldGenerator
         return baseHeight + (int)(continent + terrain + detail);
     }
 
-    private static ResourceLocation GetBlockId(int x, int y, int z, int surfaceHeight)
+    private static BlockType GetBlockType(int x, int y, int z, int surfaceHeight)
     {
         if (y > surfaceHeight)
         {
-            return y <= 62 ? BlockIds.Water : BlockIds.Air;
+            return y <= 62 ? BlockType.Water : BlockType.Air;
         }
 
         if (y == surfaceHeight)
         {
-            return y < 62 ? BlockIds.Sand : BlockIds.Grass;
+            return y < 62 ? BlockType.Sand : BlockType.Grass;
         }
 
-        return y >= surfaceHeight - 3 ? BlockIds.Dirt : BlockIds.Stone;
+        return y >= surfaceHeight - 3 ? BlockType.Dirt : BlockType.Stone;
     }
 }

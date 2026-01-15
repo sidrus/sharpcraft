@@ -18,16 +18,6 @@ public record SpatialSensorData
     public Block BlockBelow { get; init; }
 
     /// <summary>
-    /// Gets the friction of the block below.
-    /// </summary>
-    public float BelowFriction { get; init; }
-
-    /// <summary>
-    /// Gets whether the block below is solid.
-    /// </summary>
-    public bool BelowIsSolid { get; init; }
-
-    /// <summary>
     /// Gets a value indicating whether the entity is currently swimming.
     /// </summary>
     public bool IsSwimming { get; init; }

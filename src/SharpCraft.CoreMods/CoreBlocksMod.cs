@@ -60,7 +60,7 @@ public class CoreBlocksMod(ISharpCraftSdk sdk) : IMod
 
         foreach (var (name, data) in textureData)
         {
-            var rl = new ResourceLocation(Namespace, $"textures/block/{name}");
+            var rl = new ResourceLocation(Namespace, name);
             sdk.Assets.Register(rl, data);
         }
     }

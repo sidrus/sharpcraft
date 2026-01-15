@@ -7,6 +7,7 @@ namespace SharpCraft.Sdk.Blocks;
 /// </summary>
 /// <param name="Id">The unique identifier of the block.</param>
 /// <param name="Name">The display name of the block.</param>
+/// <param name="Type">The logical type of the block.</param>
 /// <param name="IsSolid">Whether the block is solid for collision.</param>
 /// <param name="IsTransparent">Whether the block allows light to pass through.</param>
 /// <param name="Friction">The friction coefficient of the block's surface.</param>
@@ -16,6 +17,7 @@ namespace SharpCraft.Sdk.Blocks;
 public record BlockDefinition(
     ResourceLocation Id,
     string Name,
+    BlockType Type = BlockType.Air,
     bool IsSolid = true,
     bool IsTransparent = false,
     float Friction = 0.5f,
