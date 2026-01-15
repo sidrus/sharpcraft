@@ -1,5 +1,4 @@
 ﻿using AwesomeAssertions;
-using SharpCraft.Engine;
 
 namespace SharpCraft.Engine.Tests;
 

@@ -2,7 +2,6 @@
 using SharpCraft.Sdk.Numerics;
 using AwesomeAssertions;
 using SharpCraft.Sdk.Blocks;
-using SharpCraft.Engine.Universe;
 using Moq;
 using WorldClass = SharpCraft.Engine.Universe.World;
 

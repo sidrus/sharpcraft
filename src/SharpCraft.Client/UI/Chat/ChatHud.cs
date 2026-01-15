@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using SharpCraft.Sdk.UI;
-using SharpCraft.Sdk.Messaging;
 
 namespace SharpCraft.Client.UI.Chat;
 

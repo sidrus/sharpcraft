@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using SharpCraft.Sdk.UI;
 
-namespace SharpCraft.Client.UI.Debug;
+namespace SharpCraft.CoreMods.UI;
 
 public class DeveloperHud : IHud
 {
@@ -27,7 +27,7 @@ public class DeveloperHud : IHud
 
         gui.SetNextWindowPos(new Vector2(10, 300), GuiCond.FirstUseEver);
         gui.SetNextWindowSize(new Vector2(250, 150), GuiCond.FirstUseEver);
-        
+
         var visible = IsVisible;
         if (gui.Begin("Developer Menu", ref visible))
         {

@@ -3,7 +3,6 @@ using SharpCraft.Client.Controllers;
 using SharpCraft.Client.Rendering;
 using SharpCraft.Client.Rendering.Lighting;
 using SharpCraft.Client.UI.Chat;
-using SharpCraft.Client.UI.Debug;
 using SharpCraft.Engine.Universe;
 using SharpCraft.Engine.UI;
 using SharpCraft.Sdk;
@@ -30,7 +29,6 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
 
     public IGraphicsSettings Settings => GetHud<IGraphicsSettings>() ?? _fallbackSettings;
     public ChatHud? Chat => GetHud<ChatHud>();
-    public DeveloperHud? Developer => GetHud<DeveloperHud>();
 
     public HudManager(GL gl, IWindow window, IInputContext input, ILogger<HudManager> logger)
     {
@@ -53,10 +51,6 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
         var chatHud = new ChatHud();
         chatHud.OnVisibilityChanged += UpdateCursorMode;
         RegisterHud(chatHud);
-
-        var developerHud = new DeveloperHud();
-        developerHud.OnVisibilityChanged += UpdateCursorMode;
-        RegisterHud(developerHud);
         
         UpdateCursorMode();
 
@@ -98,9 +92,6 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
             case Key.F3:
                 Settings.IsVisible = !Settings.IsVisible;
                 break;
-            case Key.F4 when Developer != null:
-                Developer.IsVisible = !Developer.IsVisible;
-                break;
         }
 
         if (Chat is { IsTyping: false })
@@ -126,8 +117,7 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
     {
         var mouse = _input.Mice[0];
 
-        var isAnyMenuVisible = (Settings?.IsVisible ?? false) || 
-                             (Developer?.IsVisible ?? false) ||
+        var isAnyMenuVisible = (Settings?.IsVisible ?? false) ||
                              (Chat?.IsTyping ?? false);
         
         if (isAnyMenuVisible)
@@ -145,8 +135,7 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
     {
         var mouse = _input.Mice[0];
         
-        var isAnyMenuVisible = (Settings?.IsVisible ?? false) || 
-                             (Developer?.IsVisible ?? false) ||
+        var isAnyMenuVisible = (Settings?.IsVisible ?? false) ||
                              (Chat?.IsTyping ?? false);
         
         if (isAnyMenuVisible)

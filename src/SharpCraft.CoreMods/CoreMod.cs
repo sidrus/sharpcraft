@@ -44,6 +44,7 @@ public class CoreMod(ISharpCraftSdk sdk) : IMod
         sdk.Huds.RegisterHud(new UI.MainHud());
         sdk.Huds.RegisterHud(new UI.DebugHud());
         sdk.Huds.RegisterHud(new UI.GraphicsSettingsHud());
+        sdk.Huds.RegisterHud(new UI.DeveloperHud());
     }
 
     public void OnDisable()

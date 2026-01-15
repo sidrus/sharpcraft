@@ -1,7 +1,5 @@
 ﻿using SharpCraft.Client.UI.Chat;
-using SharpCraft.Client.UI.Debug;
 using SharpCraft.CoreMods.UI;
-using SharpCraft.Sdk.UI;
 using AwesomeAssertions;
 
 namespace SharpCraft.Client.Tests.UI;
