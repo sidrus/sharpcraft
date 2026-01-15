@@ -5,6 +5,8 @@ namespace SharpCraft.Sdk.Physics.Collision;
 /// <summary>
 /// Represents an Axis-Aligned Bounding Box (AABB) for collision detection.
 /// </summary>
+/// <param name="min">The minimum corner of the bounding box.</param>
+/// <param name="max">The maximum corner of the bounding box.</param>
 public record struct AABB(Vector3 min, Vector3 max)
 {
     /// <summary>

@@ -2,23 +2,47 @@
 
 namespace SharpCraft.Sdk.Physics.Sensors.Spatial;
 
+/// <summary>
+/// A sensor that detects spatial information about an entity's surroundings, such as blocks above/below and fluid submersion.
+/// </summary>
 public class SpatialSensor : ISensor<SpatialSensorData>
 {
+    /// <inheritdoc />
     public SpatialSensorData? LastSense { get; private set; }
 
+    /// <inheritdoc />
     public SpatialSensorData Sense(ICollisionProvider world, IPhysicsEntity entity)
     {
         return LastSense = CreateData(world, entity);
     }
 
-    protected virtual SpatialSensorData CreateData(ICollisionProvider collisionProvider, IPhysicsEntity entity)
+    /// <summary>
+    /// Creates the sensor data for the current state.
+    /// </summary>
+    /// <param name="world">The collision provider to sense from.</param>
+    /// <param name="entity">The entity performing the sensing.</param>
+    /// <returns>The populated sensor data.</returns>
+    protected virtual SpatialSensorData CreateData(ICollisionProvider world, IPhysicsEntity entity)
     {
-        var data = CreateBaseData(collisionProvider, entity);
-        return PopulateData(data, collisionProvider, entity);
+        var data = CreateBaseData(world, entity);
+        return PopulateData(data, world, entity);
     }
 
+    /// <summary>
+    /// Creates the initial base data object.
+    /// </summary>
+    /// <param name="collisionProvider">The collision provider.</param>
+    /// <param name="entity">The entity.</param>
+    /// <returns>A new <see cref="SpatialSensorData"/> or derived instance.</returns>
     protected virtual SpatialSensorData CreateBaseData(ICollisionProvider collisionProvider, IPhysicsEntity entity) => new();
 
+    /// <summary>
+    /// Populates the spatial data based on the current world state.
+    /// </summary>
+    /// <param name="data">The data object to populate.</param>
+    /// <param name="collisionProvider">The collision provider to sense from.</param>
+    /// <param name="entity">The entity performing the sensing.</param>
+    /// <returns>The populated data.</returns>
     protected static SpatialSensorData PopulateData(SpatialSensorData data, ICollisionProvider collisionProvider, IPhysicsEntity entity)
     {
         var pos = entity.Position;

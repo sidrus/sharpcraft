@@ -24,6 +24,12 @@ public interface IMod
 /// <summary>
 /// Metadata for a mod.
 /// </summary>
+/// <param name="Id">The unique identifier of the mod.</param>
+/// <param name="Name">The display name of the mod.</param>
+/// <param name="Author">The author of the mod.</param>
+/// <param name="Version">The version of the mod.</param>
+/// <param name="Dependencies">A list of mod IDs that this mod depends on.</param>
+/// <param name="Capabilities">A list of capabilities this mod provides.</param>
 public record ModManifest(
     string Id,
     string Name,

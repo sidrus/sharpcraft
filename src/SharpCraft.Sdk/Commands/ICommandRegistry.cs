@@ -3,6 +3,8 @@
 /// <summary>
 /// Context in which a command is executed.
 /// </summary>
+/// <param name="Caller">The name of the entity that invoked the command.</param>
+/// <param name="Args">The arguments passed to the command.</param>
 public record CommandContext(string Caller, string[] Args);
 
 /// <summary>

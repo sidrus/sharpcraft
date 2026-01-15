@@ -6,6 +6,8 @@ namespace SharpCraft.Sdk.Numerics;
 /// Represents a 2D vector with generic numeric components.
 /// </summary>
 /// <typeparam name="T">The numeric type of the components.</typeparam>
+/// <param name="x">The initial X component.</param>
+/// <param name="y">The initial Y component.</param>
 public struct Vector2<T>(T x, T y) : IEquatable<Vector2<T>> where T : struct, IEquatable<T>, INumber<T>, IFormattable
 {
     /// <summary>

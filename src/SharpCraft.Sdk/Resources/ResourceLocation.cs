@@ -3,6 +3,8 @@
 /// <summary>
 /// Represents a namespaced resource location (e.g., "minecraft:dirt").
 /// </summary>
+/// <param name="Namespace">The namespace of the resource (e.g., "minecraft").</param>
+/// <param name="Path">The path of the resource within the namespace (e.g., "dirt").</param>
 public record ResourceLocation(string Namespace, string Path)
 {
     public override string ToString() => $"{Namespace}:{Path}";
