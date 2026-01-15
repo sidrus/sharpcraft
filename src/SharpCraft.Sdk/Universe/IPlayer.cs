@@ -56,7 +56,12 @@ public interface IPlayer
     /// Gets the current friction acting on the player.
     /// </summary>
     float Friction { get; }
-    
+
+    /// <summary>
+    /// Gets or sets whether the player should use dev speed boost.
+    /// </summary>
+    bool UseDevSpeedBoost { get; set; }
+
     // For DebugHud's "Standing on"
     // We might need a way to get block info in SDK
 }

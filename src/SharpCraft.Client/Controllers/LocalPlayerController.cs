@@ -35,6 +35,7 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     public float SubmersionDepth => _sensor.LastSense?.SubmersionDepth ?? 0f;
 
     public bool IsFlying { get; set; }
+    public bool UseDevSpeedBoost { get; set; } = true;
 
     public bool IsGrounded => _sensor.LastSense?.IsGrounded ?? false;
     public float Friction => _motor.Friction;
@@ -82,7 +83,11 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
         HandleLook(inputProvider.GetLookDelta());
 
         _pendingIntent = inputProvider.GetMovementIntent(camera.Forward, camera.Right);
-        _pendingIntent = _pendingIntent with { IsFlying = IsFlying };
+        _pendingIntent = _pendingIntent with
+        {
+            IsFlying = IsFlying,
+            UseDevSpeedBoost = UseDevSpeedBoost,
+        };
     }
 
     public void OnFixedUpdate(double fixedDeltaTime)

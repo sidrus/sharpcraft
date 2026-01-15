@@ -19,7 +19,7 @@ public readonly record struct RenderContext(
     bool UseSpecularMap = true,
     float SpecularMapStrength = 1f,
     bool UseMetallicMap = true,
-    float MetallicStrength = 1f,
+    float MetallicStrength = 0f,
     bool UseRoughnessMap = true,
     float RoughnessStrength = 1f,
     PointLightData[]? PointLights = null,

@@ -10,10 +10,12 @@ namespace SharpCraft.Sdk.Physics;
 /// <param name="IsDescending">Whether the entity is trying to descend (e.g., when flying or swimming).</param>
 /// <param name="IsFlying">Whether the entity is in flying mode.</param>
 /// <param name="IsSprinting">Whether the entity is sprinting.</param>
+/// <param name="UseDevSpeedBoost">Whether the entity is using the developer speed boost.</param>
 public readonly record struct MovementIntent(
     Vector3 Direction,
     bool IsJumping,
     bool IsDescending,
     bool IsFlying,
-    bool IsSprinting = false
+    bool IsSprinting = false,
+    bool UseDevSpeedBoost = true
 );

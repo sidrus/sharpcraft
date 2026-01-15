@@ -30,7 +30,7 @@ public class DefaultPlayerMotor : IMotor
         var (gravity, terminalVelocity, walkSpeed, canJump) = CalculatePhysicsState(entity, intent);
 
         HandleJumpAndVerticalMovement(entity, intent, deltaTime, walkSpeed, canJump);
-        ApplyMovementInternal(entity, intent, gravity, terminalVelocity, walkSpeed, deltaTime);
+        ApplyMovement(entity, intent, gravity, terminalVelocity, walkSpeed, deltaTime);
     }
 
     private (float gravity, float terminalVelocity, float walkSpeed, bool canJump) CalculatePhysicsState(IPhysicsEntity entity, MovementIntent intent)
@@ -45,27 +45,31 @@ public class DefaultPlayerMotor : IMotor
         var walkSpeed = intent.IsSprinting ? SprintSpeed : WalkSpeed;
         var friction = canJump ? blockBelow.Friction : PhysicsConstants.AirFriction;
 
+        if (intent.UseDevSpeedBoost)
+        {
+            walkSpeed *= 5;
+        }
+
         if (intent.IsFlying)
         {
             gravity = 0f;
             density = (SensorData?.IsSwimming ?? false) || (SensorData?.IsOnWaterSurface ?? false)
                 ? PhysicsConstants.WaterDensity
                 : PhysicsConstants.AirDensity;
-            walkSpeed = WalkSpeed * 2.5f;
+            walkSpeed *= 2.5f;
             friction = PhysicsConstants.FlyingFriction;
         }
         else if (SensorData?.IsSwimming ?? false)
         {
             gravity = PhysicsConstants.WaterGravity;
             density = PhysicsConstants.WaterDensity;
-            walkSpeed = WalkSpeed * 0.5f;
+            walkSpeed *= 0.5f;
             friction = PhysicsConstants.WaterFriction;
         }
         else if (SensorData?.IsOnWaterSurface ?? false)
         {
             gravity = PhysicsConstants.DefaultGravity;
             density = PhysicsConstants.AirDensity;
-            walkSpeed = WalkSpeed * 0.8f;
             friction = PhysicsConstants.WaterFriction;
         }
 
@@ -116,7 +120,7 @@ public class DefaultPlayerMotor : IMotor
         entity.Velocity = velocity;
     }
 
-    private void ApplyMovementInternal(IPhysicsEntity entity, MovementIntent intent, float gravity, float terminalVelocity, float walkSpeed, float deltaTime)
+    private void ApplyMovement(IPhysicsEntity entity, MovementIntent intent, float gravity, float terminalVelocity, float walkSpeed, float deltaTime)
     {
         var velocity = entity.Velocity;
 

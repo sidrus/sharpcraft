@@ -37,10 +37,11 @@ public class DeveloperHud : IInteractiveHud
                 {
                     var isFlying = player.IsFlying;
                     gui.Checkbox("Fly Mode", ref isFlying);
-                    if (player.IsFlying != isFlying)
-                    {
-                        player.IsFlying = isFlying;
-                    }
+                    player.IsFlying = isFlying;
+
+                    var useDevSpeedBoost = player.UseDevSpeedBoost;
+                    gui.Checkbox("Speed Boost", ref useDevSpeedBoost);
+                    player.UseDevSpeedBoost = useDevSpeedBoost;
                 });
             }
             else
