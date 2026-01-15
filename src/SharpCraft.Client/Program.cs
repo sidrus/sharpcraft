@@ -2,10 +2,12 @@
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using SharpCraft.Client;
+using SharpCraft.CoreMods;
 using SharpCraft.Engine;
 using SharpCraft.Engine.Assets;
 using SharpCraft.Engine.Blocks;
 using SharpCraft.Engine.Commands;
+using SharpCraft.Engine.Lifecycle;
 using SharpCraft.Engine.Messaging;
 using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk.Universe;
@@ -38,6 +40,12 @@ var sdk = new SharpCraftSdk(assets, blocks, channels, commands, worldGen);
 logger.LogInformation("SharpCraft starting...");
 logger.LogInformation("Process Architecture: {Arch}", RuntimeInformation.ProcessArchitecture);
 logger.LogInformation("Runtime Directory: {Dir}", AppContext.BaseDirectory);
+
+// Load and enable core mods
+logger.LogInformation("Loading core mods...");
+var coreMod = new CoreBlocksMod(sdk);
+coreMod.OnEnable();
+logger.LogInformation("Core mod '{ModName}' enabled", coreMod.Manifest.Name);
 
 // Steam Integration
 try

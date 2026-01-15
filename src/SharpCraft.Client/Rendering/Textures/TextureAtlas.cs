@@ -7,25 +7,17 @@ namespace SharpCraft.Client.Rendering.Textures;
 /// <summary>
 /// A dynamic texture atlas that aggregates textures from the asset registry.
 /// </summary>
-public class TextureAtlas : IDisposable
+public class TextureAtlas(GL gl, IAssetRegistry assets) : IDisposable
 {
-    private readonly GL _gl;
-    private readonly IAssetRegistry _assets;
     private readonly Dictionary<ResourceLocation, (float U, float V, float Width, float Height)> _uvs = new();
     private Texture2d? _diffuseAtlas;
     private Texture2d? _normalAtlas;
     private Texture2d? _aoAtlas;
     private Texture2d? _specularAtlas;
 
-    public TextureAtlas(GL gl, IAssetRegistry assets)
-    {
-        _gl = gl;
-        _assets = assets;
-    }
-
     public void Build()
     {
-        var textures = _assets.All.ToList();
+        var textures = assets.All.ToList();
         if (textures.Count == 0) return;
 
         var maxTileW = textures.Max(t => t.Value.Width);
@@ -81,10 +73,10 @@ public class TextureAtlas : IDisposable
         _aoAtlas?.Dispose();
         _specularAtlas?.Dispose();
 
-        _diffuseAtlas = new Texture2d(_gl, atlasWidth, atlasHeight, diffuseData, InternalFormat.SrgbAlpha);
-        _normalAtlas = new Texture2d(_gl, atlasWidth, atlasHeight, normalData, InternalFormat.Rgba);
-        _aoAtlas = new Texture2d(_gl, atlasWidth, atlasHeight, aoData, InternalFormat.Rgba);
-        _specularAtlas = new Texture2d(_gl, atlasWidth, atlasHeight, specularData, InternalFormat.Rgba);
+        _diffuseAtlas = new Texture2d(gl, atlasWidth, atlasHeight, diffuseData, InternalFormat.SrgbAlpha);
+        _normalAtlas = new Texture2d(gl, atlasWidth, atlasHeight, normalData, InternalFormat.Rgba);
+        _aoAtlas = new Texture2d(gl, atlasWidth, atlasHeight, aoData, InternalFormat.Rgba);
+        _specularAtlas = new Texture2d(gl, atlasWidth, atlasHeight, specularData, InternalFormat.Rgba);
     }
 
     private static void CopyLayer(byte[] src, byte[] dst, int xOffset, int yOffset, int dstWidth, int srcWidth, int srcHeight)

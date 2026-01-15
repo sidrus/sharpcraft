@@ -3,26 +3,19 @@ using Silk.NET.OpenGL;
 
 namespace SharpCraft.Client.Rendering;
 
-public class DefaultRenderPipeline : IRenderPipeline
+public class DefaultRenderPipeline(
+    GL gl,
+    World world,
+    ChunkRenderCache cache,
+    ChunkMeshManager meshManager,
+    TerrainRenderer terrainRenderer,
+    WaterRenderer waterRenderer)
+    : IRenderPipeline
 {
-    private readonly GL _gl;
-    private readonly TerrainRenderer _terrainRenderer;
-    private readonly WaterRenderer _waterRenderer;
-    private readonly ChunkRenderCache _cache;
-    public ChunkMeshManager MeshManager { get; }
+    public ChunkMeshManager MeshManager { get; } = meshManager;
 
-    private World? _world;
+    private World? _world = world;
     private RenderContext? _context;
-
-    public DefaultRenderPipeline(GL gl, World world, ChunkRenderCache cache, ChunkMeshManager meshManager, TerrainRenderer terrainRenderer, WaterRenderer waterRenderer)
-    {
-        _gl = gl;
-        _world = world;
-        _cache = cache;
-        MeshManager = meshManager;
-        _terrainRenderer = terrainRenderer;
-        _waterRenderer = waterRenderer;
-    }
 
     public void OnRender(double deltaTime)
     {
@@ -40,19 +33,19 @@ public class DefaultRenderPipeline : IRenderPipeline
     {
         // Update the cache for the entire frame
         var activeChunks = world.GetLoadedChunks();
-        _cache.Update(activeChunks);
+        cache.Update(activeChunks);
 
         // Opaque Pass
-        _gl.Enable(EnableCap.DepthTest);
-        _gl.Enable(EnableCap.CullFace);
-        _gl.Disable(EnableCap.Blend);
-        _terrainRenderer.Render(world, context);
+        gl.Enable(EnableCap.DepthTest);
+        gl.Enable(EnableCap.CullFace);
+        gl.Disable(EnableCap.Blend);
+        terrainRenderer.Render(world, context);
 
         // Transparent Pass
-        _gl.Enable(EnableCap.Blend);
-        _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-        _gl.Disable(EnableCap.CullFace);
-        _waterRenderer.Render(world, context);
+        gl.Enable(EnableCap.Blend);
+        gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+        gl.Disable(EnableCap.CullFace);
+        waterRenderer.Render(world, context);
     }
 
     public void Dispose()
@@ -67,9 +60,9 @@ public class DefaultRenderPipeline : IRenderPipeline
         {
             if (disposing)
             {
-                _cache.Dispose();
-                _terrainRenderer.Dispose();
-                _waterRenderer.Dispose();
+                cache.Dispose();
+                terrainRenderer.Dispose();
+                waterRenderer.Dispose();
             }
 
             _disposed = true;

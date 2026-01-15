@@ -6,31 +6,17 @@ using Silk.NET.OpenGL;
 
 namespace SharpCraft.Client.Rendering;
 
-public class WaterRenderer : IRenderer
+public class WaterRenderer(GL gl, ChunkRenderCache cache, ChunkMeshManager meshManager, TextureAtlas atlas)
+    : IRenderer
 {
-    private readonly GL _gl;
-    private readonly ChunkRenderCache _cache;
-    private readonly ChunkMeshManager _meshManager;
-    private readonly ShaderProgram _shader;
-    private readonly TextureAtlas _atlas;
+    private readonly ShaderProgram _shader = new(gl, Shaders.Shaders.DefaultVertex, Shaders.Shaders.DefaultFragment);
     private readonly Frustum _frustum = new();
-    private readonly uint _vao;
-
-    public WaterRenderer(GL gl, ChunkRenderCache cache, ChunkMeshManager meshManager, TextureAtlas atlas)
-    {
-        _gl = gl;
-        _cache = cache;
-        _meshManager = meshManager;
-        _atlas = atlas;
-
-        _shader = new ShaderProgram(gl, Shaders.Shaders.DefaultVertex, Shaders.Shaders.DefaultFragment);
-        _vao = gl.GenVertexArray();
-    }
+    private readonly uint _vao = gl.GenVertexArray();
 
     public void Render(World world, RenderContext context)
     {
         _shader.Use();
-        _atlas.Bind(TextureUnit.Texture0, TextureUnit.Texture1, TextureUnit.Texture2, TextureUnit.Texture3);
+        atlas.Bind(TextureUnit.Texture0, TextureUnit.Texture1, TextureUnit.Texture2, TextureUnit.Texture3);
 
         _shader.SetUniform("exposure", context.Exposure);
         _shader.SetUniform("gamma", context.Gamma);
@@ -66,7 +52,7 @@ public class WaterRenderer : IRenderer
             }
         }
 
-        _gl.BindVertexArray(_vao);
+        gl.BindVertexArray(_vao);
 
         _shader.SetUniform("viewPos", context.CameraPosition);
         _shader.SetUniform("fogColor", context.FogColor);
@@ -81,8 +67,8 @@ public class WaterRenderer : IRenderer
             if (!_frustum.IsBoxInFrustum(chunkPos, chunkPos + new Vector3(16, 256, 16)))
                 continue;
 
-            var renderChunk = _cache.Get(chunk);
-            if (chunk.IsDirty) { _meshManager.Enqueue(chunk); }
+            var renderChunk = cache.Get(chunk);
+            if (chunk.IsDirty) { meshManager.Enqueue(chunk); }
 
             var model = Matrix4x4.CreateTranslation(chunkPos);
             _shader.SetUniform("model", model);
@@ -106,7 +92,7 @@ public class WaterRenderer : IRenderer
                 _shader.Dispose();
             }
 
-            _gl.DeleteVertexArray(_vao);
+            gl.DeleteVertexArray(_vao);
             _disposed = true;
         }
     }

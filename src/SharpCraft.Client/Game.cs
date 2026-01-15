@@ -243,7 +243,6 @@ public partial class Game : IDisposable
 
     private void LoadDefaultAssets()
     {
-        RegisterBlocks();
         LoadTextures();
     }
 
@@ -308,24 +307,6 @@ public partial class Game : IDisposable
         }
     }
 
-    private void RegisterBlocks()
-    {
-        // Define default blocks
-        var blocks = new[]
-        {
-            new BlockDefinition("sharpcraft:grass", "Grass", Type: BlockType.Grass, TextureTop: new ResourceLocation("sharpcraft", "grass_top"), TextureBottom: new ResourceLocation("sharpcraft", "dirt"), TextureSides: new ResourceLocation("sharpcraft", "grass_side")),
-            new BlockDefinition("sharpcraft:dirt", "Dirt", Type: BlockType.Dirt, TextureSides: new ResourceLocation("sharpcraft", "dirt")),
-            new BlockDefinition("sharpcraft:stone", "Stone", Type: BlockType.Stone, TextureSides: new ResourceLocation("sharpcraft", "stone")),
-            new BlockDefinition("sharpcraft:sand", "Sand", Type: BlockType.Sand, TextureSides: new ResourceLocation("sharpcraft", "sand")),
-            new BlockDefinition("sharpcraft:water", "Water", Type: BlockType.Water, IsSolid: false, IsTransparent: true, TextureSides: new ResourceLocation("sharpcraft", "water")),
-            new BlockDefinition("sharpcraft:bedrock", "Bedrock", Type: BlockType.Bedrock, TextureSides: new ResourceLocation("sharpcraft", "bedrock"))
-        };
-
-        foreach (var def in blocks)
-        {
-            _sdk.Blocks.Register(def.Id, def);
-        }
-    }
 
     private readonly Dictionary<BlockType, BlockDefinition> _typeToDef = new();
 
