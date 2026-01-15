@@ -4,6 +4,7 @@ using SharpCraft.Client.Controllers;
 using SharpCraft.Client.Input;
 using SharpCraft.Client.Rendering;
 using SharpCraft.Client.Rendering.Cameras;
+using SharpCraft.Client.Rendering.Shaders;
 using SharpCraft.Client.Rendering.Lighting;
 using SharpCraft.Client.Rendering.Textures;
 using SharpCraft.Client.Integrations.Steam;
@@ -42,6 +43,7 @@ public partial class Game : IDisposable
     private readonly LightingSystem _lightSystem = new();
     private IRenderPipeline? _renderPipeline;
     private PostProcessingRenderer? _postProcessingRenderer;
+    private ShaderProgram? _mainShader;
     private ICamera? _camera;
     private LocalPlayerController? _playerController;
     private TextureAtlas? _atlas;
@@ -262,8 +264,9 @@ public partial class Game : IDisposable
         _playerController = new LocalPlayerController(entity, _camera, _world, _inputProvider);
         
         var cache = new ChunkRenderCache(_gl);
-        var terrainRenderer = new TerrainRenderer(_gl, cache, meshManager, _atlas, _sdk.Blocks);
-        var waterRenderer = new WaterRenderer(_gl, cache, meshManager, _atlas);
+        _mainShader = new ShaderProgram(_gl, SharpCraft.Client.Rendering.Shaders.Shaders.DefaultVertex, SharpCraft.Client.Rendering.Shaders.Shaders.DefaultFragment);
+        var terrainRenderer = new TerrainRenderer(_gl, cache, meshManager, _atlas, _sdk.Blocks, _mainShader);
+        var waterRenderer = new WaterRenderer(_gl, cache, meshManager, _atlas, _mainShader);
         _postProcessingRenderer = new PostProcessingRenderer(_gl);
         
         _renderPipeline = new DefaultRenderPipeline(_gl, _world, cache, meshManager, terrainRenderer, waterRenderer, _postProcessingRenderer);
@@ -386,6 +389,7 @@ public partial class Game : IDisposable
                 }
 
                 _renderPipeline?.Dispose();
+                _mainShader?.Dispose();
                 _hudManager?.Dispose();
                 _input?.Dispose();
                 

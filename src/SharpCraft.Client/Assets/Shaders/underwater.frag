@@ -16,8 +16,8 @@ void main()
 
     // Wavy distortion
     vec2 distortedTexCoords = TexCoords;
-    distortedTexCoords.x += sin(distortedTexCoords.y * 4.0 + time * 0.05) * 0.0005;
-    distortedTexCoords.y += cos(distortedTexCoords.x * 4.0 + time * 0.05) * 0.0005;
+    distortedTexCoords.x += sin(distortedTexCoords.y * 10.0 + time * 2) * 0.005;
+    distortedTexCoords.y += cos(distortedTexCoords.x * 10.0 + time * 2) * 0.005;
 
     vec4 color = texture(screenTexture, distortedTexCoords);
 

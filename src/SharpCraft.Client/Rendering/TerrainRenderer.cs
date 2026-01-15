@@ -7,38 +7,53 @@ using Silk.NET.OpenGL;
 
 namespace SharpCraft.Client.Rendering;
 
-public sealed class TerrainRenderer(
-    GL gl,
-    ChunkRenderCache cache,
-    ChunkMeshManager meshManager,
-    TextureAtlas atlas,
-    IBlockRegistry blocks)
-    : IRenderer
+public sealed class TerrainRenderer : IRenderer
 {
-    private readonly ShaderProgram _shader = new(gl, Shaders.Shaders.DefaultVertex, Shaders.Shaders.DefaultFragment);
+    private readonly GL _gl;
+    private readonly ChunkRenderCache _cache;
+    private readonly ChunkMeshManager _meshManager;
+    private readonly TextureAtlas _atlas;
+    private readonly IBlockRegistry _blocks;
+    private readonly ShaderProgram _shader;
     private readonly Frustum _frustum = new();
-    private readonly uint _vao = gl.GenVertexArray();
-    private readonly IBlockRegistry _blocks = blocks;
+    private readonly uint _vao;
+
+    public TerrainRenderer(
+        GL gl,
+        ChunkRenderCache cache,
+        ChunkMeshManager meshManager,
+        TextureAtlas atlas,
+        IBlockRegistry blocks,
+        ShaderProgram shader)
+    {
+        _gl = gl;
+        _cache = cache;
+        _meshManager = meshManager;
+        _atlas = atlas;
+        _blocks = blocks;
+        _vao = gl.GenVertexArray();
+        _shader = shader;
+
+        _shader.BindUniformBlock("SceneData", 0);
+        _shader.BindUniformBlock("LightingData", 1);
+    }
 
     public void Render(World world, RenderContext context)
     {
-        meshManager.Process();
-        while (meshManager.TryGetCompleted(out var completedChunk))
+        _meshManager.Process();
+        while (_meshManager.TryGetCompleted(out var completedChunk))
         {
             if (completedChunk != null)
             {
-                var rc = cache.Get(completedChunk);
+                var rc = _cache.Get(completedChunk);
                 rc.UpdateBuffers();
             }
         }
 
         _shader.Use();
-        atlas.Bind(TextureUnit.Texture0, TextureUnit.Texture1, TextureUnit.Texture2, TextureUnit.Texture3);
+        _atlas.Bind(TextureUnit.Texture0, TextureUnit.Texture1, TextureUnit.Texture2, TextureUnit.Texture3);
 
-        _shader.SetUniform("exposure", context.Exposure);
-        _shader.SetUniform("gamma", context.Gamma);
         _shader.SetUniform("textureAtlas", 0);
-
         _shader.SetUniform("normalMap", 1);
         _shader.SetUniform("useNormalMap", context.UseNormalMap ? 1 : 0);
         _shader.SetUniform("normalStrength", context.NormalStrength);
@@ -51,31 +66,7 @@ public sealed class TerrainRenderer(
         _shader.SetUniform("useSpecular", context.UseSpecularMap ? 1 : 0);
         _shader.SetUniform("specularMapStrength", context.SpecularMapStrength);
 
-        // Directional Light (Sun)
-        _shader.SetUniform("dirLight.direction", new Vector3(0.8f, -0.5f, 0.1f));
-        _shader.SetUniform("dirLight.color", new Vector3(1.0f, 0.95f, 0.8f));
-
-        if (context.PointLights is not null)
-        {
-            for (var i = 0; i < context.PointLights.Length; i++)
-            {
-                var light = context.PointLights[i];
-                _shader.SetUniform($"pointLights[{i}].position", light.Position);
-                _shader.SetUniform($"pointLights[{i}].color", light.Color);
-                _shader.SetUniform($"pointLights[{i}].intensity", light.Intensity);
-                _shader.SetUniform($"pointLights[{i}].constant", light.Constant);
-                _shader.SetUniform($"pointLights[{i}].linear", light.Linear);
-                _shader.SetUniform($"pointLights[{i}].quadratic", light.Quadratic);
-            }
-        }
-
-        gl.BindVertexArray(_vao);
-
-        _shader.SetUniform("viewPos", context.CameraPosition);
-        _shader.SetUniform("fogColor", context.FogColor);
-        _shader.SetUniform("fogNear", context.FogNear);
-        _shader.SetUniform("fogFar", context.FogFar);
-        _shader.SetUniform("lightDir", new Vector3(0.8f, 0.2f, 0.1f));
+        _gl.BindVertexArray(_vao);
 
         _frustum.Update(context.ViewProjection);
 
@@ -85,12 +76,11 @@ public sealed class TerrainRenderer(
             if (!_frustum.IsBoxInFrustum(chunkPos, chunkPos + new Vector3(16, 256, 16)))
                 continue;
 
-            var renderChunk = cache.Get(chunk);
-            if (chunk.IsDirty) { meshManager.Enqueue(chunk); }
+            var renderChunk = _cache.Get(chunk);
+            if (chunk.IsDirty) { _meshManager.Enqueue(chunk); }
 
             var model = Matrix4x4.CreateTranslation(chunkPos);
             _shader.SetUniform("model", model);
-            _shader.SetUniform("mvp", model * context.ViewProjection);
             renderChunk.BindAndDrawOpaque();
         }
     }
@@ -107,10 +97,10 @@ public sealed class TerrainRenderer(
         {
             if (disposing)
             {
-                _shader.Dispose();
+                // Shader is shared and managed elsewhere
             }
 
-            gl.DeleteVertexArray(_vao);
+            _gl.DeleteVertexArray(_vao);
             _disposed = true;
         }
     }

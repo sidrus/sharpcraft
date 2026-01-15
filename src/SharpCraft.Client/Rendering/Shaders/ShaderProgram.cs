@@ -35,6 +35,15 @@ public class ShaderProgram : IDisposable
 
     public void SetUniform(string name, Vector3 value) => _gl.Uniform3(GetUniformLocation(name), value.X, value.Y, value.Z);
 
+    public void BindUniformBlock(string name, uint bindingPoint)
+    {
+        var index = _gl.GetUniformBlockIndex(_handle, name);
+        if (index != uint.MaxValue)
+        {
+            _gl.UniformBlockBinding(_handle, index, bindingPoint);
+        }
+    }
+
     public unsafe void SetUniform(string name, Matrix4x4 value)
     {
         _gl.UniformMatrix4(GetUniformLocation(name), 1, false, (float*)&value);

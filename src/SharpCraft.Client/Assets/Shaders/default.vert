@@ -9,15 +9,23 @@ out float FragDistance;
 out vec2 TexCoord;
 out mat3 TBN;
 
-uniform mat4 mvp;
+layout (std140, binding = 0) uniform SceneData {
+    mat4 ViewProjection;
+    vec4 ViewPos;
+    vec4 FogColor;
+    float FogNear;
+    float FogFar;
+    float Exposure;
+    float Gamma;
+};
+
 uniform mat4 model;
-uniform vec3 viewPos;
 
 void main() {
     vec4 worldPos = model * vec4(aPos, 1.0);
     FragPos = worldPos.xyz;
 
-    vec3 normal = normalize(mat3(transpose(inverse(model))) * aNorm);
+    vec3 normal = normalize(mat3(model) * aNorm);
     Normal = normal;
 
     // Improved TBN for axis-aligned voxels
@@ -37,7 +45,7 @@ void main() {
     vec3 bitangent = cross(normal, tangent);
     TBN = mat3(tangent, bitangent, normal);
 
-    FragDistance = length(viewPos - FragPos);
+    FragDistance = length(ViewPos.xyz - FragPos);
     TexCoord = aUv;
-    gl_Position = mvp * vec4(aPos, 1.0);
+    gl_Position = ViewProjection * worldPos;
 }
