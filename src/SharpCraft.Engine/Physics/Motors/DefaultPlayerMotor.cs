@@ -11,7 +11,8 @@ namespace SharpCraft.Engine.Physics.Motors;
 /// </summary>
 public class DefaultPlayerMotor : IMotor
 {
-    private const float WalkSpeed = 10f;
+    private const float WalkSpeed = 1.42f;
+    private const float SprintSpeed = 3.84f;
 
     /// <summary>
     /// Gets or sets the current friction coefficient.
@@ -41,7 +42,7 @@ public class DefaultPlayerMotor : IMotor
 
         var gravity = PhysicsConstants.DefaultGravity;
         var density = PhysicsConstants.AirDensity;
-        var walkSpeed = WalkSpeed;
+        var walkSpeed = intent.IsSprinting ? SprintSpeed : WalkSpeed;
         var friction = canJump ? blockBelow.Friction : PhysicsConstants.AirFriction;
 
         if (intent.IsFlying)

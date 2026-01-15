@@ -102,6 +102,10 @@ public class DebugHud : IHud
             gui.Property("Facing", string.Format("{0} ({1:F1})", player.Heading, player.NormalizedYaw));
             gui.Property("Pitch", string.Format("{0:F1}", player.Pitch));
 
+            var velocityMs = player.Entity.Velocity.Length();
+            var velocityMph = velocityMs * 2.23694f;
+            gui.Property("Velocity", string.Format("{0:F2} m/s ({1:F2} mph)", velocityMs, velocityMph));
+
             gui.Property("Is Grounded", string.Format("[{0}]", player.IsGrounded), color: new Vector4(0, 0.5f, 1, 1));
             gui.Property("Is Flying", string.Format("[{0}]", player.IsFlying), color: new Vector4(0, 0.5f, 1, 1));
 

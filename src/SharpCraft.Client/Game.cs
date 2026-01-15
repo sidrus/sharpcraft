@@ -126,8 +126,9 @@ public partial class Game : IDisposable
             var loadedChunks = _world.GetLoadedChunks().Count();
             var meshQueue = _renderPipeline.MeshManager.DirtyChunksCount + _renderPipeline.MeshManager.ProcessingChunksCount;
             var activeLights = _lightSystem.GetActivePointLights().Count() + _lightSystem.GetActiveSpotLights().Count() + 1;
+            var velocity = _playerController?.Entity.Velocity.Length() ?? 0f;
             
-            _diagnosticsManager.Update(deltaTime, loadedChunks, meshQueue, activeLights);
+            _diagnosticsManager.Update(deltaTime, loadedChunks, meshQueue, activeLights, velocity);
         }
 
         _hudManager?.OnUpdate(deltaTime);

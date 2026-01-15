@@ -15,14 +15,28 @@ public class KeyboardMouseInputProvider : IInputProvider
     private bool _firstMouseMove = true;
     private const float Sensitivity = 0.1f;
     private LookDelta _lookDelta;
+    private bool _isSprinting;
 
     public KeyboardMouseInputProvider(IInputContext input)
     {
         _input = input;
         
+        foreach (var keyboard in _input.Keyboards)
+        {
+            keyboard.KeyDown += OnKeyDown;
+        }
+
         foreach (var mouse in _input.Mice)
         {
             mouse.MouseMove += OnMouseMove;
+        }
+    }
+
+    private void OnKeyDown(IKeyboard keyboard, Key key, int scancode)
+    {
+        if (key == Key.ControlLeft)
+        {
+            _isSprinting = !_isSprinting;
         }
     }
 
@@ -69,7 +83,8 @@ public class KeyboardMouseInputProvider : IInputProvider
             moveDir,
             keyboard.IsKeyPressed(Key.Space),
             keyboard.IsKeyPressed(Key.ShiftLeft),
-            false // Flying state should probably be managed by the controller or motor
+            false, // Flying state should probably be managed by the controller or motor
+            _isSprinting
         );
     }
 

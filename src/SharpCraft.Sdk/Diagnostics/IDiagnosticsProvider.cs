@@ -12,4 +12,5 @@ public interface IDiagnosticsProvider
     Metric LoadedChunks { get; }
     Metric MeshQueue { get; }
     Metric ActiveLights { get; }
+    Metric Velocity { get; }
 }

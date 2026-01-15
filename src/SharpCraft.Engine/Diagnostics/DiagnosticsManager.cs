@@ -21,19 +21,20 @@ public class DiagnosticsManager : IDiagnosticsProvider
     public Metric LoadedChunks { get; } = new("Chunks", MaxSamples);
     public Metric MeshQueue { get; } = new("Mesh Queue", MaxSamples);
     public Metric ActiveLights { get; } = new("Lights", MaxSamples);
+    public Metric Velocity { get; } = new("Velocity", MaxSamples);
 
-    public void Update(double deltaTime, int loadedChunks, int meshQueue, int activeLights)
+    public void Update(double deltaTime, int loadedChunks, int meshQueue, int activeLights, float velocity)
     {
         _sampleTimer += deltaTime;
         
         if (_sampleTimer >= SampleInterval)
         {
             _sampleTimer -= SampleInterval;
-            RecordSamples(deltaTime, loadedChunks, meshQueue, activeLights);
+            RecordSamples(deltaTime, loadedChunks, meshQueue, activeLights, velocity);
         }
     }
 
-    private void RecordSamples(double deltaTime, int loadedChunks, int meshQueue, int activeLights)
+    private void RecordSamples(double deltaTime, int loadedChunks, int meshQueue, int activeLights, float velocity)
     {
         // FPS
         Fps.AddSample((float)(1.0 / deltaTime));
@@ -63,5 +64,8 @@ public class DiagnosticsManager : IDiagnosticsProvider
         
         // Active Lights
         ActiveLights.AddSample(activeLights);
+
+        // Velocity
+        Velocity.AddSample(velocity);
     }
 }

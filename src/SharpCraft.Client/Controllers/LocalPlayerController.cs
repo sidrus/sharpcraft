@@ -66,6 +66,11 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
 
     private float _yaw;
     private MovementIntent _pendingIntent;
+    
+    /// <summary>
+    /// Gets the last movement intent processed by the controller.
+    /// </summary>
+    public MovementIntent LastIntent => _pendingIntent;
 
     private readonly List<object> _components = new();
 

@@ -106,4 +106,29 @@ public class DefaultPlayerMotorTests
         entity.Velocity.X.Should().BeGreaterThan(0);
         entity.Position.X.Should().BeGreaterThan(0);
     }
+
+    [Fact]
+    public void ApplyForces_WhenSprinting_ShouldMoveFaster()
+    {
+        // Setup
+        var mockPhysics = new Mock<IPhysicsSystem>();
+        mockPhysics.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
+                   .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
+
+        var motor = new DefaultPlayerMotor();
+        var deltaTime = 1.0f;
+
+        // Walk
+        var entityWalk = new PhysicsEntity(new Transform { Position = Vector3.Zero }, mockPhysics.Object);
+        motor.ApplyForces(entityWalk, new MovementIntent { Direction = Vector3.UnitX, IsSprinting = false }, deltaTime);
+        entityWalk.Update(deltaTime);
+
+        // Sprint
+        var entitySprint = new PhysicsEntity(new Transform { Position = Vector3.Zero }, mockPhysics.Object);
+        motor.ApplyForces(entitySprint, new MovementIntent { Direction = Vector3.UnitX, IsSprinting = true }, deltaTime);
+        entitySprint.Update(deltaTime);
+
+        // Assert
+        entitySprint.Velocity.X.Should().BeGreaterThan(entityWalk.Velocity.X);
+    }
 }
