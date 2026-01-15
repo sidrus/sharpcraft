@@ -1,4 +1,5 @@
 ﻿using SharpCraft.Sdk;
+using SharpCraft.Sdk.Assets;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Messaging;
 using SharpCraft.Sdk.Commands;
@@ -10,12 +11,14 @@ namespace SharpCraft.Engine;
 /// Runtime implementation of the SharpCraft SDK.
 /// </summary>
 public class SharpCraftSdk(
+    IAssetRegistry assets,
     IBlockRegistry blocks,
     IChannelManager channels,
     ICommandRegistry commands,
     IWorldGenerationRegistry world)
     : ISharpCraftSdk
 {
+    public IAssetRegistry Assets { get; } = assets;
     public IBlockRegistry Blocks { get; } = blocks;
     public IChannelManager Channels { get; } = channels;
     public ICommandRegistry Commands { get; } = commands;

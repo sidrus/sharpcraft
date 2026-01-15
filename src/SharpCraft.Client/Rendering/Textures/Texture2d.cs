@@ -22,6 +22,25 @@ public class Texture2d : IDisposable
             _gl.TexImage2D(TextureTarget.Texture2D, 0, format, (uint)image.Width, (uint)image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, ptr);
         }
 
+        SetupParameters();
+    }
+
+    public unsafe Texture2d(GL gl, int width, int height, byte[] data, InternalFormat format = InternalFormat.Rgba)
+    {
+        _gl = gl;
+        _handle = _gl.GenTexture();
+        _gl.BindTexture(TextureTarget.Texture2D, _handle);
+
+        fixed (byte* ptr = data)
+        {
+            _gl.TexImage2D(TextureTarget.Texture2D, 0, format, (uint)width, (uint)height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, ptr);
+        }
+
+        SetupParameters();
+    }
+
+    private void SetupParameters()
+    {
         _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)GLEnum.Nearest);
         _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Nearest);
         _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.ClampToEdge);

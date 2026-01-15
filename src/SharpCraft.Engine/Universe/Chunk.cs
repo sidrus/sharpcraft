@@ -89,10 +89,16 @@ public class Chunk(Vector2<int> coord)
     }
 
     /// <summary>
+    /// A delegate that resolves UV coordinates for a block type and face direction.
+    /// </summary>
+    public delegate void UvResolver(BlockType type, Direction dir, Span<float> uvs);
+
+    /// <summary>
     /// Generates the visual meshes for the chunk.
     /// </summary>
     /// <param name="world">The world context for neighbor checks.</param>
-    public void GenerateMesh(World world)
+    /// <param name="uvResolver">The UV resolver.</param>
+    public void GenerateMesh(World world, UvResolver uvResolver)
     {
         if (!IsDirty) return;
 
@@ -119,22 +125,22 @@ public class Chunk(Vector2<int> coord)
                     ref var offset = ref isTransparent ? ref transparentIndexOffset : ref opaqueIndexOffset;
 
                     if (ShouldRenderFace(world, x, y, z - 1, isTransparent)) // North (-Z)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.North, block.Type);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.North, block.Type, uvResolver);
 
                     if (ShouldRenderFace(world, x, y, z + 1, isTransparent)) // South (+Z)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.South, block.Type);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.South, block.Type, uvResolver);
 
                     if (ShouldRenderFace(world, x + 1, y, z, isTransparent)) // East (+X)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.East, block.Type);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.East, block.Type, uvResolver);
 
                     if (ShouldRenderFace(world, x - 1, y, z, isTransparent)) // West (-X)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.West, block.Type);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.West, block.Type, uvResolver);
 
                     if (ShouldRenderFace(world, x, y + 1, z, isTransparent)) // Up (+Y)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.Up, block.Type);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.Up, block.Type, uvResolver);
 
                     if (ShouldRenderFace(world, x, y - 1, z, isTransparent)) // Down (-Y)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.Down, block.Type);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.Down, block.Type, uvResolver);
                 }
             }
         }
@@ -180,7 +186,7 @@ public class Chunk(Vector2<int> coord)
     }
 
     private static void AddFace(List<float> vertices, List<uint> indices, ref uint offset,
-        int x, int y, int z, Direction dir, BlockType type)
+        int x, int y, int z, Direction dir, BlockType type, UvResolver uvResolver)
     {
         // Two triangles per face
         indices.Add(offset);
@@ -237,32 +243,8 @@ public class Chunk(Vector2<int> coord)
         }
 
         // Texture data
-        var tileIndex = type switch
-        {
-            BlockType.Grass => dir switch
-            {
-                Direction.Up => 0,
-                Direction.Down => 2,
-                _ => 3
-            },
-            BlockType.Dirt => 2,
-            BlockType.Stone => 1,
-            BlockType.Sand => 18,
-            BlockType.Water => 19,
-            BlockType.Bedrock => 17,
-            _ => 0
-        };
-
-        const float atlasSize = 16f;
-        const float tileSize = 1f / atlasSize;
-        var tx = tileIndex % 16 * tileSize;
-        var ty = tileIndex / 16 * tileSize;
-
         Span<float> uvs = stackalloc float[8];
-        uvs[0] = tx; uvs[1] = ty + tileSize;
-        uvs[2] = tx + tileSize; uvs[3] = ty + tileSize;
-        uvs[4] = tx + tileSize; uvs[5] = ty;
-        uvs[6] = tx; uvs[7] = ty;
+        uvResolver(type, dir, uvs);
 
         // Normals
         float nx = 0, ny = 0, nz = 0;

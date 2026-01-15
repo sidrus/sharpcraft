@@ -5,8 +5,13 @@ using SharpCraft.Client.Input;
 using SharpCraft.Client.Rendering;
 using SharpCraft.Client.Rendering.Cameras;
 using SharpCraft.Client.Rendering.Lighting;
+using SharpCraft.Client.Rendering.Textures;
 using SharpCraft.Client.UI;
+using SharpCraft.Sdk;
+using SharpCraft.Sdk.Assets;
+using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
+using SharpCraft.Sdk.Resources;
 using SharpCraft.Engine.Physics;
 using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk.Physics;
@@ -15,6 +20,7 @@ using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using Steamworks;
+using StbImageSharp;
 
 namespace SharpCraft.Client;
 
@@ -26,6 +32,7 @@ public partial class Game : IDisposable
 
     private readonly ILogger<Game> _logger;
     private readonly ILoggerFactory _loggerFactory;
+    private readonly ISharpCraftSdk _sdk;
     private InputManager? _input;
     private KeyboardMouseInputProvider? _inputProvider;
     private HudManager? _hudManager;
@@ -33,6 +40,7 @@ public partial class Game : IDisposable
     private IRenderPipeline? _renderPipeline;
     private ICamera? _camera;
     private LocalPlayerController? _playerController;
+    private TextureAtlas? _atlas;
     private bool _useNormalMap = true;
     private bool _useAoMap = true;
     private bool _useSpecularMap = true;
@@ -42,10 +50,11 @@ public partial class Game : IDisposable
     private Vector2<int>? _lastPlayerChunk;
     private Task? _worldUpdateTask;
 
-    public Game(IWindow window, World world, ILoggerFactory loggerFactory)
+    public Game(IWindow window, World world, ILoggerFactory loggerFactory, ISharpCraftSdk sdk)
     {
         _world = world;
         _loggerFactory = loggerFactory;
+        _sdk = sdk;
         _logger = loggerFactory.CreateLogger<Game>();
 
         _window = window;
@@ -61,32 +70,27 @@ public partial class Game : IDisposable
         _gl?.Viewport(0, 0, (uint)size.X, (uint)size.Y);
     }
 
-    private async void OnLoad()
+    private void OnLoad()
     {
         try
         {
-            await OnLoadAsync();
+            LogCreatingOpenglContext();
+            _gl = _window!.CreateOpenGL();
+
+            if (SteamClient.IsValid)
+            {
+                SteamFriends.SetRichPresence("status", "Exploring SharpCraft");
+            }
+
+            InitializeGraphicsState();
+            InitializeSystems();
+            RegisterInputHandlers();
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Failed to load game");
             Exit();
         }
-    }
-
-    private async Task OnLoadAsync()
-    {
-        LogCreatingOpenglContext();
-        _gl = _window.CreateOpenGL();
-
-        if (SteamClient.IsValid)
-        {
-            SteamFriends.SetRichPresence("status", "Exploring SharpCraft");
-        }
-
-        InitializeGraphicsState();
-        await InitializeSystems();
-        RegisterInputHandlers();
     }
 
     private void OnUpdate(double deltaTime)
@@ -183,7 +187,7 @@ public partial class Game : IDisposable
         _gl.ClearColor(0.53f, 0.81f, 0.92f, 1.0f);
     }
 
-    private async Task InitializeSystems()
+    private void InitializeSystems()
     {
         if (_gl == null || _window == null) return;
 
@@ -191,7 +195,8 @@ public partial class Game : IDisposable
         _input = new InputManager(inputContext);
         _inputProvider = new KeyboardMouseInputProvider(inputContext);
         _hudManager = new HudManager(_gl, _window, inputContext, _loggerFactory.CreateLogger<HudManager>());
-        await _hudManager.InitializeAsync();
+        // HUD initialization is handled synchronously to maintain GL context on main thread
+        _hudManager.InitializeAsync().Wait();
 
         if (_hudManager.Settings != null)
         {
@@ -205,12 +210,23 @@ public partial class Game : IDisposable
             };
         }
 
+        // Initialize Assets and Atlas
+        LoadDefaultAssets();
+        _atlas = new TextureAtlas(_gl, _sdk.Assets);
+        _atlas.Build();
+
+        var meshManager = new ChunkMeshManager(_world, ResolveUvs);
         var physics = new PhysicsSystem(_world);
         var entity = new PhysicsEntity(new Transform { Position = new Vector3(0, 80, 0) }, physics);
 
         _camera = new FirstPersonCamera(entity, Vector3.UnitY * 1.6f);
         _playerController = new LocalPlayerController(entity, _camera, _world, _inputProvider);
-        _renderPipeline = new DefaultRenderPipeline(_gl, _world);
+        
+        var cache = new ChunkRenderCache(_gl);
+        var terrainRenderer = new TerrainRenderer(_gl, cache, meshManager, _atlas, _sdk.Blocks);
+        var waterRenderer = new WaterRenderer(_gl, cache, meshManager, _atlas);
+        
+        _renderPipeline = new DefaultRenderPipeline(_gl, _world, cache, meshManager, terrainRenderer, waterRenderer);
 
         _lightSystem.AddPointLight(new PointLight
         {
@@ -223,6 +239,154 @@ public partial class Game : IDisposable
             Position = _camera.Position,
             Color = new Vector3(1.0f, 1.0f, 1.0f)
         });
+    }
+
+    private void LoadDefaultAssets()
+    {
+        // Define default blocks
+        var blocks = new[]
+        {
+            new BlockDefinition("sharpcraft:grass", "Grass", Type: BlockType.Grass, TextureTop: new ResourceLocation("sharpcraft", "grass_top"), TextureBottom: new ResourceLocation("sharpcraft", "dirt"), TextureSides: new ResourceLocation("sharpcraft", "grass_side")),
+            new BlockDefinition("sharpcraft:dirt", "Dirt", Type: BlockType.Dirt, TextureSides: new ResourceLocation("sharpcraft", "dirt")),
+            new BlockDefinition("sharpcraft:stone", "Stone", Type: BlockType.Stone, TextureSides: new ResourceLocation("sharpcraft", "stone")),
+            new BlockDefinition("sharpcraft:sand", "Sand", Type: BlockType.Sand, TextureSides: new ResourceLocation("sharpcraft", "sand")),
+            new BlockDefinition("sharpcraft:water", "Water", Type: BlockType.Water, IsSolid: false, IsTransparent: true, TextureSides: new ResourceLocation("sharpcraft", "water")),
+            new BlockDefinition("sharpcraft:bedrock", "Bedrock", Type: BlockType.Bedrock, TextureSides: new ResourceLocation("sharpcraft", "bedrock"))
+        };
+
+        foreach (var def in blocks)
+        {
+            _sdk.Blocks.Register(def.Id, def);
+        }
+
+        // Load textures from Assets/Textures/terrain.png and slice it
+        var assetsDir = Path.Combine(AppContext.BaseDirectory, "Assets", "Textures");
+        var terrainPath = Path.Combine(assetsDir, "terrain.png");
+        var normalPath = Path.Combine(assetsDir, "normals.png");
+        var aoPath = Path.Combine(assetsDir, "ao.png");
+        var specularPath = Path.Combine(assetsDir, "specular.png");
+
+        if (File.Exists(terrainPath))
+        {
+            var terrainImg = LoadImage(terrainPath);
+            var normalImg = File.Exists(normalPath) ? LoadImage(normalPath) : null;
+            var aoImg = File.Exists(aoPath) ? LoadImage(aoPath) : null;
+            var specularImg = File.Exists(specularPath) ? LoadImage(specularPath) : null;
+            
+            // Map our block textures to their original tile indices in terrain.png
+            var textureMapping = new Dictionary<string, int>
+            {
+                { "grass_top", 0 },
+                { "stone", 1 },
+                { "dirt", 2 },
+                { "grass_side", 3 },
+                { "bedrock", 17 },
+                { "sand", 18 },
+                { "water", 19 }
+            };
+
+            const int terrainAtlasSize = 16; // 16x16 tiles
+            int tileW = terrainImg.Width / terrainAtlasSize;
+            int tileH = terrainImg.Height / terrainAtlasSize;
+
+            foreach (var kvp in textureMapping)
+            {
+                var name = kvp.Key;
+                var tileIndex = kvp.Value;
+                
+                var tx = tileIndex % terrainAtlasSize;
+                var ty = tileIndex / terrainAtlasSize;
+                
+                var tileData = ExtractTile(terrainImg, tx, ty, tileW, tileH);
+                var normalData = normalImg != null ? ExtractTile(normalImg, tx, ty, tileW, tileH) : null;
+                var aoData = aoImg != null ? ExtractTile(aoImg, tx, ty, tileW, tileH) : null;
+                var specularData = specularImg != null ? ExtractTile(specularImg, tx, ty, tileW, tileH) : null;
+                
+                _sdk.Assets.Register($"sharpcraft:{name}", new TextureData(tileW, tileH, tileData, normalData, aoData, specularData));
+            }
+        }
+        else
+        {
+            _logger.LogWarning("terrain.png not found at {Path}, using fallbacks", terrainPath);
+            var textureNames = new[] { "grass_top", "grass_side", "dirt", "stone", "sand", "water", "bedrock" };
+            foreach (var name in textureNames)
+            {
+                var data = new byte[16 * 16 * 4];
+                for (var i = 0; i < data.Length; i += 4) { data[i] = 255; data[i + 1] = 0; data[i + 2] = 255; data[i + 3] = 255; }
+                _sdk.Assets.Register($"sharpcraft:{name}", new TextureData(16, 16, data));
+            }
+        }
+    }
+
+    private readonly Dictionary<BlockType, BlockDefinition> _typeToDef = new();
+
+    private void ResolveUvs(BlockType type, Direction dir, Span<float> uvs)
+    {
+        if (_atlas == null) return;
+
+        if (!_typeToDef.TryGetValue(type, out var def))
+        {
+            foreach (var registered in _sdk.Blocks.All)
+            {
+                if (registered.Value.Type == type)
+                {
+                    def = registered.Value;
+                    _typeToDef[type] = def;
+                    break;
+                }
+            }
+        }
+
+        if (def == null)
+        {
+            // Default UVs
+            for (var i = 0; i < 8; i++) uvs[i] = 0;
+            return;
+        }
+
+        var loc = dir switch
+        {
+            Direction.Up => def.TextureTop ?? def.TextureSides,
+            Direction.Down => def.TextureBottom ?? def.TextureSides,
+            _ => def.TextureSides
+        };
+
+        if (loc != null && _atlas.TryGetUvs(loc, out var uvRect))
+        {
+            uvs[0] = uvRect.U; uvs[1] = uvRect.V + uvRect.Height;
+            uvs[2] = uvRect.U + uvRect.Width; uvs[3] = uvRect.V + uvRect.Height;
+            uvs[4] = uvRect.U + uvRect.Width; uvs[5] = uvRect.V;
+            uvs[6] = uvRect.U; uvs[7] = uvRect.V;
+        }
+        else
+        {
+            for (var i = 0; i < 8; i++) uvs[i] = 0;
+        }
+    }
+
+    private ImageResult LoadImage(string path)
+    {
+        using var stream = File.OpenRead(path);
+        return ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
+    }
+
+    private byte[] ExtractTile(ImageResult image, int tx, int ty, int tileW, int tileH)
+    {
+        var tileData = new byte[tileW * tileH * 4];
+        for (int y = 0; y < tileH; y++)
+        {
+            for (int x = 0; x < tileW; x++)
+            {
+                int srcIdx = ((ty * tileH + y) * image.Width + (tx * tileW + x)) * 4;
+                int dstIdx = (y * tileW + x) * 4;
+
+                tileData[dstIdx] = image.Data[srcIdx];
+                tileData[dstIdx + 1] = image.Data[srcIdx + 1];
+                tileData[dstIdx + 2] = image.Data[srcIdx + 2];
+                tileData[dstIdx + 3] = image.Data[srcIdx + 3];
+            }
+        }
+        return tileData;
     }
 
     private void RegisterInputHandlers()

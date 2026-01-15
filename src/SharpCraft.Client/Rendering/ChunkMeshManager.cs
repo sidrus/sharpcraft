@@ -3,7 +3,7 @@ using SharpCraft.Engine.Universe;
 
 namespace SharpCraft.Client.Rendering;
 
-public class ChunkMeshManager(World world)
+public class ChunkMeshManager(World world, Chunk.UvResolver uvResolver)
 {
     private readonly ConcurrentQueue<Chunk> _dirtyChunks = new();
     private readonly ConcurrentDictionary<Chunk, bool> _processingChunks = new();
@@ -28,7 +28,7 @@ public class ChunkMeshManager(World world)
             {
                 try
                 {
-                    chunk.GenerateMesh(world);
+                    chunk.GenerateMesh(world, uvResolver);
                     _completedChunks.Enqueue(chunk);
                 }
                 finally

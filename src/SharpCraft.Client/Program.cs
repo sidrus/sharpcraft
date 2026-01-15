@@ -2,7 +2,13 @@
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using SharpCraft.Client;
+using SharpCraft.Engine;
+using SharpCraft.Engine.Assets;
+using SharpCraft.Engine.Blocks;
+using SharpCraft.Engine.Commands;
+using SharpCraft.Engine.Messaging;
 using SharpCraft.Engine.Universe;
+using SharpCraft.Sdk.Universe;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Steamworks;
@@ -20,6 +26,14 @@ using var loggerFactory = LoggerFactory.Create(builder =>
 });
 
 var logger = loggerFactory.CreateLogger<Program>();
+
+// SDK Initialization
+var assets = new AssetRegistry();
+var blocks = new BlockRegistry();
+var channels = new ChannelManager();
+var commands = new CommandRegistry();
+var worldGen = new WorldGenerationRegistry();
+var sdk = new SharpCraftSdk(assets, blocks, channels, commands, worldGen);
 
 logger.LogInformation("SharpCraft starting...");
 logger.LogInformation("Process Architecture: {Arch}", RuntimeInformation.ProcessArchitecture);
@@ -56,7 +70,7 @@ var opts = WindowOptions.Default with
 
 logger.LogInformation("Creating game window...");
 using var window = Window.Create(opts);
-using var game = new Game(window, world, loggerFactory);
+using var game = new Game(window, world, loggerFactory, sdk);
 
 // Game Loop
 logger.LogInformation("Entering game loop...");

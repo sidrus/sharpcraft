@@ -2,6 +2,8 @@
 
 public static class Shaders
 {
-    public static readonly string DefaultVertex = File.ReadAllText("Assets/Shaders/default.vert");
-    public static readonly string DefaultFragment = File.ReadAllText("Assets/Shaders/default.frag");
+    private static string LoadShader(string name) => File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Assets", "Shaders", name));
+
+    public static readonly string DefaultVertex = LoadShader("default.vert");
+    public static readonly string DefaultFragment = LoadShader("default.frag");
 }

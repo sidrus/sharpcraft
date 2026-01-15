@@ -2,37 +2,49 @@
 using SharpCraft.Client.Rendering.Shaders;
 using SharpCraft.Client.Rendering.Textures;
 using SharpCraft.Engine.Universe;
+using SharpCraft.Sdk.Blocks;
+using SharpCraft.Sdk.Resources;
 using Silk.NET.OpenGL;
 
 namespace SharpCraft.Client.Rendering;
 
-public class TerrainRenderer(GL gl, ChunkRenderCache cache, ChunkMeshManager meshManager) : IRenderer
+public class TerrainRenderer : IRenderer
 {
-    private readonly ShaderProgram _shader = new(gl, Shaders.Shaders.DefaultVertex, Shaders.Shaders.DefaultFragment);
-    private readonly Texture2d _texture = new ColorTexture2d(gl, "Assets/Textures/terrain.png");
-    private readonly Texture2d _normalMap = new LinearTexture2d(gl, "Assets/Textures/normals.png");
-    private readonly Texture2d _aoMap = new LinearTexture2d(gl, "Assets/Textures/ao.png");
-    private readonly Texture2d _specularMap = new LinearTexture2d(gl, "Assets/Textures/specular.png");
+    private readonly GL _gl;
+    private readonly ChunkRenderCache _cache;
+    private readonly ChunkMeshManager _meshManager;
+    private readonly ShaderProgram _shader;
+    private readonly TextureAtlas _atlas;
     private readonly Frustum _frustum = new();
-    private readonly uint _vao = gl.GenVertexArray();
+    private readonly uint _vao;
+    private readonly IBlockRegistry _blocks;
+
+    public TerrainRenderer(GL gl, ChunkRenderCache cache, ChunkMeshManager meshManager, TextureAtlas atlas, IBlockRegistry blocks)
+    {
+        _gl = gl;
+        _cache = cache;
+        _meshManager = meshManager;
+        _atlas = atlas;
+        _blocks = blocks;
+
+        _shader = new ShaderProgram(gl, Shaders.Shaders.DefaultVertex, Shaders.Shaders.DefaultFragment);
+        _vao = gl.GenVertexArray();
+    }
 
     public void Render(World world, RenderContext context)
     {
-        meshManager.Process();
-        while (meshManager.TryGetCompleted(out var completedChunk))
+        _meshManager.Process();
+        while (_meshManager.TryGetCompleted(out var completedChunk))
         {
             if (completedChunk != null)
             {
-                var rc = cache.Get(completedChunk);
+                var rc = _cache.Get(completedChunk);
                 rc.UpdateBuffers();
             }
         }
 
         _shader.Use();
-        _texture.Bind();
-        _normalMap.Bind(TextureUnit.Texture1);
-        _aoMap.Bind(TextureUnit.Texture2);
-        _specularMap.Bind(TextureUnit.Texture3);
+        _atlas.Bind(TextureUnit.Texture0, TextureUnit.Texture1, TextureUnit.Texture2, TextureUnit.Texture3);
 
         _shader.SetUniform("exposure", context.Exposure);
         _shader.SetUniform("gamma", context.Gamma);
@@ -68,7 +80,7 @@ public class TerrainRenderer(GL gl, ChunkRenderCache cache, ChunkMeshManager mes
             }
         }
 
-        gl.BindVertexArray(_vao);
+        _gl.BindVertexArray(_vao);
 
         _shader.SetUniform("viewPos", context.CameraPosition);
         _shader.SetUniform("fogColor", context.FogColor);
@@ -84,8 +96,8 @@ public class TerrainRenderer(GL gl, ChunkRenderCache cache, ChunkMeshManager mes
             if (!_frustum.IsBoxInFrustum(chunkPos, chunkPos + new Vector3(16, 256, 16)))
                 continue;
 
-            var renderChunk = cache.Get(chunk);
-            if (chunk.IsDirty) { meshManager.Enqueue(chunk); }
+            var renderChunk = _cache.Get(chunk);
+            if (chunk.IsDirty) { _meshManager.Enqueue(chunk); }
 
             var model = Matrix4x4.CreateTranslation(chunkPos);
             _shader.SetUniform("model", model);
@@ -107,13 +119,9 @@ public class TerrainRenderer(GL gl, ChunkRenderCache cache, ChunkMeshManager mes
             if (disposing)
             {
                 _shader.Dispose();
-                _texture.Dispose();
-                _normalMap.Dispose();
-                _aoMap.Dispose();
-                _specularMap.Dispose();
             }
 
-            gl.DeleteVertexArray(_vao);
+            _gl.DeleteVertexArray(_vao);
             _disposed = true;
         }
     }

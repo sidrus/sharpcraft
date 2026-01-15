@@ -1,4 +1,5 @@
-﻿using SharpCraft.Sdk.Blocks;
+﻿using SharpCraft.Sdk.Assets;
+using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Messaging;
 using SharpCraft.Sdk.Commands;
 using SharpCraft.Sdk.Universe;
@@ -10,6 +11,11 @@ namespace SharpCraft.Sdk;
 /// </summary>
 public interface ISharpCraftSdk
 {
+    /// <summary>
+    /// Gets the asset registry.
+    /// </summary>
+    IAssetRegistry Assets { get; }
+
     /// <summary>
     /// Gets the block registry.
     /// </summary>
