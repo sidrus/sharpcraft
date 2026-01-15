@@ -3,11 +3,8 @@
 /// <summary>
 /// Provides access to graphics settings.
 /// </summary>
-public interface IGraphicsSettings
+public interface IGraphicsSettings : IInteractiveHud
 {
-    bool IsVisible { get; set; }
-    event Action? OnVisibilityChanged;
-    
     bool VSync { get; set; }
     float Gamma { get; set; }
     float Exposure { get; set; }

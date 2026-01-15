@@ -3,7 +3,7 @@ using SharpCraft.Sdk.UI;
 
 namespace SharpCraft.Client.UI.Chat;
 
-public class ChatHud : IHud
+public class ChatHud : IInteractiveHud
 {
     public string Name => "ChatHud";
     private readonly List<ChatMessage> _messages = [];
@@ -12,6 +12,12 @@ public class ChatHud : IHud
     private bool _focusInput;
     private bool _shouldScrollToBottom;
     private IDisposable? _chatSubscription;
+
+    public bool IsVisible
+    {
+        get => IsTyping;
+        set => IsTyping = value;
+    }
 
     public bool IsTyping
     {

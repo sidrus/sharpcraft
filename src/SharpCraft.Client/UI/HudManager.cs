@@ -66,9 +66,9 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
     {
         _huds[hud.Name] = hud;
         
-        if (hud is IGraphicsSettings settings)
+        if (hud is IInteractiveHud interactiveHud)
         {
-            settings.OnVisibilityChanged += UpdateCursorMode;
+            interactiveHud.OnVisibilityChanged += UpdateCursorMode;
         }
     }
 
@@ -91,6 +91,10 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
         {
             case Key.F3:
                 Settings.IsVisible = !Settings.IsVisible;
+                break;
+            case Key.F4:
+                var devHud = _huds.Values.OfType<IInteractiveHud>().FirstOrDefault(h => h.Name == "DeveloperHud");
+                if (devHud != null) devHud.IsVisible = !devHud.IsVisible;
                 break;
         }
 
@@ -117,8 +121,9 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
     {
         var mouse = _input.Mice[0];
 
-        var isAnyMenuVisible = (Settings?.IsVisible ?? false) ||
-                             (Chat?.IsTyping ?? false);
+        var isAnyMenuVisible = _huds.Values
+            .OfType<IInteractiveHud>()
+            .Any(h => h.IsVisible);
         
         if (isAnyMenuVisible)
         {
@@ -135,8 +140,9 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
     {
         var mouse = _input.Mice[0];
         
-        var isAnyMenuVisible = (Settings?.IsVisible ?? false) ||
-                             (Chat?.IsTyping ?? false);
+        var isAnyMenuVisible = _huds.Values
+            .OfType<IInteractiveHud>()
+            .Any(h => h.IsVisible);
         
         if (isAnyMenuVisible)
         {
@@ -245,6 +251,11 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
 
     private sealed class DefaultGraphicsSettings : IGraphicsSettings
     {
+        public string Name => "DefaultGraphicsSettings";
+        public void Draw(double deltaTime, IGui gui, IHudContext context) { }
+        public void OnAwake() { }
+        public void OnUpdate(double deltaTime) { }
+        
         public bool IsVisible { get; set; }
         public event Action? OnVisibilityChanged;
         public bool VSync { get; set; }

@@ -3,7 +3,7 @@ using SharpCraft.Sdk.UI;
 
 namespace SharpCraft.CoreMods.UI;
 
-public class DeveloperHud : IHud
+public class DeveloperHud : IInteractiveHud
 {
     public string Name => "DeveloperHud";
     private bool _isVisible;
