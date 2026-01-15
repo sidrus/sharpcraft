@@ -3,16 +3,16 @@ using System.Numerics;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
 using SharpCraft.Sdk.Physics;
+using SharpCraft.Sdk.Universe;
 
 namespace SharpCraft.Engine.Universe;
 
 /// <summary>
 /// Represents the game world, containing all chunks and entities.
 /// </summary>
-public class World(int seed = 12345) : ICollisionProvider
+public class World(IWorldGenerator generator, long seed, IBlockRegistry blockRegistry) : ICollisionProvider
 {
     private readonly ConcurrentDictionary<Vector2<int>, Chunk> _chunks = new();
-    private readonly IWorldGenerator _generator = new DefaultWorldGenerator(seed);
 
     /// <summary>
     /// Gets the current size of the world (render distance).
@@ -116,8 +116,8 @@ public class World(int seed = 12345) : ICollisionProvider
     {
         return _chunks.GetOrAdd(coord, k =>
         {
-            var chunk = new Chunk(k);
-            _generator.GenerateChunk(chunk);
+            var chunk = new Chunk(k, blockRegistry);
+            generator.GenerateChunk(chunk, seed);
             return chunk;
         });
     }

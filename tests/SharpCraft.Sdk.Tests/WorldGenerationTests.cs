@@ -4,6 +4,7 @@ using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
 using SharpCraft.Sdk.Resources;
 using SharpCraft.Sdk.Universe;
+using Moq;
 using IWorldGenerator = SharpCraft.Sdk.Universe.IWorldGenerator;
 
 namespace SharpCraft.Sdk.Tests;
@@ -30,15 +31,15 @@ public class WorldGenerationTests
     }
 
     [Fact]
-    public void SdkWorldGeneratorBridge_ShouldPopulateChunk()
+    public void Chunk_ShouldPopulateDirectly()
     {
         // Arrange
         var sdkGenerator = new FlatWorldGenerator();
-        var bridge = new SdkWorldGeneratorBridge(sdkGenerator, 12345);
-        var chunk = new Chunk(new Vector2<int>(0, 0));
+        var blockRegistry = Mock.Of<IBlockRegistry>();
+        var chunk = new Chunk(new Vector2<int>(0, 0), blockRegistry);
 
         // Act
-        bridge.GenerateChunk(chunk);
+        sdkGenerator.GenerateChunk(chunk, 12345);
 
         // Assert
         chunk.GetBlock(0, 0, 0).Type.Should().Be(BlockType.Bedrock);

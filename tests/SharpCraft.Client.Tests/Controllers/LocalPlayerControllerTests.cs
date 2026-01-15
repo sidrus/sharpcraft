@@ -20,7 +20,7 @@ public class LocalPlayerControllerTests
     public void Update_WhenHoldingSpaceOnWaterSurface_ShouldEventuallySubmergeDeeply()
     {
         // Setup
-        var world = new World();
+        var world = new World(Mock.Of<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Mock.Of<IBlockRegistry>());
         // Water at Y=63 (occupies 63.0 to 64.0)
         for (var x = -5; x <= 5; x++)
         {
@@ -64,7 +64,7 @@ public class LocalPlayerControllerTests
     public void Update_WhenHoldingSpaceAtShallowSwimmingDepth_ShouldNotSink()
     {
         // Setup
-        var world = new World();
+        var world = new World(Mock.Of<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Mock.Of<IBlockRegistry>());
         // Water at Y=63 (occupies 63.0 to 64.0)
         for (var x = -5; x <= 5; x++)
         {
@@ -103,7 +103,7 @@ public class LocalPlayerControllerTests
     public void Update_WhenJumpingFromDepth_ShouldBeAbleToReachAboveSurface()
     {
         // Setup
-        var world = new World();
+        var world = new World(Mock.Of<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Mock.Of<IBlockRegistry>());
         for (var x = -5; x <= 5; x++)
         {
             for (var z = -5; z <= 5; z++)
@@ -144,7 +144,7 @@ public class LocalPlayerControllerTests
     public void Properties_WhenAccessedBeforeSense_ShouldNotThrow()
     {
         // Setup
-        var world = new World();
+        var world = new World(Mock.Of<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Mock.Of<IBlockRegistry>());
         var mockCamera = new Mock<ICamera>();
         var mockPhysicsSystem = new Mock<IPhysicsSystem>();
         var entity = new PhysicsEntity(new Transform(), mockPhysicsSystem.Object);

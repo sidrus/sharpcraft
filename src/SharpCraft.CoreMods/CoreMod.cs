@@ -1,7 +1,6 @@
 using SharpCraft.CoreMods.Blocks;
 using SharpCraft.Sdk;
 using SharpCraft.Sdk.Assets;
-using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Lifecycle;
 using SharpCraft.Sdk.Resources;
 
@@ -10,17 +9,17 @@ namespace SharpCraft.CoreMods;
 /// <summary>
 /// Core mod that registers the default vanilla blocks.
 /// </summary>
-public class CoreBlocksMod(ISharpCraftSdk sdk) : IMod
+public class CoreMod(ISharpCraftSdk sdk) : IMod
 {
     internal const string Namespace = "sharpcraft";
 
     public ModManifest Manifest => new(
         Id: Namespace,
-        Name: "Core Blocks",
+        Name: "Core",
         Author: "Ejafi Software",
         Version: "0.0.1",
         Dependencies: [],
-        Capabilities: ["blocks"],
+        Capabilities: ["blocks", "world-gen"],
         Entrypoints: ["SharpCraft.CoreMods.dll"]
     );
 
@@ -30,11 +29,17 @@ public class CoreBlocksMod(ISharpCraftSdk sdk) : IMod
     {
         LoadTextures();
         RegisterDefaultBlocks();
+        RegisterWorldGenerators();
     }
 
     public void OnDisable()
     {
         // No cleanup needed
+    }
+
+    private void RegisterWorldGenerators()
+    {
+        sdk.World.Register(new ResourceLocation(Namespace, "default"), new Universe.DefaultWorldGenerator());
     }
 
     private void LoadTextures()

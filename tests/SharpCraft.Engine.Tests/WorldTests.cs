@@ -2,16 +2,20 @@
 using SharpCraft.Sdk.Numerics;
 using AwesomeAssertions;
 using SharpCraft.Sdk.Blocks;
+using SharpCraft.Engine.Universe;
+using Moq;
 using WorldClass = SharpCraft.Engine.Universe.World;
 
 namespace SharpCraft.Engine.Tests;
 
 public class WorldTests
 {
+    private static WorldClass CreateWorld() => new(Mock.Of<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Mock.Of<IBlockRegistry>());
+
     [Fact]
     public void GetOrCreateChunk_ShouldCreateNewChunk()
     {
-        var world = new WorldClass();
+        var world = CreateWorld();
         var coord = new Vector2<int>(1, 2);
 
         var chunk = world.GetOrCreateChunk(coord);
@@ -23,7 +27,7 @@ public class WorldTests
     [Fact]
     public void GetOrCreateChunk_ShouldReturnExistingChunk()
     {
-        var world = new WorldClass();
+        var world = CreateWorld();
         var coord = new Vector2<int>(1, 2);
 
         var chunk1 = world.GetOrCreateChunk(coord);
@@ -35,7 +39,7 @@ public class WorldTests
     [Fact]
     public void GetBlock_ShouldReturnBlockFromCorrectChunk()
     {
-        var world = new WorldClass();
+        var world = CreateWorld();
         // Set a block at a specific world coordinate
         // (16, 64, 16) is in chunk (1, 1) at local (0, 64, 0)
         world.SetBlock(16, 64, 16, BlockType.Stone);
@@ -48,7 +52,7 @@ public class WorldTests
     [Fact]
     public void GetBlock_ShouldReturnAir_ForUnloadedChunk()
     {
-        var world = new WorldClass();
+        var world = CreateWorld();
         
         var block = world.GetBlock(1000, 64, 1000);
 
@@ -58,7 +62,7 @@ public class WorldTests
     [Fact]
     public void Generate_ShouldCreateChunksInBounds()
     {
-        var world = new WorldClass();
+        var world = CreateWorld();
         var bounds = 1; // -1 to 1 inclusive -> 3x3 = 9 chunks
 
         world.Generate(bounds);
@@ -69,7 +73,7 @@ public class WorldTests
     [Fact]
     public async Task GenerateAsync_ShouldCreateChunksProgressively()
     {
-        var world = new WorldClass();
+        var world = CreateWorld();
         var bounds = 1;
 
         await world.GenerateAsync(bounds);
@@ -80,7 +84,7 @@ public class WorldTests
     [Fact]
     public void UnloadChunks_ShouldRemoveChunksOutsideRange()
     {
-        var world = new WorldClass();
+        var world = CreateWorld();
         world.Generate(2); // 5x5 = 25 chunks
         world.GetLoadedChunks().Should().HaveCount(25);
 
@@ -94,7 +98,7 @@ public class WorldTests
     [Fact]
     public void SetBlock_ShouldCreateChunkIfMissing()
     {
-        var world = new WorldClass();
+        var world = CreateWorld();
         var wx = 32;
         var wy = 64;
         var wz = 32;

@@ -9,7 +9,6 @@ using SharpCraft.Engine.Commands;
 using SharpCraft.Engine.Lifecycle;
 using SharpCraft.Engine.Messaging;
 using SharpCraft.Engine.Universe;
-using SharpCraft.Sdk.Universe;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Steamworks;
@@ -69,7 +68,9 @@ catch (Exception e)
 
 // World Generation
 logger.LogInformation("Generating world...");
-var world = new World(seed: 42);
+const int seed = 42;
+var generator = worldGen.Get(new SharpCraft.Sdk.Resources.ResourceLocation("sharpcraft", "default"));
+var world = new World(generator, seed, blocks);
 await world.GenerateAsync(32, System.Numerics.Vector3.Zero);
 logger.LogInformation("World generation complete");
 

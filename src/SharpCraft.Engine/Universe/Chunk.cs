@@ -2,14 +2,21 @@
 using SharpCraft.Sdk;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
+using SharpCraft.Sdk.Resources;
+using SharpCraft.Sdk.Universe;
 
 namespace SharpCraft.Engine.Universe;
 
 /// <summary>
 /// Represents a 16x256x16 section of the world.
 /// </summary>
-public class Chunk(Vector2<int> coord)
+public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkData
 {
+    /// <inheritdoc />
+    public int X => coord.X;
+
+    /// <inheritdoc />
+    public int Z => coord.Y;
     /// <summary>
     /// The horizontal size of a chunk in blocks.
     /// </summary>
@@ -86,6 +93,30 @@ public class Chunk(Vector2<int> coord)
 
         _blocks[x, y, z].Type = type;
         IsDirty = true;
+    }
+
+    /// <inheritdoc />
+    public void SetBlock(int x, int y, int z, ResourceLocation blockId)
+    {
+        if (blockRegistry.TryGet(blockId, out var definition))
+        {
+            SetBlock(x, y, z, definition!.Type);
+        }
+        else
+        {
+            // Fallback for common IDs if not in registry yet (or just set to Air)
+            var fallback = blockId.ToString().ToLower() switch
+            {
+                "sharpcraft:dirt" => BlockType.Dirt,
+                "sharpcraft:grass" => BlockType.Grass,
+                "sharpcraft:stone" => BlockType.Stone,
+                "sharpcraft:sand" => BlockType.Sand,
+                "sharpcraft:water" => BlockType.Water,
+                "sharpcraft:bedrock" => BlockType.Bedrock,
+                _ => BlockType.Air
+            };
+            SetBlock(x, y, z, fallback);
+        }
     }
 
     /// <summary>

@@ -3,12 +3,11 @@ using SharpCraft.Client.Rendering.Shaders;
 using SharpCraft.Client.Rendering.Textures;
 using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk.Blocks;
-using SharpCraft.Sdk.Resources;
 using Silk.NET.OpenGL;
 
 namespace SharpCraft.Client.Rendering;
 
-public class TerrainRenderer(
+public sealed class TerrainRenderer(
     GL gl,
     ChunkRenderCache cache,
     ChunkMeshManager meshManager,
@@ -102,7 +101,7 @@ public class TerrainRenderer(
         GC.SuppressFinalize(this);
     }
 
-    protected virtual void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (!_disposed)
         {

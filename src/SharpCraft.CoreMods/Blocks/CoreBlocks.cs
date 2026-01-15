@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using SharpCraft.Sdk.Blocks;
+﻿using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Resources;
 
 namespace SharpCraft.CoreMods.Blocks;
@@ -12,27 +11,27 @@ public static class CoreBlocks
             "sharpcraft:grass",
             "Grass",
             Type: BlockType.Grass,
-            TextureTop: new ResourceLocation(CoreBlocksMod.Namespace, "grass_top"),
-            TextureBottom: new ResourceLocation(CoreBlocksMod.Namespace, "dirt"),
-            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "grass_side")
+            TextureTop: new ResourceLocation(CoreMod.Namespace, "grass_top"),
+            TextureBottom: new ResourceLocation(CoreMod.Namespace, "dirt"),
+            TextureSides: new ResourceLocation(CoreMod.Namespace, "grass_side")
         ),
         new(
             "sharpcraft:dirt",
             "Dirt",
             Type: BlockType.Dirt,
-            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "dirt")
+            TextureSides: new ResourceLocation(CoreMod.Namespace, "dirt")
         ),
         new(
             "sharpcraft:stone",
             "Stone",
             Type: BlockType.Stone,
-            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "stone")
+            TextureSides: new ResourceLocation(CoreMod.Namespace, "stone")
         ),
         new(
             "sharpcraft:sand",
             "Sand",
             Type: BlockType.Sand,
-            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "sand")
+            TextureSides: new ResourceLocation(CoreMod.Namespace, "sand")
         ),
         new(
             "sharpcraft:water",
@@ -40,13 +39,13 @@ public static class CoreBlocks
             Type: BlockType.Water,
             IsSolid: false,
             IsTransparent: true,
-            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "water")
+            TextureSides: new ResourceLocation(CoreMod.Namespace, "water")
         ),
         new(
             "sharpcraft:bedrock",
             "Bedrock",
             Type: BlockType.Bedrock,
-            TextureSides: new ResourceLocation(CoreBlocksMod.Namespace, "bedrock")
+            TextureSides: new ResourceLocation(CoreMod.Namespace, "bedrock")
         )
     ];
 }

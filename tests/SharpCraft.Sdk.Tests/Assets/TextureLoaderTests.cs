@@ -1,6 +1,4 @@
 ﻿using SharpCraft.Sdk.Assets;
-using StbImageSharp;
-using Xunit;
 
 namespace SharpCraft.Sdk.Tests.Assets;
 
