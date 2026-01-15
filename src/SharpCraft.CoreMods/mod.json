@@ -1,0 +1,9 @@
+﻿{
+  "id": "sharpcraft",
+  "name": "Core Blocks",
+  "author": "Ejafi Software",
+  "version": "1.0.0",
+  "dependencies": [],
+  "capabilities": ["blocks"],
+  "entrypoints": ["SharpCraft.CoreMods.dll"]
+}

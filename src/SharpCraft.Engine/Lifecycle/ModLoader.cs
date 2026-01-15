@@ -1,5 +1,7 @@
-﻿using System.Text.Json;
+﻿using System.Reflection;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using SharpCraft.Sdk;
 using SharpCraft.Sdk.Lifecycle;
 
 namespace SharpCraft.Engine.Lifecycle;
@@ -7,12 +9,19 @@ namespace SharpCraft.Engine.Lifecycle;
 /// <summary>
 /// Loads and manages mods.
 /// </summary>
-public class ModLoader(ILogger<ModLoader> logger)
+public class ModLoader(ILogger<ModLoader> logger, ISharpCraftSdk sdk)
 {
     private readonly List<IMod> _mods = [];
 
+    /// <summary>
+    /// Gets the list of loaded mods.
+    /// </summary>
     public IEnumerable<IMod> LoadedMods => _mods;
 
+    /// <summary>
+    /// Loads mods from the specified directory.
+    /// </summary>
+    /// <param name="modsDirectory">The directory to search for mods.</param>
     public void LoadMods(string modsDirectory)
     {
         if (!Directory.Exists(modsDirectory))
@@ -20,6 +29,8 @@ public class ModLoader(ILogger<ModLoader> logger)
             logger.LogWarning("Mods directory {Directory} does not exist", modsDirectory);
             return;
         }
+
+        var discoveredMods = new List<IMod>();
 
         foreach (var dir in Directory.GetDirectories(modsDirectory))
         {
@@ -36,7 +47,37 @@ public class ModLoader(ILogger<ModLoader> logger)
                     if (manifest != null)
                     {
                         logger.LogInformation("Found mod: {ModName} ({ModId}) v{Version}", manifest.Name, manifest.Id, manifest.Version);
-                        // TODO: Implement actual loading of assemblies (Tier 1) or scripts (Tier 2)
+                        
+                        foreach (var entrypoint in manifest.Entrypoints)
+                        {
+                            if (entrypoint.EndsWith(".dll"))
+                            {
+                                var assemblyPath = Path.Combine(dir, entrypoint);
+                                if (File.Exists(assemblyPath))
+                                {
+                                    try
+                                    {
+                                        var assembly = Assembly.LoadFrom(assemblyPath);
+                                        var modTypes = assembly.GetTypes().Where(t => typeof(IMod).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+                                        
+                                        foreach (var type in modTypes)
+                                        {
+                                            var mod = (IMod)Activator.CreateInstance(type, sdk)!;
+                                            discoveredMods.Add(mod);
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        logger.LogError(ex, "Failed to load assembly {Path} for mod {ModId}", assemblyPath, manifest.Id);
+                                    }
+                                }
+                                else
+                                {
+                                    logger.LogError("Assembly {Path} not found for mod {ModId}", assemblyPath, manifest.Id);
+                                }
+                            }
+                            // TODO: Implement Tier 2 (scripts)
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -45,8 +86,21 @@ public class ModLoader(ILogger<ModLoader> logger)
                 }
             }
         }
+
+        try
+        {
+            var sortedMods = SortByDependencies(discoveredMods);
+            _mods.AddRange(sortedMods);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to sort mods by dependencies");
+        }
     }
 
+    /// <summary>
+    /// Enables all loaded mods.
+    /// </summary>
     public void EnableMods()
     {
         foreach (var mod in _mods)
@@ -63,6 +117,13 @@ public class ModLoader(ILogger<ModLoader> logger)
         }
     }
 
+    /// <summary>
+    /// Sorts the specified mods by their dependencies.
+    /// </summary>
+    /// <param name="mods">The mods to sort.</param>
+    /// <returns>A list of mods in the correct loading order.</returns>
+    /// <exception cref="CircularReferenceException">Thrown when a circular dependency is detected.</exception>
+    /// <exception cref="MissingModException">Thrown when a mod dependency is missing.</exception>
     public static IEnumerable<IMod> SortByDependencies(IEnumerable<IMod> mods)
     {
         var modsList = mods.ToList();

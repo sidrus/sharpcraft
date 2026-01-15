@@ -10,4 +10,26 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Update="Assets\**\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Target Name="CopyToClientMods" AfterTargets="Build">
+    <PropertyGroup>
+      <ModsDestination>$(MSBuildProjectDirectory)\..\SharpCraft.Client\bin\Debug\net10.0\mods\coremods\</ModsDestination>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ModAssets Include="$(MSBuildProjectDirectory)\Assets\**\*" />
+      <ModManifestFile Include="$(MSBuildProjectDirectory)\mod.json" />
+    </ItemGroup>
+
+    <MakeDir Directories="$(ModsDestination)" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModsDestination)" />
+    <Copy SourceFiles="@(ModAssets)" DestinationFiles="@(ModAssets->'$(ModsDestination)Assets\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(ModManifestFile)" DestinationFolder="$(ModsDestination)" />
+  </Target>
+
 </Project>

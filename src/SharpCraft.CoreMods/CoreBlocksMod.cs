@@ -18,7 +18,8 @@ public class CoreBlocksMod(ISharpCraftSdk sdk) : IMod
         Author: "Ejafi Software",
         Version: "1.0.0",
         Dependencies: [],
-        Capabilities: ["blocks"]
+        Capabilities: ["blocks"],
+        Entrypoints: ["SharpCraft.CoreMods.dll"]
     );
 
     public void OnEnable()
