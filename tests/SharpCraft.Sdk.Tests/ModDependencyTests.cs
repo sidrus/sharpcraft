@@ -9,6 +9,7 @@ public class ModDependencyTests
     private class MockMod(string id, params string[] deps) : IMod
     {
         public ModManifest Manifest { get; } = new(id, id, "Author", "1.0.0", deps, [], []);
+        public string BaseDirectory { get; set; } = string.Empty;
         public void OnEnable() { }
         public void OnDisable() { }
     }

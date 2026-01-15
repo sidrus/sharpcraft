@@ -11,6 +11,11 @@ public interface IMod
     ModManifest Manifest { get; }
 
     /// <summary>
+    /// Gets the base directory of the mod.
+    /// </summary>
+    string BaseDirectory { get; set; }
+
+    /// <summary>
     /// Called when the mod is enabled.
     /// </summary>
     void OnEnable();

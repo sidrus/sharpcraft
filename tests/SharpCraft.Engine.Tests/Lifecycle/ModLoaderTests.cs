@@ -23,6 +23,8 @@ public class ModLoaderTests
             Entrypoints: ["testmod.dll"]
         );
 
+        public string BaseDirectory { get; set; } = string.Empty;
+
         public void OnEnable() { }
         public void OnDisable() { }
     }

@@ -63,6 +63,7 @@ public class ModLoader(ILogger<ModLoader> logger, ISharpCraftSdk sdk)
                                         foreach (var type in modTypes)
                                         {
                                             var mod = (IMod)Activator.CreateInstance(type, sdk)!;
+                                            mod.BaseDirectory = dir;
                                             discoveredMods.Add(mod);
                                         }
                                     }
