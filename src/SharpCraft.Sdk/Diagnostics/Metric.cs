@@ -1,5 +1,8 @@
-﻿namespace SharpCraft.Client.UI.Debug.Diagnostics;
+﻿namespace SharpCraft.Sdk.Diagnostics;
 
+/// <summary>
+/// Represents a metric that collects samples over time.
+/// </summary>
 public class Metric(string name, int maxSamples)
 {
     public string Name { get; } = name;

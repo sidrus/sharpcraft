@@ -1,32 +1,33 @@
 ﻿using System.Numerics;
-using ImGuiNET;
-using SharpCraft.Client.UI.Components;
+using SharpCraft.Sdk.UI;
 
 namespace SharpCraft.Client.UI.Debug;
 
-public class DeveloperHud : Hud
+public class DeveloperHud : IHud
 {
-    public override string Name => "DeveloperHud";
+    public string Name => "DeveloperHud";
     public bool IsVisible { get; set; }
     public event Action? OnVisibilityChanged;
 
-    public override void Draw(double deltaTime, HudContext context)
+    public void Draw(double deltaTime, IGui gui, IHudContext context)
     {
         if (!IsVisible) return;
 
         var player = context.Player;
 
-        ImGui.SetNextWindowPos(new Vector2(10, 300), ImGuiCond.FirstUseEver);
-        ImGui.SetNextWindowSize(new Vector2(250, 150), ImGuiCond.FirstUseEver);
+        gui.SetNextWindowPos(new Vector2(10, 300), GuiCond.FirstUseEver);
+        gui.SetNextWindowSize(new Vector2(250, 150), GuiCond.FirstUseEver);
         
-        if (ImGui.Begin("Developer Menu", ref _isVisibleInternal))
+        var visible = IsVisible;
+        if (gui.Begin("Developer Menu", ref visible))
         {
             if (player != null)
             {
-                Gui.Panel("Cheats", () =>
+                gui.Panel("Cheats", () =>
                 {
                     var isFlying = player.IsFlying;
-                    if (ImGui.Checkbox("Fly Mode", ref isFlying))
+                    gui.Checkbox("Fly Mode", ref isFlying);
+                    if (player.IsFlying != isFlying)
                     {
                         player.IsFlying = isFlying;
                     }
@@ -34,19 +35,19 @@ public class DeveloperHud : Hud
             }
             else
             {
-                ImGui.Text("No player controller found.");
+                gui.Text("No player controller found.");
             }
 
-            ImGui.End();
+            gui.End();
         }
 
-        if (!_isVisibleInternal)
+        if (IsVisible != visible)
         {
-            IsVisible = false;
-            _isVisibleInternal = true; // reset for next time it's toggled
+            IsVisible = visible;
             OnVisibilityChanged?.Invoke();
         }
     }
 
-    private bool _isVisibleInternal = true;
+    public void OnAwake() { }
+    public void OnUpdate(double deltaTime) { }
 }

@@ -10,11 +10,12 @@ using SharpCraft.Sdk.Input;
 using SharpCraft.Sdk.Physics;
 using SharpCraft.Sdk.Physics.Sensors;
 using SharpCraft.Sdk.Physics.Sensors.Spatial;
+using SharpCraft.Sdk.Universe;
 using IMotor = SharpCraft.Sdk.Physics.Motors.IMotor;
 
 namespace SharpCraft.Client.Controllers;
 
-public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World world, IInputProvider inputProvider) : IController
+public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World world, IInputProvider inputProvider) : IController, IPlayer
 {
     private readonly GeospatialSensor _sensor = new();
     private readonly DefaultPlayerMotor _motor = new();
@@ -25,6 +26,7 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     public IMotor Motor => _motor;
     public ISensor<SpatialSensorData> SpatialSensor => _sensor;
     public PhysicsEntity Entity => entity;
+    IPhysicsEntity IPlayer.Entity => entity;
     public Block BlockBelow => _sensor.LastSense?.BlockBelow ?? default;
     public Block BlockAbove => _sensor.LastSense?.BlockAbove ?? default;
     public bool IsSwimming => _sensor.LastSense?.IsSwimming ?? false;
@@ -64,7 +66,6 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
 
     private float _yaw;
     private MovementIntent _pendingIntent;
-    private LookDelta _pendingLookDelta;
 
     private readonly List<object> _components = new();
 
@@ -73,8 +74,7 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
         SensorPass();
 
         // Gather input and handle look immediately for responsiveness
-        _pendingLookDelta = inputProvider.GetLookDelta();
-        HandleLook(_pendingLookDelta);
+        HandleLook(inputProvider.GetLookDelta());
 
         _pendingIntent = inputProvider.GetMovementIntent(camera.Forward, camera.Right);
         _pendingIntent = _pendingIntent with { IsFlying = IsFlying };

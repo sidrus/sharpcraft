@@ -1,14 +1,13 @@
 ﻿using System.Numerics;
-using ImGuiNET;
-using SharpCraft.Client.Controllers;
+using SharpCraft.Sdk.UI;
 
 namespace SharpCraft.Client.UI.Chat;
 
 public record ChatMessage(string Text, Vector4 Color);
 
-public class ChatHud : Hud
+public class ChatHud : IHud
 {
-    public override string Name => "ChatHud";
+    public string Name => "ChatHud";
     private readonly List<ChatMessage> _messages = [];
     private string _inputBuffer = string.Empty;
     private bool _isTyping;
@@ -50,69 +49,67 @@ public class ChatHud : Hud
         _shouldScrollToBottom = true;
     }
 
-    public override void Draw(double deltaTime, HudContext context)
+    public void Draw(double deltaTime, IGui gui, IHudContext context)
     {
-        var windowFlags = ImGuiWindowFlags.NoTitleBar |
-                         ImGuiWindowFlags.NoNav | 
-                         ImGuiWindowFlags.NoMove | 
-                         ImGuiWindowFlags.NoSavedSettings;
+        var windowFlags = GuiWindowSettings.NoTitleBar |
+                         GuiWindowSettings.NoSavedSettings;
 
         if (!_isTyping)
         {
-            windowFlags |= ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoBackground;
+            windowFlags |= GuiWindowSettings.NoInputs;
         }
 
-        ImGui.SetNextWindowPos(new Vector2(10, ImGui.GetIO().DisplaySize.Y - 220), ImGuiCond.Always);
-        ImGui.SetNextWindowSize(new Vector2(400, 200), ImGuiCond.Always);
+        var viewportSize = gui.GetMainViewportSize();
+        gui.SetNextWindowPos(new Vector2(10, viewportSize.Y - 220), GuiCond.Always);
+        gui.SetNextWindowSize(new Vector2(400, 200), GuiCond.Always);
 
-        if (ImGui.Begin("ChatWindow", windowFlags))
+        bool open = true;
+        if (gui.Begin("ChatWindow", ref open, windowFlags))
         {
             // Chat History
             var historyHeight = _isTyping ? -30 : 0;
-            if (ImGui.BeginChild("ChatHistory", new Vector2(ImGui.GetContentRegionAvail().X, historyHeight), ImGuiChildFlags.None, ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoNav))
+            if (gui.BeginChild("ChatHistory", new Vector2(gui.GetContentRegionAvail().X, historyHeight), GuiFrameOptions.None, GuiWindowSettings.NoSavedSettings))
             {
                 foreach (var msg in _messages)
                 {
-                    ImGui.PushStyleColor(ImGuiCol.Text, msg.Color);
-                    ImGui.TextWrapped(msg.Text);
-                    ImGui.PopStyleColor();
+                    gui.PushStyleColor(GuiCol.Text, msg.Color);
+                    gui.TextWrapped(msg.Text);
+                    gui.PopStyleColor();
                 }
 
                 if (_shouldScrollToBottom)
                 {
-                    ImGui.SetScrollHereY(1.0f);
+                    gui.SetScrollHereY(1.0f);
                     _shouldScrollToBottom = false;
                 }
             }
-            ImGui.EndChild();
+            gui.EndChild();
 
             if (_isTyping)
             {
-                ImGui.Separator();
+                gui.Separator();
                 if (_focusInput)
                 {
-                    ImGui.SetKeyboardFocusHere();
+                    gui.SetKeyboardFocusHere();
                     _focusInput = false;
                 }
 
-                ImGui.PushItemWidth(-1);
-                if (ImGui.InputText("##ChatInput", ref _inputBuffer, 256, ImGuiInputTextFlags.EnterReturnsTrue))
+                if (gui.InputText("##ChatInput", ref _inputBuffer, 256, GuiInputTextOptions.EnterReturnsTrue))
                 {
                     ProcessInput(context.Player);
                 }
-                ImGui.PopItemWidth();
 
-                if (ImGui.IsKeyPressed(ImGuiKey.Escape))
+                if (gui.IsKeyPressed(GuiKey.Escape))
                 {
                     _inputBuffer = string.Empty;
                     IsTyping = false;
                 }
             }
         }
-        ImGui.End();
+        gui.End();
     }
 
-    private void ProcessInput(LocalPlayerController? player)
+    private void ProcessInput(SharpCraft.Sdk.Universe.IPlayer? player)
     {
         if (string.IsNullOrWhiteSpace(_inputBuffer))
         {
@@ -132,7 +129,7 @@ public class ChatHud : Hud
         IsTyping = false;
     }
 
-    private void ExecuteCommand(string commandLine, LocalPlayerController? player)
+    private void ExecuteCommand(string commandLine, SharpCraft.Sdk.Universe.IPlayer? player)
     {
         var parts = commandLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length == 0) return;
@@ -151,7 +148,7 @@ public class ChatHud : Hud
         }
     }
 
-    private void HandleTeleport(string[] args, LocalPlayerController? player)
+    private void HandleTeleport(string[] args, SharpCraft.Sdk.Universe.IPlayer? player)
     {
         if (player == null) return;
 
@@ -173,4 +170,7 @@ public class ChatHud : Hud
             AddMessage("Invalid coordinates", new Vector4(1, 0.3f, 0.3f, 1));
         }
     }
+
+    public void OnAwake() { }
+    public void OnUpdate(double deltaTime) { }
 }

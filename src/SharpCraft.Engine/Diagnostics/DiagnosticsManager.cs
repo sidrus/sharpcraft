@@ -1,11 +1,9 @@
 ﻿using System.Diagnostics;
-using SharpCraft.Client.Rendering;
-using SharpCraft.Client.Rendering.Lighting;
-using SharpCraft.Engine.Universe;
+using SharpCraft.Sdk.Diagnostics;
 
-namespace SharpCraft.Client.UI.Debug.Diagnostics;
+namespace SharpCraft.Engine.Diagnostics;
 
-public class DiagnosticsManager
+public class DiagnosticsManager : IDiagnosticsProvider
 {
     private readonly Process _process = Process.GetCurrentProcess();
     private TimeSpan _lastCpuTime = TimeSpan.Zero;
@@ -24,18 +22,18 @@ public class DiagnosticsManager
     public Metric MeshQueue { get; } = new("Mesh Queue", MaxSamples);
     public Metric ActiveLights { get; } = new("Lights", MaxSamples);
 
-    public void Update(double deltaTime, World world, ChunkMeshManager meshManager, LightingSystem lighting)
+    public void Update(double deltaTime, int loadedChunks, int meshQueue, int activeLights)
     {
         _sampleTimer += deltaTime;
         
         if (_sampleTimer >= SampleInterval)
         {
             _sampleTimer -= SampleInterval;
-            RecordSamples(deltaTime, world, meshManager, lighting);
+            RecordSamples(deltaTime, loadedChunks, meshQueue, activeLights);
         }
     }
 
-    private void RecordSamples(double deltaTime, World world, ChunkMeshManager meshManager, LightingSystem lighting)
+    private void RecordSamples(double deltaTime, int loadedChunks, int meshQueue, int activeLights)
     {
         // FPS
         Fps.AddSample((float)(1.0 / deltaTime));
@@ -58,12 +56,12 @@ public class DiagnosticsManager
         GcMemory.AddSample(GC.GetTotalMemory(false) / 1024f / 1024f);
 
         // World
-        LoadedChunks.AddSample(world.GetLoadedChunks().Count());
+        LoadedChunks.AddSample(loadedChunks);
 
         // Rendering/Mesh
-        MeshQueue.AddSample(meshManager.DirtyChunksCount + meshManager.ProcessingChunksCount);
+        MeshQueue.AddSample(meshQueue);
         
         // Active Lights
-        ActiveLights.AddSample(lighting.GetActivePointLights().Count() + lighting.GetActiveSpotLights().Count() + 1); // +1 for Sun
+        ActiveLights.AddSample(activeLights);
     }
 }

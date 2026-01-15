@@ -30,6 +30,14 @@ public class CoreMod(ISharpCraftSdk sdk) : IMod
         LoadTextures();
         RegisterDefaultBlocks();
         RegisterWorldGenerators();
+        RegisterHuds();
+    }
+
+    private void RegisterHuds()
+    {
+        sdk.Huds.RegisterHud(new UI.MainHud());
+        sdk.Huds.RegisterHud(new UI.DebugHud());
+        sdk.Huds.RegisterHud(new UI.GraphicsSettingsHud());
     }
 
     public void OnDisable()

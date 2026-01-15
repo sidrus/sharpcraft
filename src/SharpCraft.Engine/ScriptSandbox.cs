@@ -16,8 +16,10 @@ public class ScriptSandbox
             "System", 
             "System.Collections.Generic", 
             "SharpCraft.Sdk", 
-            "SharpCraft.Sdk.Blocks", 
+            "SharpCraft.Sdk.Blocks",
+            "SharpCraft.Sdk.Commands",
             "SharpCraft.Sdk.Messaging",
+            "SharpCraft.Sdk.Physics",
             "SharpCraft.Sdk.Universe"
         );
 

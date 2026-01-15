@@ -8,6 +8,7 @@ using SharpCraft.Engine.Blocks;
 using SharpCraft.Engine.Commands;
 using SharpCraft.Engine.Lifecycle;
 using SharpCraft.Engine.Messaging;
+using SharpCraft.Engine.UI;
 using SharpCraft.Engine.Universe;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -33,7 +34,8 @@ var blocks = new BlockRegistry();
 var channels = new ChannelManager();
 var commands = new CommandRegistry();
 var worldGen = new WorldGenerationRegistry();
-var sdk = new SharpCraftSdk(assets, blocks, channels, commands, worldGen);
+var huds = new HudRegistry();
+var sdk = new SharpCraftSdk(assets, blocks, channels, commands, worldGen, huds);
 
 logger.LogInformation("SharpCraft starting...");
 logger.LogInformation("Process Architecture: {Arch}", RuntimeInformation.ProcessArchitecture);

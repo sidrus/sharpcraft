@@ -4,17 +4,16 @@ using SharpCraft.Client.Rendering;
 using SharpCraft.Client.Rendering.Lighting;
 using SharpCraft.Client.UI.Chat;
 using SharpCraft.Client.UI.Debug;
-using SharpCraft.Client.UI.Main;
-using SharpCraft.Client.UI.Settings;
 using SharpCraft.Engine.Universe;
+using SharpCraft.Engine.UI;
 using SharpCraft.Sdk;
+using SharpCraft.Sdk.Diagnostics;
 using SharpCraft.Sdk.Lifecycle;
+using SharpCraft.Sdk.UI;
 using Silk.NET.Input;
 using Silk.NET.OpenGL;
 using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.Windowing;
-
-using SharpCraft.Sdk.UI;
 
 namespace SharpCraft.Client.UI;
 
@@ -26,11 +25,12 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
     private readonly IInputContext _input;
     private bool _disposed;
     private readonly Dictionary<string, IHud> _huds = [];
+    private readonly IGui _gui;
+    private readonly IGraphicsSettings _fallbackSettings = new DefaultGraphicsSettings();
 
-    public GraphicsSettingsHud? Settings => GetHud<GraphicsSettingsHud>();
-    public DebugHud? Debug => GetHud<DebugHud>();
-    public DeveloperHud? Developer => GetHud<DeveloperHud>();
+    public IGraphicsSettings Settings => GetHud<IGraphicsSettings>() ?? _fallbackSettings;
     public ChatHud? Chat => GetHud<ChatHud>();
+    public DeveloperHud? Developer => GetHud<DeveloperHud>();
 
     public HudManager(GL gl, IWindow window, IInputContext input, ILogger<HudManager> logger)
     {
@@ -38,12 +38,8 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
         _window = window;
         _input = input;
         _controller = new ImGuiController(gl, window, input);
+        _gui = new ImGuiGui();
         input.Keyboards[0].KeyUp += OnKeyUp;
-
-        if (Settings != null)
-        {
-            Settings.OnVisibilityChanged += UpdateCursorMode;
-        }
     }
 
     public void OnAwake()
@@ -53,63 +49,59 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
 
     public async Task InitializeAsync()
     {
-        RegisterHud(new DebugHud());
-
+        // These are client-specific HUDs that stay in the client for now
         var chatHud = new ChatHud();
         chatHud.OnVisibilityChanged += UpdateCursorMode;
         RegisterHud(chatHud);
 
-        var mainHud = new MainHud(_window, _gl);
-        await mainHud.LoadSteamAvatar();
-        RegisterHud(mainHud);
-
-        var graphicsSettingsHud = new GraphicsSettingsHud();
-        graphicsSettingsHud.OnVisibilityChanged += UpdateCursorMode;
-        RegisterHud(graphicsSettingsHud);
-
         var developerHud = new DeveloperHud();
         developerHud.OnVisibilityChanged += UpdateCursorMode;
         RegisterHud(developerHud);
+        
+        await Task.CompletedTask;
     }
 
     public void RegisterHud(string name, Action<double> drawAction)
     {
-        AddHud(new SdkHud(name, drawAction));
+        RegisterHud(new SdkHudWrapper(name, drawAction));
     }
 
-    private sealed class SdkHud(string name, Action<double> drawAction) : Hud
+    public void RegisterHud(IHud hud)
     {
-        public override string Name { get; } = name;
-
-        public override void Draw(double deltaTime, HudContext context)
+        _huds[hud.Name] = hud;
+        
+        if (hud is IGraphicsSettings settings)
         {
-            drawAction(deltaTime);
+            settings.OnVisibilityChanged += UpdateCursorMode;
         }
     }
 
-    private void AddHud(Hud hud)
+    private sealed class SdkHudWrapper(string name, Action<double> drawAction) : IHud
     {
-        _huds[hud.Name] = hud;
-    }
+        public string Name { get; } = name;
 
-    private void RegisterHud(Hud hud)
-    {
-        AddHud(hud);
+        public void Draw(double deltaTime, IGui gui, IHudContext context)
+        {
+            drawAction(deltaTime);
+        }
+
+        public void OnAwake() { }
+        public void OnUpdate(double deltaTime) { }
     }
 
     private void OnKeyUp(IKeyboard keyboard, Key key, int scancode)
     {
-        if (key == Key.F3)
+        switch (key)
         {
-            Settings?.IsVisible = !Settings.IsVisible;
-            UpdateCursorMode();
+            case Key.F3:
+                Settings.IsVisible = !Settings.IsVisible;
+                break;
+            case Key.F4 when Developer != null:
+                Developer.IsVisible = !Developer.IsVisible;
+                break;
         }
 
-        if (key == Key.F4 && Developer != null)
-        {
-            Developer.IsVisible = !Developer.IsVisible;
-            UpdateCursorMode();
-        }
+        UpdateCursorMode();
 
         if (Chat is { IsTyping: false })
         {
@@ -152,11 +144,9 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
         OnCursorModeChanged?.Invoke();
     }
 
-    // We'll need a way to tell the game to reset mouse delta,
-    // usually via an event or by the game checking the manager state.
     public event Action? OnCursorModeChanged;
 
-    private T? GetHud<T>() where T : class, IHud => _huds.Values
+    private T? GetHud<T>() where T : class => _huds.Values
         .OfType<T>()
         .FirstOrDefault();
 
@@ -185,8 +175,10 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
     private LightingSystem? _lighting;
     private ISharpCraftSdk? _sdk;
     private IEnumerable<IMod>? _mods;
+    private IAvatarProvider? _avatar;
+    private IDiagnosticsProvider? _diagnostics;
 
-    public void SetContext(World world, LocalPlayerController? player, ChunkMeshManager? meshManager, LightingSystem? lighting, ISharpCraftSdk? sdk = null, IEnumerable<IMod>? mods = null)
+    public void SetContext(World world, LocalPlayerController? player, ChunkMeshManager? meshManager, LightingSystem? lighting, ISharpCraftSdk? sdk = null, IEnumerable<IMod>? mods = null, IAvatarProvider? avatar = null, IDiagnosticsProvider? diagnostics = null)
     {
         _world = world;
         _player = player;
@@ -194,23 +186,25 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
         _lighting = lighting;
         _sdk = sdk;
         _mods = mods;
+        _avatar = avatar;
+        _diagnostics = diagnostics;
     }
 
     public void OnRender(double deltaTime)
     {
-        if (_world == null) return;
+        if (_world == null || _sdk == null || _mods == null) return;
 
-        var context = new HudContext(_world, _player, _meshManager, _lighting, _sdk, _mods);
-        foreach (var hud in _huds)
+        var context = new HudContext(_world, _player, _meshManager, _lighting, _sdk, _mods, _avatar, _diagnostics);
+        foreach (var hud in _huds.Values)
         {
-            hud.Value.Draw(deltaTime, context);
+            hud.Draw(deltaTime, _gui, context);
         }
         _controller.Render();
     }
 
-    public void Render(float deltaTime, World world, LocalPlayerController? player, ChunkMeshManager? meshManager, LightingSystem? lighting, ISharpCraftSdk? sdk = null, IEnumerable<IMod>? mods = null)
+    public void Render(float deltaTime, World world, LocalPlayerController? player, ChunkMeshManager? meshManager, LightingSystem? lighting, ISharpCraftSdk? sdk = null, IEnumerable<IMod>? mods = null, IAvatarProvider? avatar = null, IDiagnosticsProvider? diagnostics = null)
     {
-        SetContext(world, player, meshManager, lighting, sdk, mods);
+        SetContext(world, player, meshManager, lighting, sdk, mods, avatar, diagnostics);
         OnRender(deltaTime);
     }
 
@@ -242,5 +236,23 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
 
             _disposed = true;
         }
+    }
+
+    private sealed class DefaultGraphicsSettings : IGraphicsSettings
+    {
+        public bool IsVisible { get; set; }
+        public event Action? OnVisibilityChanged;
+        public bool VSync { get; set; }
+        public float Gamma { get; set; } = 1.6f;
+        public float Exposure { get; set; } = 1.0f;
+        public bool UseNormalMap { get; set; } = true;
+        public float NormalStrength { get; set; } = 0.5f;
+        public bool UseAoMap { get; set; } = true;
+        public float AoMapStrength { get; set; } = 0.5f;
+        public bool UseSpecularMap { get; set; } = true;
+        public float SpecularMapStrength { get; set; } = 0.5f;
+        public float FogNearFactor { get; set; } = 0.3f;
+        public float FogFarFactor { get; set; } = 0.95f;
+        public int RenderDistance { get; set; } = 8;
     }
 }

@@ -1,12 +1,17 @@
-﻿using Silk.NET.OpenGL;
+﻿using SharpCraft.Sdk.UI;
+using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using Steamworks;
 
 namespace SharpCraft.Client.Integrations.Steam;
 
-public class AvatarLoader(IWindow window, GL gl) : IDisposable
+public class AvatarLoader(IWindow window, GL gl) : IDisposable, IAvatarProvider
 {
     public uint? AvatarTexture { get; private set; }
+
+    public string Name => SteamClient.IsValid ? SteamClient.Name : "Unknown";
+    public IntPtr? AvatarTextureId => AvatarTexture.HasValue ? (IntPtr)AvatarTexture.Value : null;
+    public bool IsValid => SteamClient.IsValid;
 
     public async Task LoadSteamAvatar()
     {

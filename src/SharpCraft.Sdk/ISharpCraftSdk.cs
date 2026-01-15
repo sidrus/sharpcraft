@@ -2,6 +2,7 @@
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Messaging;
 using SharpCraft.Sdk.Commands;
+using SharpCraft.Sdk.UI;
 using SharpCraft.Sdk.Universe;
 
 namespace SharpCraft.Sdk;
@@ -35,4 +36,9 @@ public interface ISharpCraftSdk
     /// Gets the world and terrain generation registry.
     /// </summary>
     IWorldGenerationRegistry World { get; }
+
+    /// <summary>
+    /// Gets the HUD registry.
+    /// </summary>
+    IHudRegistry Huds { get; }
 }

@@ -6,6 +6,9 @@ using SharpCraft.Client.Rendering;
 using SharpCraft.Client.Rendering.Cameras;
 using SharpCraft.Client.Rendering.Lighting;
 using SharpCraft.Client.Rendering.Textures;
+using SharpCraft.Client.Integrations.Steam;
+using SharpCraft.Engine.Diagnostics;
+using SharpCraft.Engine.UI;
 using SharpCraft.Client.UI;
 using SharpCraft.Sdk;
 using SharpCraft.Sdk.Blocks;
@@ -34,6 +37,8 @@ public partial class Game : IDisposable
     private InputManager? _input;
     private KeyboardMouseInputProvider? _inputProvider;
     private HudManager? _hudManager;
+    private AvatarLoader? _avatarLoader;
+    private DiagnosticsManager? _diagnosticsManager;
     private readonly LightingSystem _lightSystem = new();
     private IRenderPipeline? _renderPipeline;
     private ICamera? _camera;
@@ -112,6 +117,15 @@ public partial class Game : IDisposable
 
         UpdateWorldChunks();
 
+        if (_diagnosticsManager != null && _world != null && _renderPipeline != null)
+        {
+            var loadedChunks = _world.GetLoadedChunks().Count();
+            var meshQueue = _renderPipeline.MeshManager.DirtyChunksCount + _renderPipeline.MeshManager.ProcessingChunksCount;
+            var activeLights = _lightSystem.GetActivePointLights().Count() + _lightSystem.GetActiveSpotLights().Count() + 1;
+            
+            _diagnosticsManager.Update(deltaTime, loadedChunks, meshQueue, activeLights);
+        }
+
         _hudManager?.OnUpdate(deltaTime);
         _input?.PostUpdate();
     }
@@ -175,7 +189,7 @@ public partial class Game : IDisposable
         );
 
         _renderPipeline.Execute(_world, context);
-        _hudManager.Render((float)deltaTime, _world, _playerController, _renderPipeline.MeshManager, _lightSystem, _sdk, _mods);
+        _hudManager?.Render((float)deltaTime, _world, _playerController, _renderPipeline.MeshManager, _lightSystem, _sdk, _mods, _avatarLoader, _diagnosticsManager);
     }
 
     private void InitializeGraphicsState()
@@ -196,8 +210,24 @@ public partial class Game : IDisposable
 
 
         _hudManager = new HudManager(_gl, _window, inputContext, _loggerFactory.CreateLogger<HudManager>());
-        // HUD initialization is handled synchronously to maintain GL context on main thread
         _hudManager.InitializeAsync().Wait();
+        
+        // Register HUDs from the SDK registry (registered by mods)
+        if (_sdk.Huds is HudRegistry engineRegistry)
+        {
+            foreach (var hud in engineRegistry.RegisteredHuds)
+            {
+                _hudManager.RegisterHud(hud);
+            }
+            foreach (var cb in engineRegistry.RegisteredCallbacks)
+            {
+                _hudManager.RegisterHud(cb.Name, cb.DrawAction);
+            }
+        }
+
+        _avatarLoader = new AvatarLoader(_window, _gl);
+        _avatarLoader.LoadSteamAvatar().Wait();
+        _diagnosticsManager = new DiagnosticsManager();
         if (_hudManager.Settings != null)
         {
             _hudManager.Settings.OnVisibilityChanged += () =>
