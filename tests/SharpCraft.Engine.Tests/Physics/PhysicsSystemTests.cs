@@ -1,7 +1,8 @@
 ﻿using System.Numerics;
-using SharpCraft.Engine.Blocks;
 using SharpCraft.Engine.Physics;
 using AwesomeAssertions;
+using SharpCraft.Sdk.Blocks;
+using SharpCraft.Sdk.Physics;
 
 namespace SharpCraft.Engine.Tests.Physics;
 

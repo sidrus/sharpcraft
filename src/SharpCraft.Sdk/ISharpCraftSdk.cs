@@ -1,7 +1,7 @@
 ﻿using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Messaging;
 using SharpCraft.Sdk.Commands;
-using SharpCraft.Sdk.World;
+using SharpCraft.Sdk.Universe;
 
 namespace SharpCraft.Sdk;
 

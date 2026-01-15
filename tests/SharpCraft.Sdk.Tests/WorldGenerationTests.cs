@@ -1,15 +1,15 @@
 using AwesomeAssertions;
-using SharpCraft.Engine.Blocks;
-using SharpCraft.Engine.World;
+using SharpCraft.Engine.Universe;
+using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
-using SharpCraft.Sdk.World;
-using Xunit;
+using SharpCraft.Sdk.Universe;
+using IWorldGenerator = SharpCraft.Sdk.Universe.IWorldGenerator;
 
 namespace SharpCraft.Sdk.Tests;
 
 public class WorldGenerationTests
 {
-    private class FlatWorldGenerator : SharpCraft.Sdk.World.IWorldGenerator
+    private class FlatWorldGenerator : IWorldGenerator
     {
         public void GenerateChunk(IChunkData chunk, long seed)
         {
@@ -91,8 +91,8 @@ public class WorldGenerationTests
         registry.Register("test:2", generator2);
 
         registry.All.Should().HaveCount(2);
-        registry.All.Should().Contain(new KeyValuePair<string, SharpCraft.Sdk.World.IWorldGenerator>("test:1", generator1));
-        registry.All.Should().Contain(new KeyValuePair<string, SharpCraft.Sdk.World.IWorldGenerator>("test:2", generator2));
+        registry.All.Should().Contain(new KeyValuePair<string, IWorldGenerator>("test:1", generator1));
+        registry.All.Should().Contain(new KeyValuePair<string, IWorldGenerator>("test:2", generator2));
     }
 
     [Fact]

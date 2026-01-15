@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
-using SharpCraft.Sdk.Physics;
 using AwesomeAssertions;
+using SharpCraft.Sdk.Physics.Collision;
 
 namespace SharpCraft.Sdk.Tests.Physics;
 

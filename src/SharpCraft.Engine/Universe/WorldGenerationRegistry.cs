@@ -1,7 +1,7 @@
-﻿using SharpCraft.Sdk.World;
-using SdkIWorldGenerator = SharpCraft.Sdk.World.IWorldGenerator;
+﻿using SharpCraft.Sdk.Universe;
+using SdkIWorldGenerator = SharpCraft.Sdk.Universe.IWorldGenerator;
 
-namespace SharpCraft.Engine.World;
+namespace SharpCraft.Engine.Universe;
 
 /// <summary>
 /// Runtime implementation of the world generation registry.

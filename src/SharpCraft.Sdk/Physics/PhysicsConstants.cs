@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace SharpCraft.Sdk.Physics;
+﻿namespace SharpCraft.Sdk.Physics;
 
 /// <summary>
 /// Provides common physics constants and utility functions.

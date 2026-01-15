@@ -44,6 +44,34 @@ public static class MathUtils
     public static float Lerp(float a, float b, float t) => a + (b - a) * t;
 
     /// <summary>
+    /// Extracts Euler angles (Yaw, Pitch, Roll) from a quaternion in degrees.
+    /// </summary>
+    /// <param name="q">The quaternion to convert.</param>
+    /// <returns>A tuple containing (Yaw, Pitch, Roll) in degrees.</returns>
+    public static (float Yaw, float Pitch, float Roll) ToEulerAngles(Quaternion q)
+    {
+        // yaw (y-axis rotation)
+        var siny_cosp = 2 * (q.W * q.Y + q.X * q.Z);
+        var cosy_cosp = 1 - 2 * (q.Y * q.Y + q.X * q.X);
+        var yaw = MathF.Atan2(siny_cosp, cosy_cosp);
+
+        // pitch (x-axis rotation)
+        var sinp = 2 * (q.W * q.X - q.Z * q.Y);
+        float pitch;
+        if (MathF.Abs(sinp) >= 1)
+            pitch = MathF.CopySign(MathF.PI / 2, sinp); // use 90 degrees if out of range
+        else
+            pitch = MathF.Asin(sinp);
+
+        // roll (z-axis rotation)
+        var sinr_cosp = 2 * (q.W * q.Z + q.X * q.Y);
+        var cosr_cosp = 1 - 2 * (q.X * q.X + q.Z * q.Z);
+        var roll = MathF.Atan2(sinr_cosp, cosr_cosp);
+
+        return (yaw * 180f / MathF.PI, pitch * 180f / MathF.PI, roll * 180f / MathF.PI);
+    }
+
+    /// <summary>
     /// Converts a yaw angle in degrees to a cardinal or intercardinal direction.
     /// </summary>
     /// <param name="yaw">The yaw angle in degrees (0 = North, 90 = West).</param>

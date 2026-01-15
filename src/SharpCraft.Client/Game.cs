@@ -6,9 +6,9 @@ using SharpCraft.Client.Rendering;
 using SharpCraft.Client.Rendering.Cameras;
 using SharpCraft.Client.Rendering.Lighting;
 using SharpCraft.Client.UI;
-using SharpCraft.Engine.World;
 using SharpCraft.Sdk.Numerics;
 using SharpCraft.Engine.Physics;
+using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk.Physics;
 using Silk.NET.Input;
 using Silk.NET.Maths;
@@ -27,6 +27,7 @@ public partial class Game : IDisposable
     private readonly ILogger<Game> _logger;
     private readonly ILoggerFactory _loggerFactory;
     private InputManager? _input;
+    private KeyboardMouseInputProvider? _inputProvider;
     private HudManager? _hudManager;
     private readonly LightingSystem _lightSystem = new();
     private IRenderPipeline? _renderPipeline;
@@ -92,14 +93,16 @@ public partial class Game : IDisposable
     {
         SteamClient.RunCallbacks();
 
+        if (_input?.Mouse.Cursor.CursorMode == CursorMode.Raw)
+        {
+            _playerController?.OnUpdate(deltaTime);
+        }
+
         _accumulator += deltaTime;
 
         while (_accumulator >= FixedDeltaTime)
         {
-            if (_input?.Mouse.Cursor.CursorMode == CursorMode.Raw)
-            {
-                _playerController?.Update((float)FixedDeltaTime, _input.Keyboard);
-            }
+            _playerController?.OnFixedUpdate(FixedDeltaTime);
 
             _accumulator -= FixedDeltaTime;
         }
@@ -186,8 +189,8 @@ public partial class Game : IDisposable
 
         var inputContext = _window.CreateInput();
         _input = new InputManager(inputContext);
+        _inputProvider = new KeyboardMouseInputProvider(inputContext);
         _hudManager = new HudManager(_gl, _window, inputContext, _loggerFactory.CreateLogger<HudManager>());
-        _hudManager.OnCursorModeChanged += () => _playerController?.ResetMouse();
         await _hudManager.InitializeAsync();
 
         if (_hudManager.Settings != null)
@@ -206,7 +209,7 @@ public partial class Game : IDisposable
         var entity = new PhysicsEntity(new Transform { Position = new Vector3(0, 80, 0) }, physics);
 
         _camera = new FirstPersonCamera(entity, Vector3.UnitY * 1.6f);
-        _playerController = new LocalPlayerController(entity, _camera, _world);
+        _playerController = new LocalPlayerController(entity, _camera, _world, _inputProvider);
         _renderPipeline = new DefaultRenderPipeline(_gl, _world);
 
         _lightSystem.AddPointLight(new PointLight
@@ -225,16 +228,6 @@ public partial class Game : IDisposable
     private void RegisterInputHandlers()
     {
         if (_input == null) return;
-
-        _input.Mouse.MouseMove += (_, pos) =>
-        {
-            // Only allow the player controller to rotate the camera/player
-            // if we are in Raw mouse mode (gameplay mode)
-            if (_input.Mouse.Cursor.CursorMode == CursorMode.Raw)
-            {
-                _playerController?.HandleMouse(_input.Mouse, pos);
-            }
-        };
 
         _input.Mouse.Cursor.CursorMode = CursorMode.Raw;
         _input.Keyboard.KeyUp += (_, key, _) => HandleGlobalKeys(key);

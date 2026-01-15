@@ -1,4 +1,4 @@
-﻿namespace SharpCraft.Engine.World;
+﻿namespace SharpCraft.Engine.Universe;
 
 /// <summary>
 /// Contains vertex and index data for a chunk's geometry.

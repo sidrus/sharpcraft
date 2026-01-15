@@ -3,7 +3,6 @@ using SharpCraft.Sdk.Blocks;
 using SharpCraft.Engine;
 using SharpCraft.Engine.Blocks;
 using SharpCraft.Engine.Messaging;
-using Xunit;
 
 namespace SharpCraft.Sdk.Tests;
 

@@ -1,5 +1,5 @@
-﻿using SharpCraft.Engine.Blocks;
-using AwesomeAssertions;
+﻿using AwesomeAssertions;
+using SharpCraft.Sdk.Blocks;
 
 namespace SharpCraft.Engine.Tests.Blocks;
 

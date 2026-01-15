@@ -1,4 +1,4 @@
-﻿using SharpCraft.Engine.World;
+﻿using SharpCraft.Engine.Universe;
 
 namespace SharpCraft.Client.Rendering;
 

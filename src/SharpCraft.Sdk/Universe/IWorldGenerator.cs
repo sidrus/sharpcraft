@@ -1,4 +1,4 @@
-﻿namespace SharpCraft.Sdk.World;
+﻿namespace SharpCraft.Sdk.Universe;
 
 /// <summary>
 /// Defines a custom terrain generator.

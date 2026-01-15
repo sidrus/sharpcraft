@@ -1,7 +1,7 @@
 ﻿using SharpCraft.Sdk.Numerics;
-using SharpCraft.Sdk.World;
+using SharpCraft.Sdk.Universe;
 
-namespace SharpCraft.Engine.World.Noise;
+namespace SharpCraft.Engine.Universe.Noise;
 
 /// <summary>
 /// Implements a 2D Simplex Noise generator.

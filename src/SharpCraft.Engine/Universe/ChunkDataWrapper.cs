@@ -1,7 +1,7 @@
-﻿using SharpCraft.Engine.Blocks;
-using SharpCraft.Sdk.World;
+﻿using SharpCraft.Sdk.Blocks;
+using SharpCraft.Sdk.Universe;
 
-namespace SharpCraft.Engine.World;
+namespace SharpCraft.Engine.Universe;
 
 /// <summary>
 /// Wraps a Core Chunk to provide SDK-compatible access.

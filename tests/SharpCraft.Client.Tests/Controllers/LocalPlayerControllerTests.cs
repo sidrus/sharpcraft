@@ -2,17 +2,20 @@
 using SharpCraft.Client.Controllers;
 using SharpCraft.Client.Rendering.Cameras;
 using SharpCraft.Engine.Physics;
-using SharpCraft.Engine.World;
 using SharpCraft.Sdk.Physics;
-using SharpCraft.Engine.Blocks;
-using Silk.NET.Input;
 using Moq;
 using AwesomeAssertions;
+using SharpCraft.Engine.Universe;
+using SharpCraft.Sdk.Blocks;
+
+using SharpCraft.Sdk.Input;
 
 namespace SharpCraft.Client.Tests.Controllers;
 
 public class LocalPlayerControllerTests
 {
+    private readonly IInputProvider _inputProvider = Mock.Of<IInputProvider>();
+
     [Fact]
     public void Update_WhenHoldingSpaceOnWaterSurface_ShouldEventuallySubmergeDeeply()
     {
@@ -33,10 +36,11 @@ public class LocalPlayerControllerTests
         // Entity starts at Y=64.0 (feet at water surface)
         var transform = new Transform { Position = new Vector3(0, 64.0f, 0) };
         var entity = new PhysicsEntity(transform, mockPhysicsSystem.Object);
-        var controller = new LocalPlayerController(entity, mockCamera.Object, world);
+        var controller = new LocalPlayerController(entity, mockCamera.Object, world, _inputProvider);
 
-        var mockKeyboard = new Mock<IKeyboard>();
-        mockKeyboard.Setup(k => k.IsKeyPressed(Key.Space)).Returns(true);
+        var mockInput = new Mock<IInputProvider>();
+        mockInput.Setup(i => i.GetMovementIntent(It.IsAny<Vector3>(), It.IsAny<Vector3>()))
+            .Returns(new MovementIntent(Vector3.Zero, true, false, false));
 
         // Mock MoveAndResolve to just apply movement
         mockPhysicsSystem.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
@@ -46,7 +50,8 @@ public class LocalPlayerControllerTests
         var deltaTime = 0.016f;
         for (var i = 0; i < 500; i++)
         {
-            controller.Update(deltaTime, mockKeyboard.Object);
+            controller.OnUpdate(deltaTime);
+            controller.OnFixedUpdate(deltaTime);
         }
 
         // Verify the player is submerged (not walking on top of water)
@@ -76,16 +81,18 @@ public class LocalPlayerControllerTests
         // At this depth, IsSwimming is true, but SubmersionDepth <= 1.1f
         var transform = new Transform { Position = new Vector3(0, 63.0f, 0) };
         var entity = new PhysicsEntity(transform, mockPhysicsSystem.Object);
-        var controller = new LocalPlayerController(entity, mockCamera.Object, world);
+        var controller = new LocalPlayerController(entity, mockCamera.Object, world,_inputProvider);
 
-        var mockKeyboard = new Mock<IKeyboard>();
-        mockKeyboard.Setup(k => k.IsKeyPressed(Key.Space)).Returns(true);
+        var mockInput = new Mock<IInputProvider>();
+        mockInput.Setup(i => i.GetMovementIntent(It.IsAny<Vector3>(), It.IsAny<Vector3>()))
+            .Returns(new MovementIntent(Vector3.Zero, true, false, false));
 
         mockPhysicsSystem.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
             .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
 
         // Run one update
-        controller.Update(0.016f, mockKeyboard.Object);
+        controller.OnUpdate(0.016f);
+        controller.OnFixedUpdate(0.016f);
 
         // Should NOT have sunk (Y should be >= 63.0 or even > 63.0)
         // Currently, it will sink because no upward force is applied at 1.0m depth
@@ -111,10 +118,11 @@ public class LocalPlayerControllerTests
         // Entity starts at Y=62.5 (SubmersionDepth = 1.5m)
         var transform = new Transform { Position = new Vector3(0, 62.5f, 0) };
         var entity = new PhysicsEntity(transform, mockPhysicsSystem.Object);
-        var controller = new LocalPlayerController(entity, mockCamera.Object, world);
+        var controller = new LocalPlayerController(entity, mockCamera.Object, world,_inputProvider);
 
-        var mockKeyboard = new Mock<IKeyboard>();
-        mockKeyboard.Setup(k => k.IsKeyPressed(Key.Space)).Returns(true);
+        var mockInput = new Mock<IInputProvider>();
+        mockInput.Setup(i => i.GetMovementIntent(It.IsAny<Vector3>(), It.IsAny<Vector3>()))
+            .Returns(new MovementIntent(Vector3.Zero, true, false, false));
 
         mockPhysicsSystem.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
             .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
@@ -123,11 +131,43 @@ public class LocalPlayerControllerTests
         var maxObservedY = 62.5f;
         for (var i = 0; i < 100; i++)
         {
-            controller.Update(0.016f, mockKeyboard.Object);
+            controller.OnUpdate(0.016f);
+            controller.OnFixedUpdate(0.016f);
             if (entity.Position.Y > maxObservedY) maxObservedY = entity.Position.Y;
         }
 
         // Peak Y should be above 64.0 (surface) to allow jumping out onto land
         maxObservedY.Should().BeGreaterThan(64.0f);
+    }
+
+    [Fact]
+    public void Properties_WhenAccessedBeforeSense_ShouldNotThrow()
+    {
+        // Setup
+        var world = new World();
+        var mockCamera = new Mock<ICamera>();
+        var mockPhysicsSystem = new Mock<IPhysicsSystem>();
+        var entity = new PhysicsEntity(new Transform(), mockPhysicsSystem.Object);
+        var controller = new LocalPlayerController(entity, mockCamera.Object, world,_inputProvider);
+
+        // Access properties that use _sensor.LastSense
+        var act = () =>
+        {
+            _ = controller.BlockBelow;
+            _ = controller.BlockAbove;
+            _ = controller.IsSwimming;
+            _ = controller.IsUnderwater;
+            _ = controller.IsOnWaterSurface;
+            _ = controller.SubmersionDepth;
+            _ = controller.IsGrounded;
+            _ = controller.Yaw;
+            _ = controller.Pitch;
+            _ = controller.Roll;
+            _ = controller.NormalizedYaw;
+            _ = controller.Heading;
+        };
+
+        // Assert
+        act.Should().NotThrow();
     }
 }

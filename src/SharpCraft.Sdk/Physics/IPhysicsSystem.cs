@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace SharpCraft.Engine.Physics;
+namespace SharpCraft.Sdk.Physics;
 
 /// <summary>
 /// Defines a system for handling physics movement and collision resolution.

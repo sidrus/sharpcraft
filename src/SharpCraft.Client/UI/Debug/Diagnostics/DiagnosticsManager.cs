@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using SharpCraft.Client.Rendering;
 using SharpCraft.Client.Rendering.Lighting;
-using SharpCraft.Engine.World;
+using SharpCraft.Engine.Universe;
 
 namespace SharpCraft.Client.UI.Debug.Diagnostics;
 

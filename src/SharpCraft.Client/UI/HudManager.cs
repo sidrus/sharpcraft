@@ -6,7 +6,7 @@ using SharpCraft.Client.UI.Chat;
 using SharpCraft.Client.UI.Debug;
 using SharpCraft.Client.UI.Main;
 using SharpCraft.Client.UI.Settings;
-using SharpCraft.Engine.World;
+using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk.Lifecycle;
 using Silk.NET.Input;
 using Silk.NET.OpenGL;

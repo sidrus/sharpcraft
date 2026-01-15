@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using SharpCraft.Engine.Resources;
-using Xunit;
 
 namespace SharpCraft.Sdk.Tests;
 

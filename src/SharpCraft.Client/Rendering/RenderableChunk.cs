@@ -1,4 +1,4 @@
-﻿using SharpCraft.Engine.World;
+﻿using SharpCraft.Engine.Universe;
 using Silk.NET.OpenGL;
 
 namespace SharpCraft.Client.Rendering;

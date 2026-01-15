@@ -101,4 +101,27 @@ public class MathUtilsTests
         var result = MathUtils.GetHeading(yaw);
         result.Should().Be(expected);
     }
+
+    [Theory]
+    [InlineData(0, 0, 0)]
+    [InlineData(90, 0, 0)]
+    [InlineData(-90, 0, 0)]
+    [InlineData(0, 45, 0)]
+    [InlineData(0, -45, 0)]
+    [InlineData(45, 45, 0)]
+    [InlineData(-45, -45, 0)]
+    [InlineData(179, 0, 0)]
+    public void ToEulerAngles_ShouldMatchInput_WhenCreatedFromYawPitchRoll(float yaw, float pitch, float roll)
+    {
+        // Arrange
+        var q = System.Numerics.Quaternion.CreateFromYawPitchRoll(yaw * MathF.PI / 180f, pitch * MathF.PI / 180f, roll * MathF.PI / 180f);
+
+        // Act
+        var (resultYaw, resultPitch, resultRoll) = MathUtils.ToEulerAngles(q);
+
+        // Assert
+        resultYaw.Should().BeApproximately(yaw, 1e-2f);
+        resultPitch.Should().BeApproximately(pitch, 1e-2f);
+        resultRoll.Should().BeApproximately(roll, 1e-2f);
+    }
 }

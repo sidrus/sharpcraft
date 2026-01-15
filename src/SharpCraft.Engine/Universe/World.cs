@@ -1,10 +1,10 @@
 ﻿using System.Collections.Concurrent;
 using System.Numerics;
-using SharpCraft.Engine.Blocks;
+using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
-using SharpCraft.Engine.Physics;
+using SharpCraft.Sdk.Physics;
 
-namespace SharpCraft.Engine.World;
+namespace SharpCraft.Engine.Universe;
 
 /// <summary>
 /// Represents the game world, containing all chunks and entities.

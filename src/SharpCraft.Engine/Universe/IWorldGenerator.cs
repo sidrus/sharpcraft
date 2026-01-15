@@ -1,4 +1,4 @@
-﻿namespace SharpCraft.Engine.World;
+﻿namespace SharpCraft.Engine.Universe;
 
 /// <summary>
 /// Defines a provider for world generation logic.

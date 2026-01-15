@@ -1,9 +1,9 @@
 ﻿using System.Numerics;
-using SharpCraft.Engine.Blocks;
-using SharpCraft.Sdk.Numerics;
 using SharpCraft.Sdk;
+using SharpCraft.Sdk.Blocks;
+using SharpCraft.Sdk.Numerics;
 
-namespace SharpCraft.Engine.World;
+namespace SharpCraft.Engine.Universe;
 
 /// <summary>
 /// Represents a 16x256x16 section of the world.

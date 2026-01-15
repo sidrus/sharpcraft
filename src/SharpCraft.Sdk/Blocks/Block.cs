@@ -1,4 +1,4 @@
-﻿namespace SharpCraft.Engine.Blocks;
+﻿namespace SharpCraft.Sdk.Blocks;
 
 /// <summary>
 /// Represents a single block in the world.

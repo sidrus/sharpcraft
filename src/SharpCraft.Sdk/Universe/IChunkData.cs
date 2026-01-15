@@ -1,4 +1,4 @@
-﻿namespace SharpCraft.Sdk.World;
+﻿namespace SharpCraft.Sdk.Universe;
 
 /// <summary>
 /// Provides access to chunk data during generation.

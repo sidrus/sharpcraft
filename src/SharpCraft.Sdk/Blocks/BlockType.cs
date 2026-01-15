@@ -1,4 +1,4 @@
-﻿namespace SharpCraft.Engine.Blocks;
+﻿namespace SharpCraft.Sdk.Blocks;
 
 /// <summary>
 /// Defines the available block types in the game.

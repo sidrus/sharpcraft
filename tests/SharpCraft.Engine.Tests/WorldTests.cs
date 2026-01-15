@@ -1,8 +1,8 @@
 ﻿using System.Numerics;
-using SharpCraft.Engine.Blocks;
 using SharpCraft.Sdk.Numerics;
 using AwesomeAssertions;
-using WorldClass = SharpCraft.Engine.World.World;
+using SharpCraft.Sdk.Blocks;
+using WorldClass = SharpCraft.Engine.Universe.World;
 
 namespace SharpCraft.Engine.Tests;
 

@@ -1,6 +1,6 @@
-﻿using SharpCraft.Engine.Blocks;
+﻿using SharpCraft.Sdk.Blocks;
 
-namespace SharpCraft.Engine.Physics;
+namespace SharpCraft.Sdk.Physics;
 
 /// <summary>
 /// Provides an interface for accessing blocks in the world for collision detection.

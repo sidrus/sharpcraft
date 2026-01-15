@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using SharpCraft.Sdk.Physics;
+using SharpCraft.Sdk.Physics.Collision;
 
 namespace SharpCraft.Engine.Physics;
 

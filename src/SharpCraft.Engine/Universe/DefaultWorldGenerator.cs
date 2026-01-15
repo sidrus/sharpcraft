@@ -1,8 +1,8 @@
-﻿using SharpCraft.Engine.Blocks;
-using SharpCraft.Engine.World.Noise;
-using SharpCraft.Sdk.World;
+﻿using SharpCraft.Engine.Universe.Noise;
+using SharpCraft.Sdk.Blocks;
+using SharpCraft.Sdk.Universe;
 
-namespace SharpCraft.Engine.World;
+namespace SharpCraft.Engine.Universe;
 
 /// <summary>
 /// Implements the default procedural world generation.

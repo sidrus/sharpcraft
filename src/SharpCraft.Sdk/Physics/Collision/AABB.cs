@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace SharpCraft.Sdk.Physics;
+namespace SharpCraft.Sdk.Physics.Collision;
 
 /// <summary>
 /// Represents an Axis-Aligned Bounding Box (AABB) for collision detection.
