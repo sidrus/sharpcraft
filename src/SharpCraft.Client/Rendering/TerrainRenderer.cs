@@ -92,6 +92,10 @@ public sealed class TerrainRenderer : IRenderer
             _shader.SetUniform("brdfLUT", 8);
         }
 
+        _gl.ActiveTexture(TextureUnit.Texture9);
+        _gl.BindTexture(TextureTarget.Texture2D, context.ShadowMap);
+        _shader.SetUniform("shadowMap", 9);
+
         _gl.BindVertexArray(_vao);
 
         _frustum.Update(context.ViewProjection);

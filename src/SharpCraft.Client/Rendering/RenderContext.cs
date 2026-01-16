@@ -30,7 +30,8 @@ public readonly record struct RenderContext(
     bool UseIBL = false,
     uint IrradianceMap = 0,
     uint PrefilterMap = 0,
-    uint BrdfLut = 0
+    uint BrdfLut = 0,
+    uint ShadowMap = 0
 )
 {
     public Matrix4x4 ViewProjection => View * Projection;

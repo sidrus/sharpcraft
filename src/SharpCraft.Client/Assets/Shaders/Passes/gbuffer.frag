@@ -54,6 +54,7 @@ struct PointLight {
 };
 
 layout (std140, binding = 1) uniform LightingData {
+    mat4 LightSpaceMatrix;
     DirLight dirLight;
     PointLight pointLights[4];
 };
@@ -61,6 +62,9 @@ layout (std140, binding = 1) uniform LightingData {
 #include "../Common/math.glsl"
 #include "../Common/BRDF.glsl"
 #include "../Common/lighting.glsl"
+#include "../Common/shadows.glsl"
+
+uniform sampler2DShadow shadowMap;
 
 vec3 ACES(vec3 x) {
     const float a = 2.51;
@@ -113,10 +117,17 @@ void main() {
     // 2. Lighting Accumulation
     vec3 Lo = vec3(0.0);
 
+    // Calculate shadow
+    vec4 fragPosLightSpace = LightSpaceMatrix * vec4(FragPos, 1.0);
+    float shadow = 0.0;
+    if (length(dirLight.color.xyz) > 0.0) {
+        shadow = CalcShadow(shadowMap, fragPosLightSpace, norm, normalize(-dirLight.direction.xyz));
+    }
+
     // Add Directional Light
     if (length(dirLight.color.xyz) > 0.0) {
         vec3 L = normalize(-dirLight.direction.xyz);
-        Lo += CalcPBRLighting(L, V, norm, F0, albedo, metallic, roughness, dirLight.color.xyz);
+        Lo += (1.0 - shadow) * CalcPBRLighting(L, V, norm, F0, albedo, metallic, roughness, dirLight.color.xyz);
     }
 
     // Add Point Lights

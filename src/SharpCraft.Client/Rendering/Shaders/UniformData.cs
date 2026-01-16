@@ -36,6 +36,7 @@ public struct PointLightDataStd140
 [StructLayout(LayoutKind.Sequential)]
 public struct LightingData
 {
+    public Matrix4x4 LightSpaceMatrix;
     public DirLightData DirLight;
     public PointLightDataStd140 PointLight0;
     public PointLightDataStd140 PointLight1;
