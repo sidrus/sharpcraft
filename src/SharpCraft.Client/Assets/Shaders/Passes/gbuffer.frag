@@ -58,58 +58,10 @@ layout (std140, binding = 1) uniform LightingData {
     PointLight pointLights[4];
 };
 
-const float PI = 3.14159265359;
+#include "../Common/math.glsl"
+#include "../Common/BRDF.glsl"
+#include "../Common/lighting.glsl"
 
-// ----------------------------------------------------------------------------
-float DistributionGGX(vec3 N, vec3 H, float roughness) {
-    float a = roughness*roughness;
-    float a2 = a*a;
-    float NdotH = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH*NdotH;
-
-    float num = a2;
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    denom = PI * denom * denom;
-
-    return num / max(denom, 0.0000001);
-}
-// ----------------------------------------------------------------------------
-float GeometrySchlickGGX(float NdotV, float roughness) {
-    float r = (roughness + 1.0);
-    float k = (r*r) / 8.0;
-
-    float num = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
-
-    return num / max(denom, 0.0000001);
-}
-// ----------------------------------------------------------------------------
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
-    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
-    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
-
-    return ggx1 * ggx2;
-}
-// ----------------------------------------------------------------------------
-vec3 fresnelSchlick(float cosTheta, vec3 F0) {
-    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
-}
-// ----------------------------------------------------------------------------
-vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
-    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
-}
-// ----------------------------------------------------------------------------
-vec3 getEnergyCompensation(float NoV, float roughness, vec3 F0) {
-    float energyLoss = (1.0 - NoV) * roughness;
-    return 1.0 + F0 * (1.0 / (1.0 - energyLoss) - 1.0);
-}
-// ----------------------------------------------------------------------------
-float computeSpecularAO(float NoV, float ao, float roughness) {
-    return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
-}
-// ----------------------------------------------------------------------------
 vec3 ACES(vec3 x) {
     const float a = 2.51;
     const float b = 0.03;
@@ -117,31 +69,6 @@ vec3 ACES(vec3 x) {
     const float d = 0.59;
     const float e = 0.14;
     return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
-}
-// ----------------------------------------------------------------------------
-vec3 CalcPBRLighting(vec3 L, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness, vec3 lightColor) {
-    vec3 H = normalize(V + L);
-    float NoV = max(dot(N, V), 0.0);
-    float NoL = max(dot(N, L), 0.0);
-    float HoV = max(dot(H, V), 0.0);
-    
-    // Cook-Torrance BRDF
-    float NDF = DistributionGGX(N, H, roughness);
-    float G   = GeometrySmith(N, V, L, roughness);
-    vec3 F    = fresnelSchlick(HoV, F0);
-    
-    vec3 numerator    = NDF * G * F;
-    float denominator = 4.0 * NoV * NoL + 0.0001;
-    vec3 specular = numerator / denominator;
-    
-    // Multi-scatter energy compensation
-    specular *= getEnergyCompensation(NoV, roughness, F0);
-    
-    vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
-    kD *= 1.0 - metallic;
-    
-    return (kD * albedo / PI + specular) * lightColor * NoL;
 }
 
 void main() {
