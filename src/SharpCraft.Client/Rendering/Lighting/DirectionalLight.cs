@@ -1,8 +1,9 @@
 ﻿using System.Numerics;
+using SharpCraft.Sdk.Rendering;
 
 namespace SharpCraft.Client.Rendering.Lighting;
 
-public class DirectionalLight : ILight
+public class DirectionalLight : ILight, IDirectionalLight
 {
     public Vector3 Color { get; set; } = Vector3.One;
     public float Intensity { get; set; } = 1.0f;

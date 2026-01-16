@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using SharpCraft.Client;
+using SharpCraft.Client.Rendering.Lighting;
 using SharpCraft.Engine;
 using SharpCraft.Engine.Assets;
 using SharpCraft.Engine.Blocks;
@@ -35,7 +36,8 @@ var channels = new ChannelManager();
 var commands = new CommandRegistry();
 var worldGen = new WorldGenerationRegistry();
 var huds = new HudRegistry();
-var sdk = new SharpCraftSdk(assets, blocks, channels, commands, worldGen, huds);
+var lighting = new LightingSystem();
+var sdk = new SharpCraftSdk(assets, blocks, channels, commands, worldGen, huds, lighting);
 
 logger.LogInformation("SharpCraft starting...");
 logger.LogInformation("Process Architecture: {Arch}", RuntimeInformation.ProcessArchitecture);

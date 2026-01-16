@@ -13,6 +13,32 @@ internal static class DefaultCommands
         sdk.Commands.RegisterCommand("teleport", ctx => HandleTeleport(sdk, ctx));
         sdk.Commands.RegisterCommand("give", ctx => HandleGive(sdk, ctx));
         sdk.Commands.RegisterCommand("gamemode", ctx => HandleGameMode(sdk, ctx));
+        sdk.Commands.RegisterCommand("sun", ctx => HandleSun(sdk, ctx));
+    }
+
+    private static void HandleSun(ISharpCraftSdk sdk, CommandContext ctx)
+    {
+        if (ctx.Args.Length < 1)
+        {
+            SendChat(sdk, "Usage: /sun <intensity> or /sun color <r> <g> <b>", new Vector4(1, 0.3f, 0.3f, 1));
+            return;
+        }
+
+        if (ctx.Args[0] == "color" && ctx.Args.Length == 4)
+        {
+            if (float.TryParse(ctx.Args[1], out var r) &&
+                float.TryParse(ctx.Args[2], out var g) &&
+                float.TryParse(ctx.Args[3], out var b))
+            {
+                sdk.Lighting.Sun.Color = new Vector3(r, g, b);
+                SendChat(sdk, $"Sun color set to {r}, {g}, {b}", new Vector4(0.3f, 1, 0.3f, 1));
+            }
+        }
+        else if (float.TryParse(ctx.Args[0], out var intensity))
+        {
+            sdk.Lighting.Sun.Intensity = intensity;
+            SendChat(sdk, $"Sun intensity set to {intensity}", new Vector4(0.3f, 1, 0.3f, 1));
+        }
     }
 
     private static void HandleTeleport(ISharpCraftSdk sdk, CommandContext ctx)

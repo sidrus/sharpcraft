@@ -40,7 +40,7 @@ public partial class Game : IDisposable
     private HudManager? _hudManager;
     private AvatarLoader? _avatarLoader;
     private DiagnosticsManager? _diagnosticsManager;
-    private readonly LightingSystem _lightSystem = new();
+    private readonly LightingSystem _lightSystem;
     private IRenderPipeline? _renderPipeline;
     private PostProcessingRenderer? _postProcessingRenderer;
     private ShaderProgram? _mainShader;
@@ -65,6 +65,7 @@ public partial class Game : IDisposable
         _sdk = sdk;
         _mods = mods;
         _logger = loggerFactory.CreateLogger<Game>();
+        _lightSystem = (LightingSystem)sdk.Lighting;
 
         _window = window;
         _window.Load += OnLoad;
@@ -105,6 +106,16 @@ public partial class Game : IDisposable
     private void OnUpdate(double deltaTime)
     {
         SteamClient.RunCallbacks();
+
+        _time += (float)deltaTime;
+        
+        // Update sun position
+        var sunCycleSpeed = 0.1f;
+        var angle = _time * sunCycleSpeed;
+        _lightSystem.Sun.Direction = Vector3.Normalize(new Vector3(MathF.Cos(angle), MathF.Sin(angle), 0.5f));
+        
+        // Adjust intensity based on height (simplistic day/night)
+        _lightSystem.Sun.Intensity = Math.Max(0.0f, _lightSystem.Sun.Direction.Y * -1.0f);
 
         if (_input?.Mouse.Cursor.CursorMode == CursorMode.Raw)
         {
@@ -197,6 +208,7 @@ public partial class Game : IDisposable
             MetallicStrength: _hudManager.Settings.MetallicStrength,
             UseRoughnessMap: _hudManager.Settings.UseRoughnessMap,
             RoughnessStrength: _hudManager.Settings.RoughnessStrength,
+            Sun: new DirectionalLightData(_lightSystem.Sun.Direction, _lightSystem.Sun.Color, _lightSystem.Sun.Intensity),
             PointLights: lights,
             Exposure: _hudManager.Settings.Exposure,
             Gamma: _hudManager.Settings.Gamma,

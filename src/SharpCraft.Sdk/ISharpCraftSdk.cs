@@ -2,6 +2,7 @@
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Messaging;
 using SharpCraft.Sdk.Commands;
+using SharpCraft.Sdk.Rendering;
 using SharpCraft.Sdk.UI;
 using SharpCraft.Sdk.Universe;
 
@@ -41,4 +42,9 @@ public interface ISharpCraftSdk
     /// Gets the HUD registry.
     /// </summary>
     IHudRegistry Huds { get; }
+
+    /// <summary>
+    /// Gets the lighting system.
+    /// </summary>
+    ILightingSystem Lighting { get; }
 }

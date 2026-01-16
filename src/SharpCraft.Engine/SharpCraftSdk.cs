@@ -3,6 +3,7 @@ using SharpCraft.Sdk.Assets;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Messaging;
 using SharpCraft.Sdk.Commands;
+using SharpCraft.Sdk.Rendering;
 using SharpCraft.Sdk.UI;
 using SharpCraft.Sdk.Universe;
 
@@ -17,7 +18,8 @@ public class SharpCraftSdk(
     IChannelManager channels,
     ICommandRegistry commands,
     IWorldGenerationRegistry world,
-    IHudRegistry huds)
+    IHudRegistry huds,
+    ILightingSystem lighting)
     : ISharpCraftSdk
 {
     public IAssetRegistry Assets { get; } = assets;
@@ -26,4 +28,5 @@ public class SharpCraftSdk(
     public ICommandRegistry Commands { get; } = commands;
     public IWorldGenerationRegistry World { get; } = world;
     public IHudRegistry Huds { get; } = huds;
+    public ILightingSystem Lighting { get; } = lighting;
 }

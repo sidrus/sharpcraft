@@ -22,6 +22,7 @@ public readonly record struct RenderContext(
     float MetallicStrength = 1f,
     bool UseRoughnessMap = true,
     float RoughnessStrength = 1f,
+    DirectionalLightData? Sun = null,
     PointLightData[]? PointLights = null,
     float Exposure = 1.0f,
     float Gamma = 1.6f,

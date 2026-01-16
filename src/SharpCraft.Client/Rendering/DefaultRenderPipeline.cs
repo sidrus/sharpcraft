@@ -98,7 +98,9 @@ public class DefaultRenderPipeline(
 
     private void UpdateUbos(RenderContext context)
     {
-        var lightDirection = Vector3.Normalize(new Vector3(0.8f, -0.5f, 0.1f));
+        var lightDirection = context.Sun?.Direction ?? Vector3.Normalize(new Vector3(0.8f, -0.5f, 0.1f));
+        var lightColor = context.Sun?.Color ?? new Vector3(1.0f, 0.95f, 0.8f);
+        var lightIntensity = context.Sun?.Intensity ?? 1.0f;
         
         // Use a tighter and stable shadow frustum
         float size = 80.0f; 
@@ -137,7 +139,7 @@ public class DefaultRenderPipeline(
             DirLight = new DirLightData
             {
                 Direction = new Vector4(lightDirection, 0.0f),
-                Color = new Vector4(1.0f, 0.95f, 0.8f, 1.0f)
+                Color = new Vector4(lightColor * lightIntensity, 1.0f)
             },
             PointLight0 = DefaultPointLight(),
             PointLight1 = DefaultPointLight(),

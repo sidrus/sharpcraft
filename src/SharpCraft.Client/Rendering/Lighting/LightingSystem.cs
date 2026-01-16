@@ -1,10 +1,13 @@
-﻿namespace SharpCraft.Client.Rendering.Lighting;
+﻿using SharpCraft.Sdk.Rendering;
 
-public class LightingSystem
+namespace SharpCraft.Client.Rendering.Lighting;
+
+public class LightingSystem : ILightingSystem
 {
     private readonly List<PointLight> _pointLights = [];
     private readonly List<SpotLight> _spotLights = [];
     public DirectionalLight Sun { get; } = new();
+    IDirectionalLight ILightingSystem.Sun => Sun;
 
     public void AddPointLight(PointLight light) => _pointLights.Add(light);
     public void RemovePointLight(PointLight light) => _pointLights.Remove(light);
