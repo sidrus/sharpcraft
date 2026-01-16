@@ -92,8 +92,8 @@ public class DefaultRenderPipeline(
         waterRenderer.Render(world, context);
 
         _framebuffer.Unbind();
-
-        postProcessingRenderer.Render(_framebuffer.TextureHandle, context.IsUnderwater, context.Time);
+        
+        postProcessingRenderer.Render(_framebuffer.TextureHandle, context.IsUnderwater, context.Time, context.ScreenWidth, context.ScreenHeight);
     }
 
     private void UpdateUbos(RenderContext context)

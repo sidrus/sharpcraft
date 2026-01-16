@@ -34,6 +34,8 @@ public static class Shaders
     public static readonly string UnderwaterVertex = LoadShader("Passes\\underwater.vert");
     public static readonly string UnderwaterFragment = LoadShader("Passes\\underwater.frag");
 
+    public static readonly string FXAAFragment = LoadShader("Passes\\fxaa.frag");
+
     public static readonly string ShadowVertex = LoadShader("Passes\\shadow.vert");
     public static readonly string ShadowFragment = LoadShader("Passes\\shadow.frag");
 }

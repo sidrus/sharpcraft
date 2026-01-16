@@ -13,7 +13,7 @@ public class PostProcessingRenderer : IDisposable
     public PostProcessingRenderer(GL gl)
     {
         _gl = gl;
-        _shader = new ShaderProgram(_gl, Shaders.Shaders.UnderwaterVertex, Shaders.Shaders.UnderwaterFragment);
+        _shader = new ShaderProgram(_gl, Shaders.Shaders.UnderwaterVertex, Shaders.Shaders.FXAAFragment);
 
         float[] quadVertices = {
             // positions   // texCoords
@@ -48,13 +48,14 @@ public class PostProcessingRenderer : IDisposable
         }
     }
 
-    public void Render(uint textureHandle, bool isUnderwater, float time)
+    public void Render(uint textureHandle, bool isUnderwater, float time, int width, int height)
     {
         _gl.Disable(EnableCap.DepthTest);
         _shader.Use();
         _shader.SetUniform("screenTexture", 0);
         _shader.SetUniform("isUnderwater", isUnderwater ? 1 : 0);
         _shader.SetUniform("time", time);
+        _shader.SetUniform("inverseScreenSize", new System.Numerics.Vector2(1.0f / width, 1.0f / height));
 
         _gl.ActiveTexture(TextureUnit.Texture0);
         _gl.BindTexture(TextureTarget.Texture2D, textureHandle);
