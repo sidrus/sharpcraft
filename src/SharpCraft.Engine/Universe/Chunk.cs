@@ -201,7 +201,7 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
 
             // If we are solid (e.g. Sand), don't render against Water to prevent Z-fighting
             // Only render solid faces against Air or non-water transparency (like Glass)
-            return neighbor.IsTransparent && !neighbor.IsWater;
+            return neighbor is { IsTransparent: true, IsWater: false };
         }
 
         // 2. Check neighboring chunk
@@ -213,7 +213,7 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
         var neighborBlock = world.GetBlock(worldX, y, worldZ);
         if (neighborBlock.Type == BlockType.Air) return true;
         if (currentIsTransparent) return !neighborBlock.IsTransparent;
-        return neighborBlock.IsTransparent && !neighborBlock.IsWater;
+        return neighborBlock is { IsTransparent: true, IsWater: false };
     }
 
     private static void AddFace(List<float> vertices, List<uint> indices, ref uint offset,

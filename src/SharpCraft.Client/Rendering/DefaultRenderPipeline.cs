@@ -27,6 +27,7 @@ public class DefaultRenderPipeline(
 
     private readonly UniformBufferObject<SceneData> _sceneUbo = new(gl, 0);
     private readonly UniformBufferObject<LightingData> _lightingUbo = new(gl, 1);
+    private readonly SunRenderer _sunRenderer = new(gl);
 
     private Matrix4x4 _lightSpaceMatrix;
 
@@ -85,6 +86,9 @@ public class DefaultRenderPipeline(
         gl.Disable(EnableCap.Blend);
         terrainRenderer.Render(world, context with { ShadowMap = _shadowMap.DepthMap });
 
+        // Sun Pass
+        _sunRenderer.Render(context);
+
         // Transparent Pass
         gl.Enable(EnableCap.Blend);
         gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
@@ -103,7 +107,7 @@ public class DefaultRenderPipeline(
         var lightIntensity = context.Sun?.Intensity ?? 1.0f;
         
         // Use a tighter and stable shadow frustum
-        float size = 80.0f; 
+        var size = 80.0f; 
         var lightProjection = Matrix4x4.CreateOrthographicOffCenter(-size, size, -size, size, 1.0f, 400.0f);
         var lightView = Matrix4x4.CreateLookAt(context.CameraPosition - lightDirection * 200.0f, context.CameraPosition, Vector3.UnitY);
         
@@ -191,6 +195,7 @@ public class DefaultRenderPipeline(
             {
                 _sceneUbo.Dispose();
                 _lightingUbo.Dispose();
+                _sunRenderer.Dispose();
                 cache.Dispose();
                 terrainRenderer.Dispose();
                 waterRenderer.Dispose();

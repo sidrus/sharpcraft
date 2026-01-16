@@ -9,6 +9,7 @@ using SharpCraft.Client.Rendering.Lighting;
 using SharpCraft.Client.Rendering.Textures;
 using SharpCraft.Client.Integrations.Steam;
 using SharpCraft.Engine.Diagnostics;
+using SharpCraft.Engine.Lifecycle;
 using SharpCraft.Engine.UI;
 using SharpCraft.Client.UI;
 using SharpCraft.Sdk;
@@ -41,6 +42,9 @@ public partial class Game : IDisposable
     private AvatarLoader? _avatarLoader;
     private DiagnosticsManager? _diagnosticsManager;
     private readonly LightingSystem _lightSystem;
+    private readonly LifecycleManager _lifecycleManager;
+    private WorldTime? _worldTime;
+    private Sun? _sun;
     private IRenderPipeline? _renderPipeline;
     private PostProcessingRenderer? _postProcessingRenderer;
     private ShaderProgram? _mainShader;
@@ -51,7 +55,6 @@ public partial class Game : IDisposable
     private bool _useAoMap = true;
     private bool _useMetallicMap = true;
     private bool _useRoughnessMap = true;
-    private float _time;
 
     private const double FixedDeltaTime = 1.0 / 60.0;
     private double _accumulator;
@@ -66,6 +69,7 @@ public partial class Game : IDisposable
         _mods = mods;
         _logger = loggerFactory.CreateLogger<Game>();
         _lightSystem = (LightingSystem)sdk.Lighting;
+        _lifecycleManager = new LifecycleManager();
 
         _window = window;
         _window.Load += OnLoad;
@@ -86,6 +90,7 @@ public partial class Game : IDisposable
         {
             LogCreatingOpenglContext();
             _gl = _window.CreateOpenGL();
+            _logger.LogInformation("OpenGL context created.");
 
             if (SteamClient.IsValid)
             {
@@ -107,16 +112,8 @@ public partial class Game : IDisposable
     {
         SteamClient.RunCallbacks();
 
-        _time += (float)deltaTime;
+        _lifecycleManager.Update(deltaTime);
         
-        // Update sun position
-        var sunCycleSpeed = 0.1f;
-        var angle = _time * sunCycleSpeed;
-        _lightSystem.Sun.Direction = Vector3.Normalize(new Vector3(MathF.Cos(angle), MathF.Sin(angle), 0.5f));
-        
-        // Adjust intensity based on height (simplistic day/night)
-        _lightSystem.Sun.Intensity = Math.Max(0.0f, _lightSystem.Sun.Direction.Y * -1.0f);
-
         if (_input?.Mouse.Cursor.CursorMode == CursorMode.Raw)
         {
             _playerController?.OnUpdate(deltaTime);
@@ -126,6 +123,7 @@ public partial class Game : IDisposable
 
         while (_accumulator >= FixedDeltaTime)
         {
+            _lifecycleManager.FixedUpdate(FixedDeltaTime);
             _playerController?.OnFixedUpdate(FixedDeltaTime);
 
             _accumulator -= FixedDeltaTime;
@@ -140,7 +138,7 @@ public partial class Game : IDisposable
             var activeLights = _lightSystem.GetActivePointLights().Count() + _lightSystem.GetActiveSpotLights().Count() + 1;
             var velocity = _playerController?.Entity.Velocity.Length() ?? 0f;
             
-            _diagnosticsManager.Update(deltaTime, loadedChunks, meshQueue, activeLights, velocity);
+            _diagnosticsManager.Update(deltaTime, loadedChunks, meshQueue, activeLights, velocity, _worldTime?.FormattedTime ?? string.Empty);
         }
 
         _hudManager?.OnUpdate(deltaTime);
@@ -176,7 +174,8 @@ public partial class Game : IDisposable
             return;
         }
 
-        _time += (float)deltaTime;
+        _lifecycleManager.Render(deltaTime);
+        
         var alpha = (float)(_accumulator / FixedDeltaTime);
 
         var lights = _lightSystem.GetActivePointLights()
@@ -190,12 +189,28 @@ public partial class Game : IDisposable
         // interpolated camera position for visual smoothness and to support different camera types.
         var isUnderwater = block.IsWater;
 
+        var fogColor = isUnderwater ? new Vector3(0.0f, 0.4f, 0.8f) : new Vector3(0.53f, 0.81f, 0.92f);
+        
+        // Apply sun lighting to fog/clear color
+        if (!isUnderwater)
+        {
+            var sunColor = _lightSystem.Sun.Color * _lightSystem.Sun.Intensity;
+            var sunDir = Vector3.Normalize(-_lightSystem.Sun.Direction);
+            var dotL = Math.Clamp(Vector3.Dot(Vector3.UnitY, sunDir), 0.0f, 1.0f);
+            
+            // Blend between a dark night color and the sun-lit color
+            var ambientLight = new Vector3(0.01f); // Darker constant ambient for night
+            fogColor *= Vector3.Lerp(ambientLight, sunColor, dotL);
+        }
+
+        _gl.ClearColor(fogColor.X, fogColor.Y, fogColor.Z, 1.0f);
+
         var viewDistance = _world.Size * World.ChunkSize;
         var context = new RenderContext(
             View: _camera.GetViewMatrix(alpha),
             Projection: _camera.GetProjectionMatrix((float)_window.Size.X / _window.Size.Y),
             CameraPosition: cameraPosition,
-            FogColor: isUnderwater ? new Vector3(0.0f, 0.4f, 0.8f) : new Vector3(0.53f, 0.81f, 0.92f),
+            FogColor: fogColor,
             FogNear: isUnderwater ? 0.0f : viewDistance * _hudManager.Settings.FogNearFactor,
             FogFar: isUnderwater ? 20.0f : viewDistance * _hudManager.Settings.FogFarFactor,
             ScreenWidth: _window.Size.X,
@@ -213,7 +228,7 @@ public partial class Game : IDisposable
             Exposure: _hudManager.Settings.Exposure,
             Gamma: _hudManager.Settings.Gamma,
             IsUnderwater: isUnderwater,
-            Time: _time,
+            Time: _worldTime?.Time ?? 0f,
             UseIBL: _hudManager.Settings.UseIBL
         );
 
@@ -287,6 +302,16 @@ public partial class Game : IDisposable
         _postProcessingRenderer = new PostProcessingRenderer(_gl);
         
         _renderPipeline = new DefaultRenderPipeline(_gl, _world, cache, meshManager, terrainRenderer, waterRenderer, _postProcessingRenderer);
+
+        _worldTime = new WorldTime { DayDurationInMinutes = 5f };
+        _sun = new Sun(_worldTime, _lightSystem);
+        
+        if (_input != null) _lifecycleManager.Register(_input);
+        if (_hudManager != null) _lifecycleManager.Register(_hudManager);
+        _lifecycleManager.Register(_worldTime);
+        _lifecycleManager.Register(_sun);
+
+        _lifecycleManager.Start();
     }
 
     private readonly Dictionary<BlockType, BlockDefinition> _typeToDef = new();
@@ -379,7 +404,10 @@ public partial class Game : IDisposable
         }
     }
 
-    public void Run() => _window?.Run();
+    public void Run()
+    {
+        _window?.Run();
+    }
 
     private void Exit() => _window?.Close();
 

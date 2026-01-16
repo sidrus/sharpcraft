@@ -58,7 +58,7 @@ public class ModLoader(ILogger<ModLoader> logger, ISharpCraftSdk sdk)
                                     try
                                     {
                                         var assembly = Assembly.LoadFrom(assemblyPath);
-                                        var modTypes = assembly.GetTypes().Where(t => typeof(IMod).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+                                        var modTypes = assembly.GetTypes().Where(t => typeof(IMod).IsAssignableFrom(t) && t is { IsInterface: false, IsAbstract: false });
                                         
                                         foreach (var type in modTypes)
                                         {

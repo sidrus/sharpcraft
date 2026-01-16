@@ -172,6 +172,7 @@ void main() {
     // 3. Fog and Final Output
     float fogDistance = FogFar - FogNear;
     float fogFactor = clamp((FragDistance - FogNear) / max(fogDistance, 0.0001), 0.0, 1.0);
+    
     vec3 finalColor = mix(result, FogColor.xyz, fogFactor);
 
     // Exposure

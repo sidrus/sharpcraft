@@ -68,6 +68,9 @@ public class DebugHud : IHud
 
     private static void DrawPerformanceTab(IGui gui, IDiagnosticsProvider diagnostics)
     {
+        gui.Property("Game Time", diagnostics.GameTime, color: new Vector4(1, 1, 0, 1));
+        gui.Spacing();
+        
         DrawMetricInfo(gui, diagnostics.Fps, "FPS", "F1");
         DrawMetricInfo(gui, diagnostics.CpuUsage, "CPU %", "F1");
         DrawMetricInfo(gui, diagnostics.RamUsage, "RAM (MB)", "F0");

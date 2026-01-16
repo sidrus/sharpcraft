@@ -81,7 +81,7 @@ logger.LogInformation("World generation complete");
 // Window & Game Initialization
 var opts = WindowOptions.Default with
 {
-    Size = new Vector2D<int>(2560, 1080),
+    Size = new Vector2D<int>(1920, 1080),
     Title = "SharpCraft",
     VSync = false,
     UpdatesPerSecond = 0.0,

@@ -42,7 +42,6 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
 
     public void OnAwake()
     {
-        _controller = new ImGuiController(_gl, _window, _input);
     }
 
     public async Task InitializeAsync()
@@ -173,7 +172,6 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
             }
         }
 
-        _controller.Update((float)deltaTime);
         foreach (var hud in _huds.Values)
         {
             hud.OnUpdate(deltaTime);
@@ -204,6 +202,8 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
     public void OnRender(double deltaTime)
     {
         if (_world == null || _sdk == null || _mods == null) return;
+
+        _controller.Update((float)deltaTime);
 
         var context = new HudContext(_world, _player, _meshManager, _lighting, _sdk, _mods, _avatar, _diagnostics);
         foreach (var hud in _huds.Values)

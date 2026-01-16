@@ -22,10 +22,16 @@ public class DiagnosticsManager : IDiagnosticsProvider
     public Metric MeshQueue { get; } = new("Mesh Queue", MaxSamples);
     public Metric ActiveLights { get; } = new("Lights", MaxSamples);
     public Metric Velocity { get; } = new("Velocity", MaxSamples);
+    public string GameTime { get; private set; } = "06:00 AM";
 
-    public void Update(double deltaTime, int loadedChunks, int meshQueue, int activeLights, float velocity)
+    public void Update(double deltaTime, int loadedChunks, int meshQueue, int activeLights, float velocity, string gameTime = "")
     {
         _sampleTimer += deltaTime;
+
+        if (!string.IsNullOrEmpty(gameTime))
+        {
+            GameTime = gameTime;
+        }
         
         if (_sampleTimer >= SampleInterval)
         {
