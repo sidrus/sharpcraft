@@ -77,7 +77,9 @@ vec3 computeStars(vec3 viewDir, float nightFactor) {
 // ============================================================================
 
 vec3 computeSunDisk(vec3 viewDir, vec3 sunDirection, float sunElevation) {
-    if (sunIntensity <= 0.0 || sunElevation < -0.05) return vec3(0.0);
+    // Show sun disk when sun is visible (above horizon)
+    // Don't use sunIntensity here - that's for direct lighting, not visibility
+    if (sunElevation < -0.02) return vec3(0.0); // Hide when clearly below horizon
     
     float cosSun = dot(viewDir, sunDirection);
     
@@ -91,12 +93,18 @@ vec3 computeSunDisk(vec3 viewDir, vec3 sunDirection, float sunElevation) {
     // Limb darkening for realistic sun disk
     float limbDarkening = 1.0 - pow(1.0 - disk, 0.4) * 0.3;
     
-    // Color temperature shift at horizon (redder sun)
-    float horizonFactor = smoothstep(0.0, 0.3, sunElevation);
-    vec3 diskColor = mix(vec3(1.0, 0.6, 0.3), sunColor, horizonFactor);
+    // Color temperature shift at horizon (redder sun at low angles)
+    float horizonFactor = smoothstep(-0.02, 0.3, sunElevation);
+    vec3 diskColor = mix(vec3(1.0, 0.4, 0.1), sunColor, horizonFactor); // More orange/red at horizon
     
-    vec3 sunDisk = diskColor * disk * sunIntensity * 50.0 * limbDarkening;
-    sunDisk += sunColor * corona * sunIntensity * horizonFactor;
+    // Sun brightness based on elevation (dimmer at horizon due to atmospheric extinction)
+    float sunVisibility = smoothstep(-0.02, 0.1, sunElevation);
+    
+    // Atmospheric extinction makes sun dimmer and redder at horizon
+    vec3 extinction = exp(-vec3(0.5, 1.0, 2.0) * (1.0 - sunElevation) * 3.0);
+    
+    vec3 sunDisk = diskColor * disk * 40.0 * limbDarkening * sunVisibility * extinction;
+    sunDisk += diskColor * corona * sunVisibility * extinction * 0.5;
     
     return sunDisk;
 }
@@ -146,20 +154,28 @@ void main()
     vec3 skyTransmittance;
     vec3 skyColor = vec3(0.0);
     
-    // Scale the scattering coefficients based on UI parameters
-    // (Note: actual scaling would require modifying the atmosphere.glsl uniforms)
+    // Sky brightness should NOT be tied to sunIntensity (which is for direct lighting).
+    // The atmosphere scatters light even when sun is at/below horizon.
+    // Use sun elevation to determine sky brightness instead.
     
-    if (dayFactor > 0.01 || twilightFactor > 0.01) {
+    // Sky is visible from civil twilight (-6°) through day
+    // sunElevation is sin(elevation), so -6° ≈ -0.105
+    float skyBrightness = smoothstep(-0.15, 0.3, sunElevation);
+    
+    // Always compute sky scattering when sun is above -15° (nautical twilight)
+    if (sunElevation > -0.26) {
         // Compute physically-based sky scattering
         skyColor = computeSkyColor(V, sunDirection, atmosphereMieG, atmosphereSamples, skyTransmittance);
         
-        // Scale by sun intensity and color
-        skyColor *= sunIntensity * sunColor * 20.0;
+        // Scale by sky brightness (NOT sunIntensity) and sun color
+        // At sunrise/sunset, atmosphere path is longer so we see more scattering
+        float horizonBoost = 1.0 + (1.0 - abs(sunElevation)) * 2.0; // Boost near horizon
+        skyColor *= skyBrightness * sunColor * 25.0 * horizonBoost;
         
         // Add multi-scattering approximation for softer sky
         float viewAltitude = 1.0; // Sea level
         vec3 multiScatter = getMultipleScattering(viewAltitude, sunDirection.y);
-        skyColor += multiScatter * sunIntensity * 0.5;
+        skyColor += multiScatter * skyBrightness * 0.8;
     }
     
     // ========================================================================

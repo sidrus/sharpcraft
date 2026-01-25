@@ -37,6 +37,8 @@ public class ShaderProgram : IDisposable
 
     public void SetUniform(string name, Vector3 value) => _gl.Uniform3(GetUniformLocation(name), value.X, value.Y, value.Z);
 
+    public void SetUniform(string name, Vector4 value) => _gl.Uniform4(GetUniformLocation(name), value.X, value.Y, value.Z, value.W);
+
     public void BindUniformBlock(string name, uint bindingPoint)
     {
         var index = _gl.GetUniformBlockIndex(_handle, name);

@@ -81,7 +81,24 @@ public class DeferredLightingRenderer : IDisposable
         _shader.SetUniform("shadowMap", 5);
 
         // IBL settings
-        _shader.SetUniform("useIBL", context.UseIBL ? 1 : 0);
+        var useIbl = context.UseIBL && context.IrradianceMap != 0 && context.PrefilterMap != 0 && context.BrdfLut != 0;
+        _shader.SetUniform("useIBL", useIbl ? 1 : 0);
+
+        if (useIbl)
+        {
+            // Bind IBL textures
+            _gl.ActiveTexture(TextureUnit.Texture6);
+            _gl.BindTexture(TextureTarget.TextureCubeMap, context.IrradianceMap);
+            _shader.SetUniform("irradianceMap", 6);
+
+            _gl.ActiveTexture(TextureUnit.Texture7);
+            _gl.BindTexture(TextureTarget.TextureCubeMap, context.PrefilterMap);
+            _shader.SetUniform("prefilterMap", 7);
+
+            _gl.ActiveTexture(TextureUnit.Texture8);
+            _gl.BindTexture(TextureTarget.Texture2D, context.BrdfLut);
+            _shader.SetUniform("brdfLUT", 8);
+        }
 
         // Draw fullscreen quad
         _gl.BindVertexArray(_quadVao);

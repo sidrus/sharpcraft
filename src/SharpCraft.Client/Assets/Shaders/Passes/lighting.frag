@@ -125,6 +125,26 @@ void main() {
 
     // Ambient/IBL
     vec3 ambient;
+    
+    // Calculate sky-based ambient that works during twilight
+    // This provides fill light even when direct sun intensity is low
+    vec3 skyAmbientDir = normalize(-dirLight.direction.xyz);
+    float skyAmbientHeight = skyAmbientDir.y;
+    
+    // Sky ambient brightness based on sun elevation (not sunIntensity)
+    // Provides light during civil twilight (-6° to 0°) and beyond
+    float skyAmbientFactor = smoothstep(-0.15, 0.4, skyAmbientHeight);
+    
+    // Twilight ambient color (warm near horizon during sunrise/sunset)
+    vec3 twilightAmbientColor = mix(
+        vec3(0.4, 0.25, 0.15), // Warm twilight
+        vec3(0.6, 0.7, 1.0),   // Blue sky
+        smoothstep(0.0, 0.3, skyAmbientHeight)
+    );
+    
+    // Minimum ambient for night (moonlight + starlight)
+    vec3 nightAmbient = vec3(0.015, 0.02, 0.035) * albedo * ao;
+    
     if (useIBL) {
         float NoV = max(dot(norm, V), 0.0);
         vec3 F = fresnelSchlickRoughness(NoV, F0, roughness);
@@ -146,17 +166,20 @@ void main() {
         
         ambient = (kD * diffuse + specular) * ao;
     } else {
-        ambient = vec3(0.03) * albedo * ao;
+        // Sky-based ambient when IBL is not available
+        vec3 skyAmbient = twilightAmbientColor * skyAmbientFactor * 0.15 * albedo * ao;
+        ambient = max(skyAmbient, nightAmbient);
     }
     
     vec3 result = ambient + Lo;
 
     // === PHYSICALLY-BASED ATMOSPHERIC FOG ===
     vec3 sunDirection = normalize(-dirLight.direction.xyz);
-    float sunHeight = sunDirection.y;
+    float sunHeight = sunDirection.y; // This is sin(elevation angle)
     
     // Time-of-day factors matching skybox
-    float dayFactor = smoothstep(-0.1, 0.3, sunHeight);
+    // Use wider range for dayFactor to include sunrise/sunset
+    float dayFactor = smoothstep(-0.15, 0.3, sunHeight);
     float nightFactor = 1.0 - smoothstep(-0.35, 0.0, sunHeight);
     float twilightFactor = getTwilightFactor(sunHeight);
     int twilightPhase = getTwilightPhase(sunHeight);

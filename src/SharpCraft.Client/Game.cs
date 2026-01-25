@@ -294,7 +294,7 @@ public partial class Game : IDisposable
 
         var meshManager = new ChunkMeshManager(_world, ResolveUvs);
         var physics = new PhysicsSystem(_world);
-        var entity = new PhysicsEntity(new Transform { Position = new Vector3(7, 60, -8) }, physics);
+        var entity = new PhysicsEntity(new Transform { Position = new Vector3(1, 65, -6) }, physics);
 
         _camera = new FirstPersonCamera(entity, Vector3.UnitY * 1.6f);
         _playerController = new LocalPlayerController(entity, _camera, _world, _inputProvider);
