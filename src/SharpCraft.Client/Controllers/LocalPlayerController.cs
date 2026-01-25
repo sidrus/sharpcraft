@@ -41,9 +41,9 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     public float Friction => _motor.Friction;
 
     /// <summary>
-    /// Gets the current yaw angle in degrees.
+    /// Gets the current yaw angle in degrees (0 = North, 90 = East).
     /// </summary>
-    public float Yaw => _sensor.LastSense?.Heading ?? 0f;
+    public float Yaw => _yaw;
 
     /// <summary>
     /// Gets the current pitch angle in degrees.
@@ -58,12 +58,12 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     /// <summary>
     /// Gets the yaw angle normalized to [0, 360) degrees.
     /// </summary>
-    public float NormalizedYaw => ((_sensor.LastSense?.Heading ?? 0f) % 360 + 360) % 360;
+    public float NormalizedYaw => (_yaw % 360 + 360) % 360;
 
     /// <summary>
     /// Gets the compass heading based on the current yaw.
     /// </summary>
-    public string Heading => MathUtils.GetHeading(_sensor.LastSense?.Heading ?? 0f);
+    public string Heading => MathUtils.GetHeading(_yaw);
 
     private float _yaw;
     private MovementIntent _pendingIntent;
@@ -103,22 +103,30 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     private void SensorPass()
     {
         _sensor.Sense(world, entity);
+        
+        // Sync _yaw from entity rotation if it's the first time or if external change occurred
+        // Rotation is applied as -_yaw, so Heading from sensor (rotation angle) is -_yaw
+        var rotationHeading = _sensor.LastSense?.Heading ?? 0f;
+        _yaw = -rotationHeading;
     }
 
     private void HandleLook(LookDelta lookDelta)
     {
         if (lookDelta == default) return;
 
+        // Yaw: 0 = North (-Z), 90 = East (+X)
+        // Mouse X-offset positive (moving right) should increase yaw (turning East)
         _yaw += lookDelta.Yaw;
+
+        // Apply rotation. 
+        // In a right-handed system, a positive rotation around Y moves +Z towards +X.
+        // Since Forward is -Z, a positive rotation around Y moves -Z towards -X (West).
+        // To make a positive yaw (turning East) work, we need a negative rotation around Y.
+        entity.Rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, -_yaw * MathF.PI / 180f);
 
         if (camera is FirstPersonCamera fpc)
         {
             fpc.HandleMouse(0, lookDelta.Pitch);
-            entity.Rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, _yaw * MathF.PI / 180f);
-        }
-        else
-        {
-            entity.Rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, _yaw * MathF.PI / 180f);
         }
     }
 

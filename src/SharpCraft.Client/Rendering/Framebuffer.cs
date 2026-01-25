@@ -9,9 +9,13 @@ public class Framebuffer : IDisposable
     private readonly uint _textureHandle;
     private readonly uint _renderbufferHandle;
 
-    public uint TextureHandle => _textureHandle;
+    private readonly uint _depthTextureHandle;
 
-    public Framebuffer(GL gl, int width, int height)
+    public uint Handle => _handle;
+    public uint TextureHandle => _textureHandle;
+    public uint DepthTextureHandle => _depthTextureHandle;
+
+    public Framebuffer(GL gl, int width, int height, bool hdr = false)
     {
         _gl = gl;
 
@@ -24,17 +28,28 @@ public class Framebuffer : IDisposable
         _gl.BindTexture(TextureTarget.Texture2D, _textureHandle);
         unsafe
         {
-            _gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba, (uint)width, (uint)height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, null);
+            var internalFormat = hdr ? InternalFormat.Rgba16f : InternalFormat.Rgba;
+            var type = hdr ? PixelType.Float : PixelType.UnsignedByte;
+            _gl.TexImage2D(TextureTarget.Texture2D, 0, internalFormat, (uint)width, (uint)height, 0, PixelFormat.Rgba, type, null);
         }
         _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+        _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+        _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
         _gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, _textureHandle, 0);
 
-        // Create Renderbuffer for Depth and Stencil
-        _renderbufferHandle = _gl.GenRenderbuffer();
-        _gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _renderbufferHandle);
-        _gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, InternalFormat.Depth24Stencil8, (uint)width, (uint)height);
-        _gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, RenderbufferTarget.Renderbuffer, _renderbufferHandle);
+        // Create Depth Texture instead of Renderbuffer
+        _depthTextureHandle = _gl.GenTexture();
+        _gl.BindTexture(TextureTarget.Texture2D, _depthTextureHandle);
+        unsafe
+        {
+            _gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.DepthComponent24, (uint)width, (uint)height, 0, PixelFormat.DepthComponent, PixelType.Float, null);
+        }
+        _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+        _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+        _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+        _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+        _gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, _depthTextureHandle, 0);
 
         if ((FramebufferStatus)_gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferStatus.FramebufferComplete)
         {
@@ -58,6 +73,7 @@ public class Framebuffer : IDisposable
     {
         _gl.DeleteFramebuffer(_handle);
         _gl.DeleteTexture(_textureHandle);
+        _gl.DeleteTexture(_depthTextureHandle);
         _gl.DeleteRenderbuffer(_renderbufferHandle);
     }
 }

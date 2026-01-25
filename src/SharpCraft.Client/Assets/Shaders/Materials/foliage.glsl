@@ -1,1 +1,1 @@
-﻿// placeholder for foliage.glsl
+// placeholder for foliage.glsl

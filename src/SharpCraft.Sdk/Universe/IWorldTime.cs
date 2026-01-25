@@ -6,14 +6,19 @@
 public interface IWorldTime
 {
     /// <summary>
-    /// Gets the current game time in seconds.
+    /// Gets or sets the current game time in seconds.
     /// </summary>
-    float Time { get; }
+    float Time { get; set; }
 
     /// <summary>
     /// Gets or sets the duration of one full day in minutes.
     /// </summary>
     float DayDurationInMinutes { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether time is paused.
+    /// </summary>
+    bool IsPaused { get; set; }
 
     /// <summary>
     /// Gets the current sun angle in radians [0, 2PI].

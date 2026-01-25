@@ -11,7 +11,13 @@ public class WorldTime : IWorldTime, ILifecycle
     private float _time;
     private float _dayDurationInMinutes = 10f;
 
-    public float Time => _time;
+    public float Time
+    {
+        get => _time;
+        set => _time = value;
+    }
+
+    public bool IsPaused { get; set; }
 
     public float DayDurationInMinutes
     {
@@ -75,7 +81,10 @@ public class WorldTime : IWorldTime, ILifecycle
 
     public void OnUpdate(double deltaTime)
     {
-        _time += (float)deltaTime;
+        if (!IsPaused)
+        {
+            _time += (float)deltaTime;
+        }
     }
 
     private float GetDisplayHours()

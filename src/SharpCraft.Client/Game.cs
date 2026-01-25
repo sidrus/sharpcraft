@@ -229,11 +229,15 @@ public partial class Game : IDisposable
             Gamma: _hudManager.Settings.Gamma,
             IsUnderwater: isUnderwater,
             Time: _worldTime?.Time ?? 0f,
-            UseIBL: _hudManager.Settings.UseIBL
+            UseIBL: _hudManager.Settings.UseIBL,
+            AtmosphereRayleighScale: _postProcessingRenderer?.RayleighScale ?? 1.0f,
+            AtmosphereMieScale: _postProcessingRenderer?.MieScale ?? 1.0f,
+            AtmosphereOzoneScale: _postProcessingRenderer?.OzoneScale ?? 1.0f,
+            AtmosphereMieG: _postProcessingRenderer?.ScatteringG ?? 0.8f
         );
 
         _renderPipeline.Execute(_world, context);
-        _hudManager?.Render((float)deltaTime, _world, _playerController, _renderPipeline.MeshManager, _lightSystem, _sdk, _mods, _avatarLoader, _diagnosticsManager);
+        _hudManager?.Render((float)deltaTime, _world, _playerController, _renderPipeline.MeshManager, _lightSystem, _postProcessingRenderer, _sdk, _mods, _avatarLoader, _diagnosticsManager);
     }
 
     private void InitializeGraphicsState()
@@ -298,12 +302,13 @@ public partial class Game : IDisposable
         var cache = new ChunkRenderCache(_gl);
         _mainShader = new ShaderProgram(_gl, SharpCraft.Client.Rendering.Shaders.Shaders.DefaultVertex, SharpCraft.Client.Rendering.Shaders.Shaders.DefaultFragment);
         var terrainRenderer = new TerrainRenderer(_gl, cache, meshManager, _atlas, _sdk.Blocks, _mainShader);
-        var waterRenderer = new WaterRenderer(_gl, cache, meshManager, _atlas, _mainShader);
+        var waterRenderer = new WaterRenderer(_gl, cache, meshManager, _atlas);
         _postProcessingRenderer = new PostProcessingRenderer(_gl);
         
         _renderPipeline = new DefaultRenderPipeline(_gl, _world, cache, meshManager, terrainRenderer, waterRenderer, _postProcessingRenderer);
 
         _worldTime = new WorldTime { DayDurationInMinutes = 5f };
+        _lightSystem.WorldTime = _worldTime;
         _sun = new Sun(_worldTime, _lightSystem);
         
         if (_input != null) _lifecycleManager.Register(_input);

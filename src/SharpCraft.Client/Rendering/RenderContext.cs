@@ -32,7 +32,11 @@ public readonly record struct RenderContext(
     uint IrradianceMap = 0,
     uint PrefilterMap = 0,
     uint BrdfLut = 0,
-    uint ShadowMap = 0
+    uint ShadowMap = 0,
+    float AtmosphereRayleighScale = 1.0f,
+    float AtmosphereMieScale = 1.0f,
+    float AtmosphereOzoneScale = 1.0f,
+    float AtmosphereMieG = 0.8f
 )
 {
     public Matrix4x4 ViewProjection => View * Projection;

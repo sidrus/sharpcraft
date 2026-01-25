@@ -50,6 +50,8 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
         var chatHud = new ChatHud();
         chatHud.OnVisibilityChanged += UpdateCursorMode;
         RegisterHud(chatHud);
+
+        RegisterHud(new AtmosphereControlHud());
         
         UpdateCursorMode();
 
@@ -94,6 +96,10 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
             case Key.F4:
                 var devHud = _huds.Values.OfType<IInteractiveHud>().FirstOrDefault(h => h.Name == "DeveloperHud");
                 if (devHud != null) devHud.IsVisible = !devHud.IsVisible;
+                break;
+            case Key.F5:
+                var atmosHud = _huds.Values.OfType<IInteractiveHud>().FirstOrDefault(h => h.Name == "AtmosphereControl");
+                if (atmosHud != null) atmosHud.IsVisible = !atmosHud.IsVisible;
                 break;
         }
 
@@ -182,17 +188,19 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
     private LocalPlayerController? _player;
     private ChunkMeshManager? _meshManager;
     private LightingSystem? _lighting;
+    private PostProcessingRenderer? _postProcessing;
     private ISharpCraftSdk? _sdk;
     private IEnumerable<IMod>? _mods;
     private IAvatarProvider? _avatar;
     private IDiagnosticsProvider? _diagnostics;
 
-    public void SetContext(World world, LocalPlayerController? player, ChunkMeshManager? meshManager, LightingSystem? lighting, ISharpCraftSdk? sdk = null, IEnumerable<IMod>? mods = null, IAvatarProvider? avatar = null, IDiagnosticsProvider? diagnostics = null)
+    public void SetContext(World world, LocalPlayerController? player, ChunkMeshManager? meshManager, LightingSystem? lighting, PostProcessingRenderer? postProcessing, ISharpCraftSdk? sdk = null, IEnumerable<IMod>? mods = null, IAvatarProvider? avatar = null, IDiagnosticsProvider? diagnostics = null)
     {
         _world = world;
         _player = player;
         _meshManager = meshManager;
         _lighting = lighting;
+        _postProcessing = postProcessing;
         _sdk = sdk;
         _mods = mods;
         _avatar = avatar;
@@ -205,7 +213,7 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
 
         _controller.Update((float)deltaTime);
 
-        var context = new HudContext(_world, _player, _meshManager, _lighting, _sdk, _mods, _avatar, _diagnostics);
+        var context = new HudContext(_world, _player, _meshManager, _lighting, _postProcessing, _sdk, _mods, _avatar, _diagnostics);
         foreach (var hud in _huds.Values)
         {
             hud.Draw(deltaTime, _gui, context);
@@ -213,9 +221,9 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
         _controller.Render();
     }
 
-    public void Render(float deltaTime, World world, LocalPlayerController? player, ChunkMeshManager? meshManager, LightingSystem? lighting, ISharpCraftSdk? sdk = null, IEnumerable<IMod>? mods = null, IAvatarProvider? avatar = null, IDiagnosticsProvider? diagnostics = null)
+    public void Render(float deltaTime, World world, LocalPlayerController? player, ChunkMeshManager? meshManager, LightingSystem? lighting, PostProcessingRenderer? postProcessing, ISharpCraftSdk? sdk = null, IEnumerable<IMod>? mods = null, IAvatarProvider? avatar = null, IDiagnosticsProvider? diagnostics = null)
     {
-        SetContext(world, player, meshManager, lighting, sdk, mods, avatar, diagnostics);
+        SetContext(world, player, meshManager, lighting, postProcessing, sdk, mods, avatar, diagnostics);
         OnRender(deltaTime);
     }
 

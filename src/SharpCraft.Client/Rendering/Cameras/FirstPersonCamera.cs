@@ -42,6 +42,7 @@ public class FirstPersonCamera(PhysicsEntity parent, Vector3 offset) : ICamera
 
     public void HandleMouse(float xOffset, float yOffset)
     {
+        // Pitch: Moving mouse up (negative yOffset in Y-down systems) should look up (increase pitch)
         Pitch = Math.Clamp(Pitch + yOffset, -89f, 89f);
     }
 }

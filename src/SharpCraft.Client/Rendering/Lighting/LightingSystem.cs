@@ -1,4 +1,5 @@
 ﻿using SharpCraft.Sdk.Rendering;
+using SharpCraft.Sdk.Universe;
 
 namespace SharpCraft.Client.Rendering.Lighting;
 
@@ -8,6 +9,7 @@ public class LightingSystem : ILightingSystem
     private readonly List<SpotLight> _spotLights = [];
     public DirectionalLight Sun { get; } = new();
     IDirectionalLight ILightingSystem.Sun => Sun;
+    public IWorldTime? WorldTime { get; set; }
 
     public void AddPointLight(PointLight light) => _pointLights.Add(light);
     public void RemovePointLight(PointLight light) => _pointLights.Remove(light);

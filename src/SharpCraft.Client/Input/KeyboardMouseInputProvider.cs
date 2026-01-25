@@ -60,7 +60,7 @@ public class KeyboardMouseInputProvider : IInputProvider
         _lastMousePos = position;
 
         _lookDelta = new LookDelta(
-            _lookDelta.Yaw - deltaX * Sensitivity,
+            _lookDelta.Yaw + deltaX * Sensitivity,
             _lookDelta.Pitch - deltaY * Sensitivity
         );
     }

@@ -15,15 +15,19 @@ public class WaterRenderer : IRenderer
     private readonly ShaderProgram _shader;
     private readonly Frustum _frustum = new();
     private readonly uint _vao;
+    private readonly bool _ownsShader;
 
-    public WaterRenderer(GL gl, ChunkRenderCache cache, ChunkMeshManager meshManager, TextureAtlas atlas, ShaderProgram shader)
+    public WaterRenderer(GL gl, ChunkRenderCache cache, ChunkMeshManager meshManager, TextureAtlas atlas)
     {
         _gl = gl;
         _cache = cache;
         _meshManager = meshManager;
         _atlas = atlas;
         _vao = gl.GenVertexArray();
-        _shader = shader;
+        
+        // Create dedicated water shader
+        _shader = new ShaderProgram(gl, Shaders.Shaders.WaterVertex, Shaders.Shaders.WaterFragment);
+        _ownsShader = true;
 
         _shader.BindUniformBlock("SceneData", 0);
         _shader.BindUniformBlock("LightingData", 1);
@@ -44,18 +48,15 @@ public class WaterRenderer : IRenderer
         _shader.SetUniform("normalMap", 1);
         _shader.SetUniform("useNormalMap", context.UseNormalMap ? 1 : 0);
         _shader.SetUniform("normalStrength", context.NormalStrength);
+        _shader.SetUniform("time", context.Time);
 
-        _shader.SetUniform("aoMap", 2);
-        _shader.SetUniform("useAO", context.UseAoMap ? 1 : 0);
-        _shader.SetUniform("aoMapStrength", context.AoMapStrength);
-
-        _shader.SetUniform("metallicMap", 4);
-        _shader.SetUniform("useMetallic", context.UseMetallicMap ? 1 : 0);
-        _shader.SetUniform("metallicStrength", context.MetallicStrength);
-
-        _shader.SetUniform("roughnessMap", 5);
-        _shader.SetUniform("useRoughness", context.UseRoughnessMap ? 1 : 0);
-        _shader.SetUniform("roughnessStrength", context.RoughnessStrength);
+        // Shadow map
+        if (context.ShadowMap > 0)
+        {
+            _gl.ActiveTexture(TextureUnit.Texture3);
+            _gl.BindTexture(TextureTarget.Texture2D, context.ShadowMap);
+            _shader.SetUniform("shadowMap", 3);
+        }
 
         _shader.SetUniform("useIBL", context.UseIBL ? 1 : 0);
         if (context.UseIBL)
@@ -104,7 +105,10 @@ public class WaterRenderer : IRenderer
         {
             if (disposing)
             {
-                // Shader is shared and managed elsewhere
+                if (_ownsShader)
+                {
+                    _shader.Dispose();
+                }
             }
 
             _gl.DeleteVertexArray(_vao);

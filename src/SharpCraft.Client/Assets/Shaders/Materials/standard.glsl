@@ -1,1 +1,1 @@
-﻿// placeholder for standard.glsl
+// placeholder for standard.glsl

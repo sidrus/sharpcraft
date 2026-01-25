@@ -15,6 +15,7 @@ public record struct HudContext(
     LocalPlayerController? LocalPlayer,
     ChunkMeshManager? MeshManager,
     LightingSystem? Lighting,
+    PostProcessingRenderer? PostProcessing,
     ISharpCraftSdk Sdk,
     IEnumerable<IMod> LoadedMods,
     IAvatarProvider? Avatar = null,
