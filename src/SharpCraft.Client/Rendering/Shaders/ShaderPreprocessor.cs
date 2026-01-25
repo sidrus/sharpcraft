@@ -1,13 +1,17 @@
-﻿namespace SharpCraft.Client.Rendering.Shaders;
+﻿using System.Text;
+
+namespace SharpCraft.Client.Rendering.Shaders;
 
 /// <summary>
 /// Preprocesses shader source code, handling #include, #define, #ifndef, #ifdef, and #endif directives.
+/// Optimized for minimal allocations using Span-based parsing.
 /// </summary>
-public class ShaderPreprocessor
+public sealed class ShaderPreprocessor
 {
-    private readonly HashSet<string> _processedIncludes = new();
-    private readonly HashSet<string> _defines = new();
+    private readonly HashSet<string> _processedIncludes = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _defines = new(StringComparer.Ordinal);
     private readonly Func<string, string?> _fileReader;
+    private readonly StringBuilder _resultBuilder = new(4096);
 
     /// <summary>
     /// Creates a new shader preprocessor with the specified file reader function.
@@ -28,170 +32,219 @@ public class ShaderPreprocessor
     {
         _processedIncludes.Clear();
         _defines.Clear();
-        var processed = ProcessInternal(source, currentDir);
-        return StripComments(processed);
+        _resultBuilder.Clear();
+
+        ProcessInternal(source.AsSpan(), currentDir);
+        StripComments(_resultBuilder);
+
+        return _resultBuilder.ToString();
     }
 
     /// <summary>
-    /// Strips single-line (//) and multi-line (/* */) comments from shader source.
+    /// Strips single-line (//) and multi-line (/* */) comments from shader source in-place.
     /// This prevents non-ASCII characters in comments from causing GPU compiler errors.
     /// </summary>
-    private static string StripComments(string source)
+    private static void StripComments(StringBuilder sb)
     {
-        var result = new System.Text.StringBuilder(source.Length);
         var i = 0;
-
-        while (i < source.Length)
+        while (i < sb.Length)
         {
             // Check for multi-line comment start
-            if (i < source.Length - 1 && source[i] == '/' && source[i + 1] == '*')
+            if (i < sb.Length - 1 && sb[i] == '/' && sb[i + 1] == '*')
             {
+                var start = i;
                 i += 2;
-                // Skip until we find */
-                while (i < source.Length - 1 && !(source[i] == '*' && source[i + 1] == '/'))
+                var newlineCount = 0;
+
+                // Find end of comment, counting newlines
+                while (i < sb.Length - 1 && !(sb[i] == '*' && sb[i + 1] == '/'))
                 {
-                    // Preserve newlines to maintain line numbers for error messages
-                    if (source[i] == '\n')
+                    if (sb[i] == '\n')
                     {
-                        result.Append('\n');
+                        newlineCount++;
                     }
                     i++;
                 }
-                i += 2; // Skip */
+
+                var end = i < sb.Length - 1 ? i + 2 : sb.Length;
+
+                // Replace comment with newlines to preserve line numbers
+                sb.Remove(start, end - start);
+                for (var j = 0; j < newlineCount; j++)
+                {
+                    sb.Insert(start + j, '\n');
+                }
+                i = start + newlineCount;
                 continue;
             }
 
             // Check for single-line comment start
-            if (i < source.Length - 1 && source[i] == '/' && source[i + 1] == '/')
+            if (i < sb.Length - 1 && sb[i] == '/' && sb[i + 1] == '/')
             {
+                var start = i;
                 i += 2;
-                // Skip until end of line
-                while (i < source.Length && source[i] != '\n')
+
+                // Find end of line
+                while (i < sb.Length && sb[i] != '\n')
                 {
                     i++;
                 }
-                // Don't skip the newline itself - let the normal path handle it
+
+                // Remove comment but keep newline
+                sb.Remove(start, i - start);
+                i = start;
                 continue;
             }
 
-            result.Append(source[i]);
             i++;
         }
-
-        return result.ToString();
     }
 
-    private string ProcessInternal(string source, string currentDir)
+    private void ProcessInternal(ReadOnlySpan<char> source, string currentDir)
     {
-        var lines = source.Split('\n');
-        var result = new List<string>();
-        var conditionalStack = new Stack<bool>();
+        var conditionalStack = new Stack<bool>(8);
+        var lineStart = 0;
 
-        for (var i = 0; i < lines.Length; i++)
+        while (lineStart < source.Length)
         {
-            var line = lines[i];
+            // Find end of line
+            var lineEnd = lineStart;
+            while (lineEnd < source.Length && source[lineEnd] != '\n')
+            {
+                lineEnd++;
+            }
+
+            var line = source.Slice(lineStart, lineEnd - lineStart);
             var trimmedLine = line.Trim();
 
-            // Handle #def (custom directive for preprocessor-only symbols)
-            if (trimmedLine.StartsWith("#def "))
+            var handled = ProcessDirective(trimmedLine, line, currentDir, conditionalStack);
+
+            if (!handled && IsCodeActive(conditionalStack))
             {
-                if (IsCodeActive(conditionalStack))
+                _resultBuilder.Append(line);
+                if (lineEnd < source.Length)
                 {
-                    var symbol = trimmedLine.Substring(5).Split(' ', '\t')[0].Trim();
-                    if (!string.IsNullOrEmpty(symbol))
-                    {
-                        _defines.Add(symbol);
-                    }
+                    _resultBuilder.Append('\n');
                 }
-                continue;
             }
 
-            // Handle #define - check if it's a symbol-only define (for include guards) or a value define
-            if (trimmedLine.StartsWith("#define "))
-            {
-                if (IsCodeActive(conditionalStack))
-                {
-                    var afterDefine = trimmedLine.Substring(8).Trim();
-                    var parts = afterDefine.Split([' ', '\t'], 2, StringSplitOptions.RemoveEmptyEntries);
-                    var symbol = parts.Length > 0 ? parts[0] : "";
-                    var hasValue = parts.Length > 1;
+            lineStart = lineEnd + 1;
+        }
+    }
 
-                    if (!string.IsNullOrEmpty(symbol))
-                    {
-                        _defines.Add(symbol);
-                    }
-
-                    // If it has a value, pass through to GLSL compiler
-                    if (hasValue)
-                    {
-                        result.Add(line);
-                    }
-                }
-                continue;
-            }
-
-            // Handle #ifndef
-            if (trimmedLine.StartsWith("#ifndef "))
-            {
-                var symbol = trimmedLine.Substring(8).Trim();
-                var isDefined = _defines.Contains(symbol);
-                conditionalStack.Push(!isDefined && IsCodeActive(conditionalStack));
-                continue;
-            }
-
-            // Handle #ifdef
-            if (trimmedLine.StartsWith("#ifdef "))
-            {
-                var symbol = trimmedLine.Substring(7).Trim();
-                var isDefined = _defines.Contains(symbol);
-                conditionalStack.Push(isDefined && IsCodeActive(conditionalStack));
-                continue;
-            }
-
-            // Handle #endif
-            if (trimmedLine == "#endif" || trimmedLine.StartsWith("#endif ") || trimmedLine.StartsWith("#endif//"))
-            {
-                if (conditionalStack.Count > 0)
-                {
-                    conditionalStack.Pop();
-                }
-                continue;
-            }
-
-            // Handle #include
-            if (trimmedLine.StartsWith("#include \""))
-            {
-                if (IsCodeActive(conditionalStack))
-                {
-                    var includePath = trimmedLine.Substring(10, trimmedLine.Length - 11);
-                    var fullIncludePath = Path.GetFullPath(Path.Combine(currentDir, includePath));
-
-                    if (_processedIncludes.Contains(fullIncludePath))
-                    {
-                        continue;
-                    }
-
-                    var includeContent = _fileReader(fullIncludePath);
-                    if (includeContent != null)
-                    {
-                        _processedIncludes.Add(fullIncludePath);
-                        var processedContent = ProcessInternal(
-                            includeContent,
-                            Path.GetDirectoryName(fullIncludePath)!);
-                        result.Add(processedContent);
-                    }
-                }
-                continue;
-            }
-
-            // Regular line - only include if code is active
+    private bool ProcessDirective(
+        ReadOnlySpan<char> trimmedLine,
+        ReadOnlySpan<char> originalLine,
+        string currentDir,
+        Stack<bool> conditionalStack)
+    {
+        // Handle #def (custom directive for preprocessor-only symbols)
+        if (trimmedLine.StartsWith("#def "))
+        {
             if (IsCodeActive(conditionalStack))
             {
-                result.Add(line);
+                var symbol = ExtractFirstToken(trimmedLine[5..]);
+                if (symbol.Length > 0)
+                {
+                    _defines.Add(symbol.ToString());
+                }
             }
+            return true;
         }
 
-        return string.Join('\n', result);
+        // Handle #define
+        if (trimmedLine.StartsWith("#define "))
+        {
+            if (IsCodeActive(conditionalStack))
+            {
+                var afterDefine = trimmedLine[8..].Trim();
+                var symbol = ExtractFirstToken(afterDefine);
+
+                if (symbol.Length > 0)
+                {
+                    _defines.Add(symbol.ToString());
+
+                    // If it has a value (more content after symbol), pass through to GLSL compiler
+                    var afterSymbol = afterDefine[symbol.Length..].Trim();
+                    if (afterSymbol.Length > 0)
+                    {
+                        _resultBuilder.Append(originalLine);
+                        _resultBuilder.Append('\n');
+                    }
+                }
+            }
+            return true;
+        }
+
+        // Handle #ifndef
+        if (trimmedLine.StartsWith("#ifndef "))
+        {
+            var symbol = trimmedLine[8..].Trim();
+            var isDefined = _defines.Contains(symbol.ToString());
+            conditionalStack.Push(!isDefined && IsCodeActive(conditionalStack));
+            return true;
+        }
+
+        // Handle #ifdef
+        if (trimmedLine.StartsWith("#ifdef "))
+        {
+            var symbol = trimmedLine[7..].Trim();
+            var isDefined = _defines.Contains(symbol.ToString());
+            conditionalStack.Push(isDefined && IsCodeActive(conditionalStack));
+            return true;
+        }
+
+        // Handle #endif
+        if (trimmedLine.SequenceEqual("#endif") ||
+            trimmedLine.StartsWith("#endif ") ||
+            trimmedLine.StartsWith("#endif//"))
+        {
+            if (conditionalStack.Count > 0)
+            {
+                conditionalStack.Pop();
+            }
+            return true;
+        }
+
+        // Handle #include
+        if (trimmedLine.StartsWith("#include \""))
+        {
+            if (IsCodeActive(conditionalStack))
+            {
+                var closeQuote = trimmedLine[10..].IndexOf('"');
+                if (closeQuote > 0)
+                {
+                    var includePath = trimmedLine.Slice(10, closeQuote).ToString();
+                    var fullIncludePath = Path.GetFullPath(Path.Combine(currentDir, includePath));
+
+                    if (!_processedIncludes.Contains(fullIncludePath))
+                    {
+                        var includeContent = _fileReader(fullIncludePath);
+                        if (includeContent != null)
+                        {
+                            _processedIncludes.Add(fullIncludePath);
+                            ProcessInternal(
+                                includeContent.AsSpan(),
+                                Path.GetDirectoryName(fullIncludePath) ?? currentDir);
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    private static ReadOnlySpan<char> ExtractFirstToken(ReadOnlySpan<char> span)
+    {
+        span = span.Trim();
+        var end = 0;
+        while (end < span.Length && span[end] != ' ' && span[end] != '\t')
+        {
+            end++;
+        }
+        return span[..end];
     }
 
     private static bool IsCodeActive(Stack<bool> conditionalStack)
