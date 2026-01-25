@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using SharpCraft.Client;
-using SharpCraft.Client.Rendering.Lighting;
+using SharpCraft.Engine.Rendering.Lighting;
 using SharpCraft.Engine;
 using SharpCraft.Engine.Assets;
 using SharpCraft.Engine.Blocks;

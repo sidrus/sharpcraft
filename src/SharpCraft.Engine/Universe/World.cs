@@ -10,7 +10,7 @@ namespace SharpCraft.Engine.Universe;
 /// <summary>
 /// Represents the game world, containing all chunks and entities.
 /// </summary>
-public class World(IWorldGenerator generator, long seed, IBlockRegistry blockRegistry) : ICollisionProvider
+public class World(IWorldGenerator generator, long seed, IBlockRegistry blockRegistry) : ICollisionProvider, IWorld
 {
     private readonly ConcurrentDictionary<Vector2<int>, Chunk> _chunks = new();
 
@@ -173,4 +173,7 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
     /// </summary>
     /// <returns>An enumerable of loaded chunks.</returns>
     public IEnumerable<Chunk> GetLoadedChunks() => _chunks.Values;
+
+    /// <inheritdoc />
+    IEnumerable<IChunk> IWorld.GetLoadedChunks() => _chunks.Values;
 }

@@ -1,9 +1,11 @@
-﻿namespace SharpCraft.Engine.Universe;
+﻿using SharpCraft.Sdk.Universe;
+
+namespace SharpCraft.Engine.Universe;
 
 /// <summary>
 /// Contains vertex and index data for a chunk's geometry.
 /// </summary>
-public record ChunkMesh
+public record ChunkMesh : IChunkMesh
 {
     /// <summary>
     /// Gets or sets the vertex data.

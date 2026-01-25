@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SharpCraft.Client.Controllers;
-using SharpCraft.Client.Rendering;
-using SharpCraft.Client.Rendering.Lighting;
+using SharpCraft.Engine.Rendering;
+using SharpCraft.Engine.Rendering.Lighting;
 using SharpCraft.Client.UI.Chat;
 using SharpCraft.Engine.Universe;
 using SharpCraft.Engine.UI;

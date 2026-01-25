@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using SharpCraft.Client.Rendering.Cameras;
+using SharpCraft.Engine.Rendering.Cameras;
 using SharpCraft.Sdk.Numerics;
 using SharpCraft.Engine.Physics;
 using SharpCraft.Engine.Physics.Motors;

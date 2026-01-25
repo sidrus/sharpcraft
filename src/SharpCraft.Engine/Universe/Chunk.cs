@@ -10,7 +10,7 @@ namespace SharpCraft.Engine.Universe;
 /// <summary>
 /// Represents a 16x256x16 section of the world.
 /// </summary>
-public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkData
+public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkData, IChunk
 {
     /// <inheritdoc />
     public int X => coord.X;
@@ -32,10 +32,16 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
     /// </summary>
     public ChunkMesh OpaqueMesh { get; private set; }
 
+    /// <inheritdoc />
+    IChunkMesh IChunk.OpaqueMesh => OpaqueMesh;
+
     /// <summary>
     /// Gets the mesh for transparent blocks.
     /// </summary>
     public ChunkMesh TransparentMesh { get; private set; }
+
+    /// <inheritdoc />
+    IChunkMesh IChunk.TransparentMesh => TransparentMesh;
 
     /// <summary>
     /// Gets the vertices of the opaque mesh (legacy helper).
@@ -124,12 +130,18 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
     /// </summary>
     public delegate void UvResolver(BlockType type, Direction dir, Span<float> uvs);
 
+    /// <inheritdoc />
+    void IChunk.GenerateMesh(IWorld world, IChunk.UvResolver uvResolver)
+    {
+        GenerateMesh(world, (BlockType type, Direction dir, Span<float> uvs) => uvResolver(type, dir, uvs));
+    }
+
     /// <summary>
     /// Generates the visual meshes for the chunk.
     /// </summary>
     /// <param name="world">The world context for neighbor checks.</param>
     /// <param name="uvResolver">The UV resolver.</param>
-    public void GenerateMesh(World world, UvResolver uvResolver)
+    public void GenerateMesh(IWorld world, UvResolver uvResolver)
     {
         if (!IsDirty) return;
 
@@ -188,7 +200,7 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
         }
     }
 
-    private bool ShouldRenderFace(World world, int x, int y, int z, bool currentIsTransparent = false)
+    private bool ShouldRenderFace(IWorld world, int x, int y, int z, bool currentIsTransparent = false)
     {
         // 1. Check within chunk bounds first
         if (x is >= 0 and < Size && y is >= 0 and < Height && z is >= 0 and < Size)

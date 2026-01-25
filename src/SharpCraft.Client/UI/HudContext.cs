@@ -1,6 +1,6 @@
 ﻿using SharpCraft.Client.Controllers;
-using SharpCraft.Client.Rendering;
-using SharpCraft.Client.Rendering.Lighting;
+using SharpCraft.Engine.Rendering;
+using SharpCraft.Engine.Rendering.Lighting;
 using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk;
 using SharpCraft.Sdk.Diagnostics;

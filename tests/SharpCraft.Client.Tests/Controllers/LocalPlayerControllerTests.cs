@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 using SharpCraft.Client.Controllers;
-using SharpCraft.Client.Rendering.Cameras;
+using SharpCraft.Engine.Rendering.Cameras;
 using SharpCraft.Engine.Physics;
 using SharpCraft.Sdk.Physics;
 using Moq;

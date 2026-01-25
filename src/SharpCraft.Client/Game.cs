@@ -2,21 +2,21 @@
 using Microsoft.Extensions.Logging;
 using SharpCraft.Client.Controllers;
 using SharpCraft.Client.Input;
-using SharpCraft.Client.Rendering;
-using SharpCraft.Client.Rendering.Cameras;
-using SharpCraft.Client.Rendering.Shaders;
-using SharpCraft.Client.Rendering.Lighting;
-using SharpCraft.Client.Rendering.Textures;
+using SharpCraft.Engine.Rendering;
+using SharpCraft.Engine.Rendering.Cameras;
+using SharpCraft.Engine.Rendering.Shaders;
+using SharpCraft.Engine.Rendering.Lighting;
+using SharpCraft.Engine.Rendering.Textures;
 using SharpCraft.Client.Integrations.Steam;
+using SharpCraft.Client.UI;
 using SharpCraft.Engine.Diagnostics;
 using SharpCraft.Engine.Lifecycle;
+using SharpCraft.Engine.Physics;
 using SharpCraft.Engine.UI;
-using SharpCraft.Client.UI;
+using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
-using SharpCraft.Engine.Physics;
-using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk.Physics;
 using Silk.NET.Input;
 using Silk.NET.Maths;
@@ -300,7 +300,7 @@ public partial class Game : IDisposable
         _playerController = new LocalPlayerController(entity, _camera, _world, _inputProvider);
         
         var cache = new ChunkRenderCache(_gl);
-        _mainShader = new ShaderProgram(_gl, SharpCraft.Client.Rendering.Shaders.Shaders.DefaultVertex, SharpCraft.Client.Rendering.Shaders.Shaders.DefaultFragment);
+        _mainShader = new ShaderProgram(_gl, SharpCraft.Engine.Rendering.Shaders.Shaders.DefaultVertex, SharpCraft.Engine.Rendering.Shaders.Shaders.DefaultFragment);
         var terrainRenderer = new TerrainRenderer(_gl, cache, meshManager, _atlas, _sdk.Blocks, _mainShader);
         var waterRenderer = new WaterRenderer(_gl, cache, meshManager, _atlas);
         _postProcessingRenderer = new PostProcessingRenderer(_gl);

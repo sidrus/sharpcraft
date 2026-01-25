@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/SharpCraft.Client/SharpCraft.Client.csproj" />
     <Project Path="src/SharpCraft.CoreMods/SharpCraft.CoreMods.csproj" />
+    <Project Path="src/SharpCraft.Engine.Rendering/SharpCraft.Engine.Rendering.csproj" />
     <Project Path="src/SharpCraft.Engine/SharpCraft.Engine.csproj" />
     <Project Path="src/SharpCraft.Sdk/SharpCraft.Sdk.csproj" />
   </Folder>
