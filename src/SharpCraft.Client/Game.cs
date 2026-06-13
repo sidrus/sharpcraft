@@ -92,6 +92,16 @@ public partial class Game : IDisposable
             _gl = _window.CreateOpenGL();
             _logger.LogInformation("OpenGL context created.");
 
+            // Reversed-Z foundation (research §1, §12.2): flip the NDC depth range to [0,1] and
+            // keep GL's native bottom-left origin. The reversed-Z projection + GL_GREATER depth
+            // test + 0.0 depth clear are set up in InitializeGraphicsState / the render pipeline.
+            _gl.ClipControl(ClipControlOrigin.LowerLeft, ClipControlDepth.ZeroToOne);
+
+#if DEBUG
+            // Synchronous KHR_debug output routed through the logger (research §12.5).
+            InitializeGlDebugOutput();
+#endif
+
             if (SteamClient.IsValid)
             {
                 SteamFriends.SetRichPresence("status", "Exploring SharpCraft");
@@ -154,15 +164,26 @@ public partial class Game : IDisposable
         var currentChunkZ = (int)Math.Floor(playerPos.Z / World.ChunkSize);
         var currentChunk = new Vector2<int>(currentChunkX, currentChunkZ);
 
-        if ((_lastPlayerChunk == null || currentChunk != _lastPlayerChunk.Value) && (_worldUpdateTask == null || _worldUpdateTask.IsCompleted))
+        var canStartNew = _worldUpdateTask == null ||
+            (_worldUpdateTask.IsCompleted && !_worldUpdateTask.IsFaulted && !_worldUpdateTask.IsCanceled);
+
+        if ((_lastPlayerChunk == null || currentChunk != _lastPlayerChunk.Value) && canStartNew)
         {
             _lastPlayerChunk = currentChunk;
             var renderDistance = _hudManager.Settings.RenderDistance;
-                
+
             _worldUpdateTask = Task.Run(async () =>
             {
-                await _world.GenerateAsync(renderDistance, playerPos);
-                _world.UnloadChunks(playerPos, renderDistance + 1); // +1 to give some buffer
+                try
+                {
+                    await _world.GenerateAsync(renderDistance, playerPos);
+                    _world.UnloadChunks(playerPos, renderDistance + 1); // +1 to give some buffer
+                }
+                catch (Exception ex)
+                {
+                    LogWorldUpdateTaskFailed(ex);
+                    // Don't rethrow - allow game to continue with current chunks
+                }
             });
         }
     }
@@ -226,10 +247,19 @@ public partial class Game : IDisposable
             Sun: new DirectionalLightData(_lightSystem.Sun.Direction, _lightSystem.Sun.Color, _lightSystem.Sun.Intensity),
             PointLights: lights,
             Exposure: _hudManager.Settings.Exposure,
+            AutoExposureKey: _hudManager.Settings.AutoExposureKey,
+            AutoExposureMin: _hudManager.Settings.AutoExposureMin,
+            AutoExposureMax: _hudManager.Settings.AutoExposureMax,
+            AutoExposureSpeed: _hudManager.Settings.AutoExposureSpeed,
             Gamma: _hudManager.Settings.Gamma,
             IsUnderwater: isUnderwater,
             Time: _worldTime?.Time ?? 0f,
             UseIBL: _hudManager.Settings.UseIBL,
+            UseSSAO: _hudManager.Settings.UseSsao,
+            SsaoRadius: _hudManager.Settings.SsaoRadius,
+            SsaoIntensity: _hudManager.Settings.SsaoIntensity,
+            UseSSR: _hudManager.Settings.UseSsr,
+            UseContactShadows: _hudManager.Settings.UseContactShadows,
             AtmosphereRayleighScale: _postProcessingRenderer?.RayleighScale ?? 1.0f,
             AtmosphereMieScale: _postProcessingRenderer?.MieScale ?? 1.0f,
             AtmosphereOzoneScale: _postProcessingRenderer?.OzoneScale ?? 1.0f,
@@ -246,7 +276,50 @@ public partial class Game : IDisposable
         _gl.Enable(EnableCap.DepthTest);
         _gl.Enable(EnableCap.CullFace);
         _gl.ClearColor(0.53f, 0.81f, 0.92f, 1.0f);
+
+        // Reversed-Z default depth policy (research §1, §12.2): near→1, far→0, so the main
+        // passes clear depth to 0.0 and keep what is GREATER. Passes that use a conventional
+        // (non-reversed) projection — currently only the shadow map — override this locally and
+        // restore it afterwards.
+        _gl.ClearDepth(0.0f);
+        _gl.DepthFunc(DepthFunction.Greater);
     }
+
+#if DEBUG
+    private DebugProc? _glDebugProc;
+
+    private unsafe void InitializeGlDebugOutput()
+    {
+        if (_gl == null) return;
+        _gl.Enable(EnableCap.DebugOutput);
+        _gl.Enable(EnableCap.DebugOutputSynchronous);
+        // Keep a field reference so the delegate isn't collected while the driver holds it.
+        _glDebugProc = OnGlDebugMessage;
+        _gl.DebugMessageCallback(_glDebugProc, null);
+    }
+
+    private void OnGlDebugMessage(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userParam)
+    {
+        if (severity == GLEnum.DebugSeverityNotification) return;
+
+        var text = length > 0
+            ? System.Runtime.InteropServices.Marshal.PtrToStringAnsi(message, length)
+            : System.Runtime.InteropServices.Marshal.PtrToStringAnsi(message);
+
+        switch (severity)
+        {
+            case GLEnum.DebugSeverityHigh:
+                _logger.LogError("GL [{Source}/{Type}] id={Id}: {Message}", source, type, id, text);
+                break;
+            case GLEnum.DebugSeverityMedium:
+                _logger.LogWarning("GL [{Source}/{Type}] id={Id}: {Message}", source, type, id, text);
+                break;
+            default:
+                _logger.LogInformation("GL [{Source}/{Type}] id={Id}: {Message}", source, type, id, text);
+                break;
+        }
+    }
+#endif
 
     private void InitializeSystems()
     {
@@ -471,4 +544,7 @@ public partial class Game : IDisposable
 
     [LoggerMessage(LogLevel.Information, "AO mapping toggled: {state}")]
     partial void LogAoMappingToggledState(bool state);
+
+    [LoggerMessage(LogLevel.Error, "World update task failed")]
+    partial void LogWorldUpdateTaskFailed(Exception ex);
 }

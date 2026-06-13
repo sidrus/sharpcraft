@@ -1,0 +1,93 @@
+#version 450 core
+
+// Auto-exposure stage 2 (research §5.2): reduce the histogram to a log-average luminance, pick the
+// exposure that maps the scene's average to middle grey, and adapt toward it over time (eye/camera
+// adaptation). One workgroup of 256 threads — one per histogram bin. Also clears the histogram for
+// the next frame.
+//
+// Robust (percentile-clipped) metering: rather than averaging every bin, we discard the darkest and
+// brightest tails of the luminance distribution. A small but very bright region — the sunrise
+// horizon band, the sun disc, a specular water glint — would otherwise drag the whole frame's
+// exposure down, cratering the rest of the sky to near-black (the bright→dark→bright twilight
+// inversion). Clipping the tails keys exposure to the dominant mid-tones (the sky/landscape) so the
+// adaptation is stable as bright features come and go.
+
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(std430, binding = 6) buffer Histogram { uint histogram[]; };
+layout(std430, binding = 5) buffer ExposureBuffer { float exposure; }; // read (prev) + write (adapted)
+
+uniform float minLogLum;
+uniform float logLumRange;
+uniform float timeCoeff;   // 1 - exp(-dt * adaptationRate), clamped to [0,1]
+uniform float pixelCount;  // (unused; kept for binding compatibility)
+uniform float keyValue;    // target middle-grey (~0.18)
+uniform float minExposure;
+uniform float maxExposure;
+
+// Keep the central [LO, HI] slice of the cumulative distribution; drop the tails.
+const float LO_PERCENTILE = 0.50; // drop the darkest 50% (night sky / shadowed foreground)
+const float HI_PERCENTILE = 0.90; // drop the brightest 10% (sun, horizon band, glints)
+
+shared float weights[256]; // bin weight, then reused for Σ weight·index
+shared float prefix[256];  // cumulative weight (scan), then reused for Σ weight
+
+void main() {
+    uint index = gl_LocalInvocationIndex;
+
+    // Bin 0 is the reserved near-black bucket; never let it weigh in. (Center-weighted, fixed-point.)
+    float w = (index == 0u) ? 0.0 : float(histogram[index]);
+    weights[index] = w;
+
+    // Reset the global histogram for next frame (each thread clears its own bin).
+    histogram[index] = 0u;
+    barrier();
+
+    // Inclusive prefix sum (Hillis-Steele) of the bin weights → cumulative distribution.
+    prefix[index] = w;
+    barrier();
+    for (uint offset = 1u; offset < 256u; offset <<= 1u) {
+        float v = (index >= offset) ? prefix[index - offset] : 0.0;
+        barrier();
+        prefix[index] += v;
+        barrier();
+    }
+
+    // Percentile window in absolute weight. Capture every shared read into locals BEFORE any thread
+    // overwrites the shared arrays below.
+    float total = prefix[255];
+    float cumAfter = prefix[index];
+    float cumBefore = cumAfter - w;
+    float loThresh = total * LO_PERCENTILE;
+    float hiThresh = total * HI_PERCENTILE;
+
+    // The fraction of this bin's weight lying inside the kept (loThresh, hiThresh] window.
+    float included = clamp(min(cumAfter, hiThresh) - max(cumBefore, loThresh), 0.0, w);
+    barrier(); // all reads of prefix[]/weights[] done before we repurpose them
+
+    weights[index] = included * float(index); // Σ weight·index
+    prefix[index] = included;                 // Σ weight
+    barrier();
+
+    for (uint cutoff = 128u; cutoff > 0u; cutoff >>= 1u) {
+        if (index < cutoff) {
+            weights[index] += weights[index + cutoff];
+            prefix[index] += prefix[index + cutoff];
+        }
+        barrier();
+    }
+
+    if (index == 0u) {
+        // Bins run 1..255 (bin 0 reserved), so the mean index is >= 1; the -1 maps it back so the
+        // lowest content bin lands at minLogLum.
+        float weightedLogAverage = (weights[0] / max(prefix[0], 1.0)) - 1.0;
+        float avgLum = exp2((weightedLogAverage / 254.0) * logLumRange + minLogLum);
+
+        float targetExposure = clamp(keyValue / max(avgLum, 1e-4), minExposure, maxExposure);
+
+        // Exponential temporal adaptation toward the target.
+        float prev = exposure;
+        if (prev <= 0.0) prev = targetExposure; // first frame
+        exposure = prev + (targetExposure - prev) * timeCoeff;
+    }
+}

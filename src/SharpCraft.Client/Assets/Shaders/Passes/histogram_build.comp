@@ -1,0 +1,55 @@
+#version 450 core
+
+// Auto-exposure stage 1 (research §5.2): bin the HDR frame's log-luminance into a 256-entry
+// histogram. Each 16x16 workgroup accumulates into shared memory first, then folds its partial
+// histogram into the global one — far less global-atomic contention than one atomic per pixel.
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(std430, binding = 6) buffer Histogram {
+    uint histogram[];
+};
+
+uniform sampler2D hdrTexture;
+uniform float minLogLum;
+uniform float inverseLogLumRange;
+uniform vec2 dimensions; // float-valued; converted to uvec2 below
+
+#define EPSILON 0.005
+
+shared uint sharedHistogram[256];
+
+float luminance(vec3 c) {
+    return dot(c, vec3(0.2126, 0.7152, 0.0722));
+}
+
+// Map an HDR colour to a histogram bin. Bin 0 is reserved for ~black pixels so they don't drag
+// the average down.
+uint colorToBin(vec3 hdr) {
+    float lum = luminance(hdr);
+    if (lum < EPSILON) return 0u;
+    float logLum = clamp((log2(lum) - minLogLum) * inverseLogLumRange, 0.0, 1.0);
+    return uint(logLum * 254.0 + 1.0);
+}
+
+void main() {
+    sharedHistogram[gl_LocalInvocationIndex] = 0u;
+    barrier();
+
+    uvec2 dim = uvec2(dimensions);
+    uvec2 coord = gl_GlobalInvocationID.xy;
+    if (coord.x < dim.x && coord.y < dim.y) {
+        vec3 hdr = texelFetch(hdrTexture, ivec2(coord), 0).rgb;
+        uint bin = colorToBin(hdr);
+        // Center-weighted metering: the frame's edges (often a dark foreground) count less, so a
+        // dark bottom doesn't over-boost exposure (which made pre-dawn brighter than dawn).
+        // Fixed-point weight 0..16 (the x16 cancels in the average's ratio).
+        vec2 uv = (vec2(coord) + 0.5) / dimensions;
+        float d = length(uv - 0.5);
+        float weight = mix(1.0, 0.35, smoothstep(0.15, 0.75, d));
+        atomicAdd(sharedHistogram[bin], uint(weight * 16.0 + 0.5));
+    }
+
+    barrier();
+    atomicAdd(histogram[gl_LocalInvocationIndex], sharedHistogram[gl_LocalInvocationIndex]);
+}

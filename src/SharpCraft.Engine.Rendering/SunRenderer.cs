@@ -52,23 +52,32 @@ public sealed class SunRenderer : IDisposable
     {
         if (context.Sun == null || context.Sun.Value.Intensity <= 0) return;
 
+        var sunDir = Vector3.Normalize(-context.Sun.Value.Direction); // direction TO the sun
+        // Cull once the whole disc is below the horizon (the billboard's angular radius is ~0.02);
+        // the fragment shader clips it at the horizon line so it rises/sets as a half-disc. Full
+        // brightness by horizon level.
+        if (sunDir.Y < -0.03f) return;
+        var elevationFade = Math.Clamp((sunDir.Y + 0.03f) / 0.03f, 0f, 1f);
+
         _gl.Enable(EnableCap.Blend);
         _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         _gl.Disable(EnableCap.CullFace);
-        _gl.DepthFunc(DepthFunction.Lequal);
+        // Reversed-Z: sun disc sits at the far plane (depth 0), occluded by nearer geometry.
+        _gl.DepthFunc(DepthFunction.Gequal);
 
         _shader.Use();
-        
-        var sunDir = Vector3.Normalize(-context.Sun.Value.Direction);
+
         _shader.SetUniform("sunDir", sunDir);
         _shader.SetUniform("sunColor", context.Sun.Value.Color);
         _shader.SetUniform("sunIntensity", context.Sun.Value.Intensity);
+        _shader.SetUniform("sunElevation", sunDir.Y);
+        _shader.SetUniform("elevationFade", elevationFade);
         _shader.SetUniform("sunSize", 2.0f); // Reduced from 10.0f
 
         _gl.BindVertexArray(_vao);
         _gl.DrawArrays(PrimitiveType.Triangles, 0, 6);
 
-        _gl.DepthFunc(DepthFunction.Less);
+        _gl.DepthFunc(DepthFunction.Greater);
         _gl.Enable(EnableCap.CullFace);
         _gl.Disable(EnableCap.Blend);
     }

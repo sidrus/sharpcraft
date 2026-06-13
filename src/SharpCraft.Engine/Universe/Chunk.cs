@@ -61,10 +61,20 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
     /// <summary>
     /// Gets a value indicating whether the chunk needs to be re-meshed.
     /// </summary>
-    public bool IsDirty { get; private set; } = true;
+    public bool IsDirty => Volatile.Read(ref _isDirtyBacking) == 1;
 
+    /// <summary>
+    /// Flags the chunk for re-meshing. Needed when a neighbouring chunk is loaded or unloaded: this
+    /// chunk's boundary faces depend on the neighbour's blocks (see ShouldRenderFace's cross-chunk
+    /// path), so a neighbour appearing/disappearing must trigger a re-mesh or the border faces go
+    /// stale (culled against blocks that no longer exist → see-through holes, or vice-versa).
+    /// </summary>
+    public void MarkDirty() => Volatile.Write(ref _isDirtyBacking, 1);
+
+    private int _isDirtyBacking = 1; // 1 = true, 0 = false
     private readonly Block[,,] _blocks = new Block[Size, Height, Size];
-    private readonly Lock _lockObject = new();
+    private readonly ReaderWriterLockSlim _blockLock = new(LockRecursionPolicy.NoRecursion);
+    private readonly Lock _meshLock = new();
 
     /// <summary>
     /// Gets the block at the specified local coordinates.
@@ -80,7 +90,15 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
             return new Block { Type = BlockType.Air };
         }
 
-        return _blocks[x, y, z];
+        _blockLock.EnterReadLock();
+        try
+        {
+            return _blocks[x, y, z];
+        }
+        finally
+        {
+            _blockLock.ExitReadLock();
+        }
     }
 
     /// <summary>
@@ -97,8 +115,16 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
             return;
         }
 
-        _blocks[x, y, z].Type = type;
-        IsDirty = true;
+        _blockLock.EnterWriteLock();
+        try
+        {
+            _blocks[x, y, z].Type = type;
+            Volatile.Write(ref _isDirtyBacking, 1);
+        }
+        finally
+        {
+            _blockLock.ExitWriteLock();
+        }
     }
 
     /// <inheritdoc />
@@ -145,6 +171,19 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
     {
         if (!IsDirty) return;
 
+        // Create snapshot of block data with read lock
+        Block[,,] blockSnapshot = new Block[Size, Height, Size];
+        _blockLock.EnterReadLock();
+        try
+        {
+            Array.Copy(_blocks, blockSnapshot, _blocks.Length);
+        }
+        finally
+        {
+            _blockLock.ExitReadLock();
+        }
+
+        // Process snapshot without lock
         var opaqueVerts = new List<float>(4096);
         var opaqueIndices = new List<uint>(1024);
         uint opaqueIndexOffset = 0;
@@ -159,7 +198,7 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
             {
                 for (var z = 0; z < Size; z++)
                 {
-                    var block = _blocks[x, y, z];
+                    var block = blockSnapshot[x, y, z];
                     if (block.Type == BlockType.Air) continue;
 
                     var isTransparent = block.IsTransparent;
@@ -167,22 +206,22 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
                     var iList = isTransparent ? transparentIndices : opaqueIndices;
                     ref var offset = ref isTransparent ? ref transparentIndexOffset : ref opaqueIndexOffset;
 
-                    if (ShouldRenderFace(world, x, y, z - 1, isTransparent)) // North (-Z)
+                    if (ShouldRenderFace(blockSnapshot, world, x, y, z - 1, isTransparent)) // North (-Z)
                         AddFace(vList, iList, ref offset, x, y, z, Direction.North, block.Type, uvResolver);
 
-                    if (ShouldRenderFace(world, x, y, z + 1, isTransparent)) // South (+Z)
+                    if (ShouldRenderFace(blockSnapshot, world, x, y, z + 1, isTransparent)) // South (+Z)
                         AddFace(vList, iList, ref offset, x, y, z, Direction.South, block.Type, uvResolver);
 
-                    if (ShouldRenderFace(world, x + 1, y, z, isTransparent)) // East (+X)
+                    if (ShouldRenderFace(blockSnapshot, world, x + 1, y, z, isTransparent)) // East (+X)
                         AddFace(vList, iList, ref offset, x, y, z, Direction.East, block.Type, uvResolver);
 
-                    if (ShouldRenderFace(world, x - 1, y, z, isTransparent)) // West (-X)
+                    if (ShouldRenderFace(blockSnapshot, world, x - 1, y, z, isTransparent)) // West (-X)
                         AddFace(vList, iList, ref offset, x, y, z, Direction.West, block.Type, uvResolver);
 
-                    if (ShouldRenderFace(world, x, y + 1, z, isTransparent)) // Up (+Y)
+                    if (ShouldRenderFace(blockSnapshot, world, x, y + 1, z, isTransparent)) // Up (+Y)
                         AddFace(vList, iList, ref offset, x, y, z, Direction.Up, block.Type, uvResolver);
 
-                    if (ShouldRenderFace(world, x, y - 1, z, isTransparent)) // Down (-Y)
+                    if (ShouldRenderFace(blockSnapshot, world, x, y - 1, z, isTransparent)) // Down (-Y)
                         AddFace(vList, iList, ref offset, x, y, z, Direction.Down, block.Type, uvResolver);
                 }
             }
@@ -192,28 +231,31 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
         var newTransparentMesh = new ChunkMesh
             { Vertices = transparentVerts.ToArray(), Indices = transparentIndices.ToArray() };
 
-        lock (_lockObject)
+        lock (_meshLock)
         {
             OpaqueMesh = newOpaqueMesh;
             TransparentMesh = newTransparentMesh;
-            IsDirty = false;
+            Volatile.Write(ref _isDirtyBacking, 0);
         }
     }
 
-    private bool ShouldRenderFace(IWorld world, int x, int y, int z, bool currentIsTransparent = false)
+    private bool ShouldRenderFace(Block[,,] blocks, IWorld world, int x, int y, int z, bool currentIsTransparent = false)
     {
         // 1. Check within chunk bounds first
         if (x is >= 0 and < Size && y is >= 0 and < Height && z is >= 0 and < Size)
         {
-            var neighbor = _blocks[x, y, z];
+            var neighbor = blocks[x, y, z];
             if (neighbor.Type == BlockType.Air) return true;
 
-            // If we are water, don't render against water
-            if (currentIsTransparent) return !neighbor.IsTransparent;
+            // Water only renders faces exposed to air (top + shoreline edges). It does NOT render an
+            // underside against the solid bed — that dark downward face is what showed through clear
+            // water. The bed renders its own top face instead (below), and since the water underside
+            // is gone there's no coplanar pair to z-fight.
+            if (currentIsTransparent) return false;
 
-            // If we are solid (e.g. Sand), don't render against Water to prevent Z-fighting
-            // Only render solid faces against Air or non-water transparency (like Glass)
-            return neighbor is { IsTransparent: true, IsWater: false };
+            // Solids render faces against air or ANY transparent neighbour (incl. water), so the
+            // lake bed keeps a proper lit top face under clear water.
+            return neighbor.IsTransparent;
         }
 
         // 2. Check neighboring chunk
@@ -224,8 +266,8 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
 
         var neighborBlock = world.GetBlock(worldX, y, worldZ);
         if (neighborBlock.Type == BlockType.Air) return true;
-        if (currentIsTransparent) return !neighborBlock.IsTransparent;
-        return neighborBlock is { IsTransparent: true, IsWater: false };
+        if (currentIsTransparent) return false;
+        return neighborBlock.IsTransparent;
     }
 
     private static void AddFace(List<float> vertices, List<uint> indices, ref uint offset,
@@ -312,5 +354,13 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
             vertices.Add(ny);
             vertices.Add(nz);
         }
+    }
+
+    /// <summary>
+    /// Disposes the chunk, releasing lock resources.
+    /// </summary>
+    public void Dispose()
+    {
+        _blockLock.Dispose();
     }
 }

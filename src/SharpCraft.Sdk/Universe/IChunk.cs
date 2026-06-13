@@ -6,7 +6,7 @@ namespace SharpCraft.Sdk.Universe;
 /// <summary>
 /// Represents a chunk in the world for rendering purposes.
 /// </summary>
-public interface IChunk
+public interface IChunk : IDisposable
 {
     /// <summary>
     /// Gets the chunk's X coordinate (in chunk units).

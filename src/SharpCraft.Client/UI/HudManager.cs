@@ -263,23 +263,43 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
         public void Draw(double deltaTime, IGui gui, IHudContext context) { }
         public void OnAwake() { }
         public void OnUpdate(double deltaTime) { }
-        
+
         public bool IsVisible { get; set; }
         public event Action? OnVisibilityChanged;
         public bool VSync { get; set; }
-        public float Gamma { get; set; } = 1.6f;
-        public float Exposure { get; set; } = 1.0f;
+
+        // Display Settings (Photoreal Defaults)
+        public float Gamma { get; set; } = 2.2f;          // Standard sRGB display gamma
+        public float Exposure { get; set; } = 1.0f;       // Balanced exposure (compensation on auto)
+
+        // Auto-exposure / eye adaptation
+        public float AutoExposureKey { get; set; } = 0.18f;
+        public float AutoExposureMin { get; set; } = 0.05f;
+        public float AutoExposureMax { get; set; } = 2.0f;
+        public float AutoExposureSpeed { get; set; } = 2.5f;
+
+        // PBR Material Settings (Enhanced for Photoreal)
         public bool UseNormalMap { get; set; } = true;
-        public float NormalStrength { get; set; } = 0.5f;
+        public float NormalStrength { get; set; } = 1.0f;  // Full strength for detail
         public bool UseAoMap { get; set; } = true;
-        public float AoMapStrength { get; set; } = 0.5f;
+        public float AoMapStrength { get; set; } = 0.8f;   // Stronger AO for depth
         public bool UseMetallicMap { get; set; } = true;
         public float MetallicStrength { get; set; } = 1.0f;
         public bool UseRoughnessMap { get; set; } = true;
         public float RoughnessStrength { get; set; } = 1.0f;
-        public bool UseIBL { get; set; } = false;
-        public float FogNearFactor { get; set; } = 0.3f;
-        public float FogFarFactor { get; set; } = 0.95f;
+
+        // Advanced Lighting (CRITICAL FOR PHOTOREAL)
+        public bool UseIBL { get; set; } = true;          // ENABLED - Essential for PBR!
+        public bool UseSsao { get; set; } = true;         // Screen-space ambient occlusion
+        public float SsaoRadius { get; set; } = 1.5f;
+        public float SsaoIntensity { get; set; } = 2.5f;
+        public bool UseSsr { get; set; } = true;          // Screen-space reflections
+        public bool UseContactShadows { get; set; } = true;
+
+        // Fog Settings
+        public float FogNearFactor { get; set; } = 0.4f;  // Slightly further
+        public float FogFarFactor { get; set; } = 0.98f;  // Extended distance
+
         public int RenderDistance { get; set; } = 8;
     }
 }

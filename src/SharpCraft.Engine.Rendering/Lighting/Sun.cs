@@ -63,7 +63,7 @@ public class Sun(IWorldTime worldTime, ILightingSystem lightingSystem) : ILifecy
             // Start at 0 at twilightStart, reach 1.0 at fullDayStart
             intensity = (normalizedAngle - twilightStart) / (fullDayStart - twilightStart);
             // Apply a curve to keep it brighter longer/start earlier
-            intensity = MathF.Pow(intensity, 0.7f);
+            intensity = MathF.Pow(intensity, 0.5f); // More aggressive curve for brighter dawn
         }
         else if (normalizedAngle is >= fullDayStart and < fullDayEnd)
         {
@@ -72,7 +72,17 @@ public class Sun(IWorldTime worldTime, ILightingSystem lightingSystem) : ILifecy
         else if (normalizedAngle is >= fullDayEnd and < twilightEnd)
         {
             intensity = 1.0f - (normalizedAngle - fullDayEnd) / (twilightEnd - fullDayEnd);
-            intensity = MathF.Pow(intensity, 0.7f);
+            intensity = MathF.Pow(intensity, 0.5f); // More aggressive curve for brighter dusk
+        }
+
+        // Gentle elevation boost so midday reads a touch brighter than the golden
+        // hours without blowing out against the IBL sky ambient (which is itself
+        // strongest at midday). Zenith ×1.4, horizon ×1.0.
+        var sunHeight = direction.Y;
+        if (sunHeight > 0.0f && intensity > 0.0f)
+        {
+            float intensityBoost = 1.0f + (sunHeight * 0.4f);
+            intensity *= intensityBoost;
         }
 
         lightingSystem.Sun.Intensity = intensity;

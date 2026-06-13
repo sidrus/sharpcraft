@@ -19,6 +19,11 @@ public class ShaderProgram : IDisposable
         gl.AttachShader(_handle, vertex);
         gl.AttachShader(_handle, fragment);
         gl.LinkProgram(_handle);
+        gl.GetProgram(_handle, ProgramPropertyARB.LinkStatus, out var linkStatus);
+        if (linkStatus == 0)
+        {
+            throw new ShaderCompilationException($"Error linking shader program: {gl.GetProgramInfoLog(_handle)}");
+        }
 
         _gl.DetachShader(_handle, vertex);
         _gl.DetachShader(_handle, fragment);

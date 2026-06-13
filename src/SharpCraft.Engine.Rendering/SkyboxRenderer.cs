@@ -16,49 +16,12 @@ public sealed class SkyboxRenderer : IDisposable
         _shader = new ShaderProgram(_gl, Shaders.Shaders.SkyboxVertex, Shaders.Shaders.SkyboxFragment);
         _shader.BindUniformBlock("SceneData", 0);
 
+        // Fullscreen triangle (clip space). The fragment reconstructs the per-pixel view ray, so no
+        // skybox cube / interpolation crease.
         float[] vertices = {
-            // Positions          
-            -1.0f,  1.0f, -1.0f,
-            -1.0f, -1.0f, -1.0f,
-             1.0f, -1.0f, -1.0f,
-             1.0f, -1.0f, -1.0f,
-             1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
-
-            -1.0f, -1.0f,  1.0f,
-            -1.0f, -1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f,  1.0f,
-            -1.0f, -1.0f,  1.0f,
-
-             1.0f, -1.0f, -1.0f,
-             1.0f, -1.0f,  1.0f,
-             1.0f,  1.0f,  1.0f,
-             1.0f,  1.0f,  1.0f,
-             1.0f,  1.0f, -1.0f,
-             1.0f, -1.0f, -1.0f,
-
-            -1.0f, -1.0f,  1.0f,
-            -1.0f,  1.0f,  1.0f,
-             1.0f,  1.0f,  1.0f,
-             1.0f,  1.0f,  1.0f,
-             1.0f, -1.0f,  1.0f,
-            -1.0f, -1.0f,  1.0f,
-
-            -1.0f,  1.0f, -1.0f,
-             1.0f,  1.0f, -1.0f,
-             1.0f,  1.0f,  1.0f,
-             1.0f,  1.0f,  1.0f,
-            -1.0f,  1.0f,  1.0f,
-            -1.0f,  1.0f, -1.0f,
-
-            -1.0f, -1.0f, -1.0f,
-            -1.0f, -1.0f,  1.0f,
-             1.0f, -1.0f, -1.0f,
-             1.0f, -1.0f, -1.0f,
-            -1.0f, -1.0f,  1.0f,
-             1.0f, -1.0f,  1.0f
+            -1.0f, -1.0f,
+             3.0f, -1.0f,
+            -1.0f,  3.0f
         };
 
         _vao = _gl.GenVertexArray();
@@ -77,15 +40,17 @@ public sealed class SkyboxRenderer : IDisposable
         _gl.EnableVertexAttribArray(0);
         unsafe
         {
-            _gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), (void*)0);
+            _gl.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), (void*)0);
         }
-        
+
         _gl.BindVertexArray(0);
     }
 
     public void Render(RenderContext context)
     {
-        _gl.DepthFunc(DepthFunction.Lequal);
+        // Reversed-Z: the sky sits at the far plane (depth 0), so GEqual lets it pass where
+        // it equals the cleared depth and lose to any nearer geometry (research §12.2).
+        _gl.DepthFunc(DepthFunction.Gequal);
         _gl.Disable(EnableCap.CullFace);
 
         _shader.Use();
@@ -113,12 +78,13 @@ public sealed class SkyboxRenderer : IDisposable
         _shader.SetUniform("atmosphereMieScale", context.AtmosphereMieScale);
         _shader.SetUniform("atmosphereOzoneScale", context.AtmosphereOzoneScale);
         _shader.SetUniform("atmosphereMieG", context.AtmosphereMieG);
+        _shader.SetUniform("InvViewProj", context.InvViewProj);
 
         _gl.BindVertexArray(_vao);
-        _gl.DrawArrays(PrimitiveType.Triangles, 0, 36);
+        _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
 
         _gl.Enable(EnableCap.CullFace);
-        _gl.DepthFunc(DepthFunction.Less);
+        _gl.DepthFunc(DepthFunction.Greater);
     }
 
     public void Dispose()

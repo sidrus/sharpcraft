@@ -15,20 +15,23 @@ uniform vec3 sunDir;
 uniform float sunSize;
 
 out vec2 TexCoord;
+out vec3 WorldDir; // billboard fragment's world-space direction (for horizon clipping)
 
 void main() {
     // We want the sun to be at "infinity", so we center it around the camera
     // and push it to the far plane by setting z = w in clip space.
-    
+
     // Create a billboard oriented towards the sun direction
     vec3 up = abs(sunDir.y) > 0.99 ? vec3(0, 0, 1) : vec3(0, 1, 0);
     vec3 right = normalize(cross(up, sunDir));
     up = cross(sunDir, right);
-    
+
     vec3 pos = sunDir * 100.0 + (aPos.x * right + aPos.y * up) * sunSize;
-    
+    WorldDir = pos;
+
     TexCoord = aPos.xy * 0.5 + 0.5;
     
     vec4 clipPos = ViewProjection * vec4(pos + ViewPos.xyz, 1.0);
-    gl_Position = clipPos.xyww; // Force z to be at the far plane
+    // Reversed-Z: the far plane is depth 0 (research §12.2), so force clip z = 0.
+    gl_Position = vec4(clipPos.xy, 0.0, clipPos.w);
 }

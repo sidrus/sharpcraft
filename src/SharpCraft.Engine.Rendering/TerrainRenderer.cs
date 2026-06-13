@@ -33,6 +33,7 @@ public sealed class TerrainRenderer : IRenderer
 
         _shader.BindUniformBlock("SceneData", 0);
         _shader.BindUniformBlock("LightingData", 1);
+        _shader.BindUniformBlock("CsmData", 2);
     }
 
     public void Render(IWorld world, RenderContext context)
@@ -90,8 +91,35 @@ public sealed class TerrainRenderer : IRenderer
         }
 
         _gl.ActiveTexture(TextureUnit.Texture9);
-        _gl.BindTexture(TextureTarget.Texture2D, context.ShadowMap);
+        _gl.BindTexture(TextureTarget.Texture2DArray, context.ShadowMap);
         _shader.SetUniform("shadowMap", 9);
+
+        // Screen-space AO (research §7): multiplied into ambient in the shader.
+        _shader.SetUniform("useGtao", context.UseSSAO && context.GtaoTexture > 0 ? 1 : 0);
+        _gl.ActiveTexture(TextureUnit.Texture10);
+        _gl.BindTexture(TextureTarget.Texture2D, context.GtaoTexture);
+        _shader.SetUniform("gtaoTexture", 10);
+        _shader.SetUniform("invScreenSize", new Vector2(1.0f / context.ScreenWidth, 1.0f / context.ScreenHeight));
+
+        // Contact shadows (research §7/§8): short screen-space ray toward the sun against the
+        // opaque depth, filling the small contact gaps CSM misses.
+        var useContact = context.UseContactShadows && context.SceneDepthTexture > 0;
+        _shader.SetUniform("useContactShadows", useContact ? 1 : 0);
+        if (useContact)
+        {
+            _gl.ActiveTexture(TextureUnit.Texture11);
+            _gl.BindTexture(TextureTarget.Texture2D, context.SceneDepthTexture);
+            _shader.SetUniform("sceneDepthTex", 11);
+            _shader.SetUniform("contactInvViewProj", context.InvViewProj);
+        }
+
+        // Clustered forward+ light culling (research §2). Buffers are bound by the pipeline; here we
+        // just hand the shader the grid parameters so it can find each fragment's cluster.
+        _shader.SetUniform("useClustered", context.UseClusteredLighting ? 1 : 0);
+        _shader.SetUniform("clusterGridSize", new Vector3(ClusteredLighting.GridX, ClusteredLighting.GridY, ClusteredLighting.GridZ));
+        _shader.SetUniform("clusterScreenSize", new Vector2(context.ScreenWidth, context.ScreenHeight));
+        _shader.SetUniform("clusterZNear", ClusteredLighting.ZNear);
+        _shader.SetUniform("clusterZFar", ClusteredLighting.ZFar);
 
         _gl.BindVertexArray(_vao);
 

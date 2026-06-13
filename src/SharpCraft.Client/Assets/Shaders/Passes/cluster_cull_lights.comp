@@ -1,0 +1,48 @@
+#version 450 core
+
+// Assign point lights to clusters (research §2). One invocation per cluster: test every light's
+// bounding sphere (in view space) against the cluster AABB, pack the survivors into the global
+// index list, and record this cluster's (offset, count) in the light grid. Brute force over all
+// lights — fine for the modest light counts a voxel world produces.
+
+#define MAX_LIGHTS_PER_CLUSTER 100u
+
+layout(local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
+
+#include "../Common/clusters.glsl"
+
+layout(std430, binding = 0) buffer Clusters        { Cluster clusters[]; };
+layout(std430, binding = 1) buffer Lights          { Light lights[]; };
+layout(std430, binding = 2) buffer LightGrid       { uvec2 lightGrid[]; };       // (offset, count)
+layout(std430, binding = 3) buffer GlobalIndexList { uint globalLightIndex[]; };
+layout(std430, binding = 4) buffer GlobalCount     { uint globalIndexCount; };
+
+uniform mat4 view;
+uniform uint lightCount;
+uniform uint clusterCount;
+
+void main() {
+    uint cluster = gl_GlobalInvocationID.x;
+    if (cluster >= clusterCount) return;
+
+    vec3 aabbMin = clusters[cluster].minPoint.xyz;
+    vec3 aabbMax = clusters[cluster].maxPoint.xyz;
+
+    uint visible[MAX_LIGHTS_PER_CLUSTER];
+    uint count = 0u;
+
+    for (uint i = 0u; i < lightCount && count < MAX_LIGHTS_PER_CLUSTER; i++) {
+        vec3 posView = (view * vec4(lights[i].positionRange.xyz, 1.0)).xyz;
+        float radius = lights[i].positionRange.w;
+        if (sphereIntersectsAABB(posView, radius, aabbMin, aabbMax)) {
+            visible[count] = i;
+            count++;
+        }
+    }
+
+    uint offset = atomicAdd(globalIndexCount, count);
+    for (uint i = 0u; i < count; i++) {
+        globalLightIndex[offset + i] = visible[i];
+    }
+    lightGrid[cluster] = uvec2(offset, count);
+}

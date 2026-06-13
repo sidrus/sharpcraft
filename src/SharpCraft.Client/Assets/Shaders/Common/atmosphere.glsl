@@ -34,6 +34,14 @@ const float MIE_ABSORPTION_RATIO = 1.11;
 // Default Mie anisotropy (forward scattering bias)
 const float DEFAULT_MIE_G = 0.8;
 
+// Multiple-scattering fill (cheap Hillaire-style approximation). MS_REF_ALTITUDE is the reference
+// height the isotropic fill samples the sun transmittance at — high enough that blue light still
+// survives at low sun, which is what keeps the twilight zenith blue instead of brown. MS_STRENGTH
+// scales the isotropic contribution; raise it for a bluer/brighter sky, lower it toward 0 to revert
+// to pure single scattering.
+const float MS_REF_ALTITUDE = 15000.0;
+const float MS_STRENGTH = 0.12;
+
 // ============================================================================
 // Density Functions
 // ============================================================================
@@ -141,44 +149,51 @@ vec3 computeTransmittance(vec3 opticalDepth) {
     ));
 }
 
-// Approximate transmittance for a ray from position to sun
-// Uses Chapman function approximation for efficiency
+// Transmittance for a ray from a sample point toward the sun.
+//
+// This is computed by *marching the sun ray* and accumulating optical depth, rather than the older
+// two-branch Chapman approximation. The Chapman version used one formula for cosZenith >= 0 and a
+// different grazing formula for cosZenith < 0; the two did not agree at the horizon, so both the
+// optical-depth term and the planet-shadow factor jumped discontinuously at cosZenith = 0. Sampled
+// across the sky (where the sun-zenith crosses zero along a line) that drew a hard diagonal seam —
+// the artifact visible when facing away from the sun. A march is continuous by construction, so no
+// seam can form, at the cost of a few extra density evaluations (cheap for a once-per-frame sky).
 vec3 getTransmittanceToSun(float altitude, float cosZenith) {
-    // Ensure we're above ground
     altitude = max(altitude, 0.0);
-    
-    // Chapman function approximation for optical depth through atmosphere
-    float ch;
-    if (cosZenith >= 0.0) {
-        // Looking up - simple exponential
-        float h_r = altitude / H_RAYLEIGH;
-        float h_m = altitude / H_MIE;
-        ch = 1.0 / (cosZenith + 0.15 * pow(93.885 - degrees(acos(cosZenith)), -1.253));
-    } else {
-        // Looking towards/below horizon - longer path
-        // Use grazing angle approximation
-        float sinZenith = sqrt(1.0 - cosZenith * cosZenith);
-        float r = PLANET_RADIUS + altitude;
-        float h = r * sinZenith - PLANET_RADIUS;
-        
-        if (h < 0.0) {
-            // Ray hits planet - total absorption
-            return vec3(0.0);
-        }
-        
-        ch = sqrt(PI * r / (2.0 * H_RAYLEIGH)) * exp((PLANET_RADIUS - r) / H_RAYLEIGH);
+
+    // Reconstruct the sample position and sun-ray direction in planet space. Only the altitude
+    // profile along the ray matters, so the horizontal axis is arbitrary.
+    vec3 pos = vec3(0.0, PLANET_RADIUS + altitude, 0.0);
+    float sinZenith = sqrt(max(1.0 - cosZenith * cosZenith, 0.0));
+    vec3 dir = vec3(sinZenith, cosZenith, 0.0);
+
+    // March from the sample point to the top of the atmosphere (or until the ray dips underground,
+    // when the sun is below the local horizon).
+    vec2 atmHit = raySphereIntersect(pos, dir, ATMOSPHERE_RADIUS);
+    float rayLen = max(atmHit.y, 0.0);
+
+    const int SUN_STEPS = 6;
+    float stepSize = rayLen / float(SUN_STEPS);
+    vec3 od = vec3(0.0);
+    for (int i = 0; i < SUN_STEPS; i++) {
+        vec3 sp = pos + dir * (float(i) + 0.5) * stepSize;
+        float alt = length(sp) - PLANET_RADIUS;
+        if (alt < 0.0) break; // ray has gone below the surface
+        od += vec3(getDensityRayleigh(alt), getDensityMie(alt), getDensityOzone(alt) * 0.3) * stepSize;
     }
-    
-    // Compute optical depths
-    float odRayleigh = H_RAYLEIGH * getDensityRayleigh(altitude) * ch;
-    float odMie = H_MIE * getDensityMie(altitude) * ch;
-    float odOzone = H_OZONE * getDensityOzone(altitude) * ch * 0.3; // Ozone path is longer
-    
-    return exp(-(
-        BETA_RAYLEIGH * odRayleigh +
-        BETA_MIE * MIE_ABSORPTION_RATIO * odMie +
-        BETA_OZONE * odOzone
+
+    vec3 transmittance = exp(-(
+        BETA_RAYLEIGH * od.x +
+        BETA_MIE * MIE_ABSORPTION_RATIO * od.y +
+        BETA_OZONE * od.z
     ));
+
+    // Soft planet-shadow terminator, applied as a single smoothstep across the horizon (continuous
+    // through cosZenith = 0, where it is 1.0 on both sides). Fades the sun's contribution to zero
+    // over a broad band as it drops below the local horizon, so the Earth-shadow boundary reads as a
+    // smooth twilight gradient instead of a seam.
+    float shadow = smoothstep(-0.1, 0.0, cosZenith);
+    return transmittance * shadow;
 }
 
 // ============================================================================
@@ -211,49 +226,76 @@ vec3 computeSkyColor(
     
     vec3 scatteringR = vec3(0.0);
     vec3 scatteringM = vec3(0.0);
+    vec3 multiScatter = vec3(0.0); // isotropic multiple-scattering fill (see below)
     vec3 opticalDepth = vec3(0.0);
-    
+
     float cosTheta = dot(viewDir, sunDir);
     float phaseR = phaseRayleigh(cosTheta);
     float phaseM = phaseMie(cosTheta, mieG);
-    
+
     for (int i = 0; i < numSamples; i++) {
         vec3 samplePos = rayOrigin + viewDir * (float(i) + 0.5) * stepSize;
         float altitude = length(samplePos) - PLANET_RADIUS;
-        
+
         if (altitude < 0.0) break;
-        
+
         // Local density
         float densityR = getDensityRayleigh(altitude);
         float densityM = getDensityMie(altitude);
         float densityO = getDensityOzone(altitude);
-        
+
         // Accumulate optical depth along view ray
         vec3 localOD = vec3(densityR, densityM, densityO) * stepSize;
         opticalDepth += localOD;
-        
+
         // Transmittance from camera to sample point
         vec3 viewTransmittance = computeTransmittance(opticalDepth);
-        
+
         // Transmittance from sample point to sun
         float sunCosZenith = dot(normalize(samplePos), sunDir);
         vec3 sunTransmittance = getTransmittanceToSun(altitude, sunCosZenith);
-        
+
         // Combined transmittance
         vec3 totalTransmittance = viewTransmittance * sunTransmittance;
-        
-        // Accumulate in-scattered light
+
+        // Accumulate in-scattered (single-scattered) light
         scatteringR += totalTransmittance * densityR * stepSize;
         scatteringM += totalTransmittance * densityM * stepSize;
+
+        // Multiple-scattering fill (isotropic). Single scattering alone loses ALL blue at low sun:
+        // the long ground-level path to the sun extincts short wavelengths first, so the twilight
+        // zenith collapses to brown/red. In reality the dominant twilight skylight has bounced
+        // multiple times and originates high in the atmosphere, where blue is not yet extinct. We
+        // approximate that by lighting an isotropic Rayleigh term with the sun transmittance taken at
+        // a high reference altitude (MS_REF_ALTITUDE) instead of the sample's own altitude — so blue
+        // survives and the zenith stays blue through twilight. (Hillaire-style multiple scattering.)
+        vec3 msSunTransmittance = getTransmittanceToSun(MS_REF_ALTITUDE, sunCosZenith);
+        multiScatter += viewTransmittance * msSunTransmittance * densityR * stepSize;
     }
-    
+
     transmittance = computeTransmittance(opticalDepth);
-    
-    // Final scattered light with phase functions and scattering coefficients
-    vec3 skyColor = scatteringR * BETA_RAYLEIGH * phaseR + 
-                    scatteringM * BETA_MIE * phaseM;
-    
+
+    // Final scattered light: single scattering (phase-weighted) + isotropic multiple-scattering fill.
+    vec3 skyColor = scatteringR * BETA_RAYLEIGH * phaseR +
+                    scatteringM * BETA_MIE * phaseM +
+                    multiScatter * BETA_RAYLEIGH * MS_STRENGTH;
+
     return skyColor;
+}
+
+// ============================================================================
+// Clean sky radiance — single entry point for the visible sky AND the IBL capture, so reflections
+// match the sky. Just the physical single-scattering, scaled by one sane illuminance constant and
+// tinted by the sun colour. No magic horizon boosts / twilight-phase hacks: the long atmospheric
+// path at low sun reddens the horizon and ozone gives the blue hour for free. Day→twilight→night
+// dimming is intrinsic (sun transmittance drops as the sun sets).
+// ============================================================================
+const float SKY_ILLUMINANCE = 38.0;
+
+vec3 skyRadiance(vec3 viewDir, vec3 sunDirection, vec3 sunColor, float mieG, int samples) {
+    vec3 transmittance;
+    vec3 sky = computeSkyColor(viewDir, sunDirection, mieG, samples, transmittance);
+    return max(sky, vec3(0.0)) * SKY_ILLUMINANCE * sunColor;
 }
 
 // ============================================================================

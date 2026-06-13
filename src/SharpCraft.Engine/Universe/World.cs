@@ -87,7 +87,37 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
 
         foreach (var coord in toRemove)
         {
-            _chunks.TryRemove(coord, out _);
+            if (_chunks.TryRemove(coord, out var chunk))
+            {
+                chunk.Dispose();
+                // The removed chunk's neighbours culled their boundary faces against it; with it gone
+                // those faces are now exposed, so the neighbours must re-mesh or they leave see-through
+                // holes at the unload boundary.
+                MarkNeighborsDirty(coord);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Flags the four horizontal neighbours of a chunk coordinate for re-meshing, so their
+    /// cross-chunk boundary faces are recomputed when this chunk is loaded or unloaded.
+    /// </summary>
+    private void MarkNeighborsDirty(Vector2<int> coord)
+    {
+        Span<Vector2<int>> neighbors =
+        [
+            new(coord.X + 1, coord.Y),
+            new(coord.X - 1, coord.Y),
+            new(coord.X, coord.Y + 1),
+            new(coord.X, coord.Y - 1)
+        ];
+
+        foreach (var n in neighbors)
+        {
+            if (_chunks.TryGetValue(n, out var neighbor))
+            {
+                neighbor.MarkDirty();
+            }
         }
     }
 
@@ -114,12 +144,23 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
     /// <returns>The chunk.</returns>
     public Chunk GetOrCreateChunk(Vector2<int> coord)
     {
-        return _chunks.GetOrAdd(coord, k =>
+        var created = false;
+        var chunk = _chunks.GetOrAdd(coord, k =>
         {
-            var chunk = new Chunk(k, blockRegistry);
-            generator.GenerateChunk(chunk, seed);
-            return chunk;
+            created = true;
+            var c = new Chunk(k, blockRegistry);
+            generator.GenerateChunk(c, seed);
+            return c;
         });
+
+        if (created)
+        {
+            // A newly loaded chunk changes its neighbours' boundary faces (previously exposed to the
+            // void, now culled against this chunk's blocks — or the reverse), so re-mesh them.
+            MarkNeighborsDirty(coord);
+        }
+
+        return chunk;
     }
 
     /// <inheritdoc />
@@ -166,14 +207,30 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
         var coord = new Vector2<int>(chunkX, chunkZ);
         var chunk = GetOrCreateChunk(coord);
         chunk.SetBlock(localX, worldY, localZ, type);
+
+        // If the edited block sits on a chunk edge, the adjacent chunk's boundary faces depend on it
+        // (ShouldRenderFace's cross-chunk path), so re-mesh that neighbour too. A corner edit touches
+        // two edges and dirties both.
+        if (localX == 0) MarkDirtyIfLoaded(new Vector2<int>(chunkX - 1, chunkZ));
+        else if (localX == 15) MarkDirtyIfLoaded(new Vector2<int>(chunkX + 1, chunkZ));
+        if (localZ == 0) MarkDirtyIfLoaded(new Vector2<int>(chunkX, chunkZ - 1));
+        else if (localZ == 15) MarkDirtyIfLoaded(new Vector2<int>(chunkX, chunkZ + 1));
+    }
+
+    private void MarkDirtyIfLoaded(Vector2<int> coord)
+    {
+        if (_chunks.TryGetValue(coord, out var chunk))
+        {
+            chunk.MarkDirty();
+        }
     }
 
     /// <summary>
     /// Gets all currently loaded chunks.
     /// </summary>
     /// <returns>An enumerable of loaded chunks.</returns>
-    public IEnumerable<Chunk> GetLoadedChunks() => _chunks.Values;
+    public IEnumerable<Chunk> GetLoadedChunks() => _chunks.Values.ToArray();
 
     /// <inheritdoc />
-    IEnumerable<IChunk> IWorld.GetLoadedChunks() => _chunks.Values;
+    IEnumerable<IChunk> IWorld.GetLoadedChunks() => _chunks.Values.ToArray();
 }

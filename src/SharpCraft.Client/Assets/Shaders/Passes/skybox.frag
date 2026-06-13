@@ -1,7 +1,7 @@
 ﻿#version 450 core
 out vec4 FragColor;
 
-in vec3 TexCoords;
+in vec2 Ndc;
 
 layout (std140, binding = 0) uniform SceneData {
     mat4 ViewProjection;
@@ -12,6 +12,9 @@ layout (std140, binding = 0) uniform SceneData {
     float Exposure;
     float Gamma;
 };
+
+// Inverse of the (jittered) view-projection, for exact per-pixel sky ray reconstruction.
+uniform mat4 InvViewProj;
 
 // Sun parameters
 uniform vec3 sunDir;
@@ -137,152 +140,31 @@ vec3 computeMoon(vec3 viewDir, float nightFactor) {
 
 void main()
 {
-    vec3 V = normalize(TexCoords);
+    // Exact per-pixel view ray (any depth along the ray gives the same direction).
+    vec4 worldH = InvViewProj * vec4(Ndc, 0.5, 1.0);
+    vec3 V = normalize(worldH.xyz / worldH.w - ViewPos.xyz);
     vec3 sunDirection = -normalize(sunDir);
     float sunElevation = sunDirection.y;
-    
-    // Determine time of day factors
-    float dayFactor = smoothstep(-0.1, 0.3, sunElevation);
-    float nightFactor = 1.0 - smoothstep(-0.35, 0.0, sunElevation);
-    float twilightFactor = getTwilightFactor(sunElevation);
-    int twilightPhase = getTwilightPhase(sunElevation);
-    
-    // ========================================================================
-    // PHYSICALLY-BASED SKY COLOR
-    // ========================================================================
-    
-    vec3 skyTransmittance;
-    vec3 skyColor = vec3(0.0);
-    
-    // Sky brightness should NOT be tied to sunIntensity (which is for direct lighting).
-    // The atmosphere scatters light even when sun is at/below horizon.
-    // Use sun elevation to determine sky brightness instead.
-    
-    // Sky is visible from civil twilight (-6°) through day
-    // sunElevation is sin(elevation), so -6° ≈ -0.105
-    float skyBrightness = smoothstep(-0.15, 0.3, sunElevation);
-    
-    // Always compute sky scattering when sun is above -15° (nautical twilight)
-    if (sunElevation > -0.26) {
-        // Compute physically-based sky scattering
-        skyColor = computeSkyColor(V, sunDirection, atmosphereMieG, atmosphereSamples, skyTransmittance);
-        
-        // Scale by sky brightness (NOT sunIntensity) and sun color
-        // At sunrise/sunset, atmosphere path is longer so we see more scattering
-        float horizonBoost = 1.0 + (1.0 - abs(sunElevation)) * 2.0; // Boost near horizon
-        skyColor *= skyBrightness * sunColor * 25.0 * horizonBoost;
-        
-        // Add multi-scattering approximation for softer sky
-        float viewAltitude = 1.0; // Sea level
-        vec3 multiScatter = getMultipleScattering(viewAltitude, sunDirection.y);
-        skyColor += multiScatter * skyBrightness * 0.8;
-    }
-    
-    // ========================================================================
-    // TWILIGHT ENHANCEMENTS
-    // ========================================================================
-    
-    if (twilightPhase >= 1 && twilightPhase <= 3) {
-        // Direction towards sun on horizon plane
-        vec3 sunHorizDir = normalize(vec3(sunDirection.x, 0.0, sunDirection.z));
-        vec3 viewHorizDir = normalize(vec3(V.x, 0.0, V.z));
-        float towardsSun = max(0.0, dot(sunHorizDir, viewHorizDir));
-        
-        // Height gradient for twilight colors
-        float twilightHeight = smoothstep(-0.1, 0.6, V.y);
-        
-        // Civil twilight: golden hour colors
-        if (twilightPhase == 1) {
-            vec3 horizonGlow = vec3(1.0, 0.5, 0.2) * (1.0 - twilightHeight) * towardsSun;
-            vec3 upperGlow = vec3(0.6, 0.3, 0.5) * twilightHeight;
-            skyColor += (horizonGlow + upperGlow) * 0.5 * smoothstep(-0.105, 0.0, sunElevation);
-        }
-        // Nautical twilight: purple/blue transition
-        else if (twilightPhase == 2) {
-            vec3 horizonGlow = vec3(0.5, 0.25, 0.3) * (1.0 - twilightHeight) * towardsSun;
-            vec3 upperGlow = vec3(0.15, 0.12, 0.3) * twilightHeight;
-            skyColor += (horizonGlow + upperGlow) * 0.3;
-        }
-        // Astronomical twilight: very subtle glow
-        else if (twilightPhase == 3) {
-            vec3 faintGlow = vec3(0.05, 0.04, 0.1) * (1.0 - twilightHeight) * towardsSun;
-            skyColor += faintGlow * 0.2;
-        }
-        
-        // Belt of Venus effect (pink band opposite the sun during twilight)
-        float awaySun = max(0.0, -dot(sunHorizDir, viewHorizDir));
-        float beltHeight = exp(-V.y * V.y * 8.0) * awaySun;
-        vec3 beltColor = vec3(0.7, 0.4, 0.5) * beltHeight * smoothstep(-0.15, 0.0, sunElevation) * 0.3;
-        skyColor += beltColor;
-    }
-    
-    // ========================================================================
-    // NIGHT SKY
-    // ========================================================================
-    
-    vec3 nightSky = vec3(0.0);
-    if (nightFactor > 0.01) {
-        // Deep blue-black gradient
-        vec3 nightZenith = vec3(0.002, 0.004, 0.012);
-        vec3 nightHorizon = vec3(0.008, 0.01, 0.02);
-        nightSky = mix(nightHorizon, nightZenith, max(V.y, 0.0));
-        
-        // Add stars
-        nightSky += computeStars(V, nightFactor);
-        
-        // Add moon
-        nightSky += computeMoon(V, nightFactor);
-    }
-    
-    // ========================================================================
-    // COMBINE ALL CONTRIBUTIONS
-    // ========================================================================
-    
-    vec3 finalColor = vec3(0.0);
-    
-    // Blend sky based on time of day
-    finalColor += skyColor * (1.0 - nightFactor);
-    finalColor += nightSky * nightFactor;
-    
-    // Add sun disk (always on top)
-    finalColor += computeSunDisk(V, sunDirection, sunElevation);
-    
-    // ========================================================================
-    // HORIZON HANDLING
-    // ========================================================================
-    
-    // Smooth transition at horizon to prevent hard line
-    float horizonBlend = smoothstep(-0.1, 0.02, V.y);
-    
-    // Below-horizon color (dark gradient)
-    vec3 belowHorizon = mix(
-        vec3(0.005, 0.008, 0.015),
-        vec3(0.02, 0.025, 0.04),
-        twilightFactor
-    );
-    
-    finalColor = mix(belowHorizon, finalColor, horizonBlend);
-    
-    // Minimum ambient to prevent pure black
-    finalColor = max(finalColor, vec3(0.001, 0.0015, 0.003));
-    
-    // ========================================================================
-    // TONE MAPPING (ACES Filmic)
-    // ========================================================================
-    
-    vec3 mapped = finalColor * Exposure;
-    
-    // ACES filmic tone mapping
-    // Based on the ACES curve approximation by Krzysztof Narkowicz
-    const float a = 2.51;
-    const float b = 0.03;
-    const float c = 2.43;
-    const float d = 0.59;
-    const float e = 0.14;
-    mapped = clamp((mapped * (a * mapped + b)) / (mapped * (c * mapped + d) + e), 0.0, 1.0);
-    
-    // Gamma correction
-    mapped = pow(mapped, vec3(1.0 / Gamma));
 
-    FragColor = vec4(mapped, 1.0);
+    // Physical single-scattering sky (warm horizon, blue zenith and blue-hour are intrinsic — no
+    // magic boosts or twilight-phase branches). Dims naturally as the sun sets.
+    vec3 sky = skyRadiance(V, sunDirection, sunColor, atmosphereMieG, atmosphereSamples);
+
+    // Night sky: fade in a dark gradient + stars + moon as the sun drops below the horizon.
+    float nightFactor = 1.0 - smoothstep(-0.14, 0.0, sunElevation);
+    if (nightFactor > 0.001) {
+        vec3 nightZenith = vec3(0.002, 0.004, 0.012);
+        vec3 nightHorizon = vec3(0.006, 0.008, 0.018);
+        vec3 nightSky = mix(nightHorizon, nightZenith, clamp(V.y, 0.0, 1.0));
+        nightSky += computeStars(V, nightFactor);
+        nightSky += computeMoon(V, nightFactor);
+        sky = mix(sky, nightSky, nightFactor);
+    }
+
+    // The sun disc itself is drawn by SunRenderer (with horizon clipping), so it isn't added here.
+    // Gentle floor so the sky is never pure black.
+    sky = max(sky, vec3(0.001, 0.0015, 0.003));
+
+    // Output true HDR radiance — exposure + tonemap are applied in the post-process pass (fxaa.frag, §5.2)
+    FragColor = vec4(sky, 1.0);
 }

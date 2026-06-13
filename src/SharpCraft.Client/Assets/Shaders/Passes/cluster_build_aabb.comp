@@ -1,0 +1,59 @@
+#version 450 core
+
+// Build the view-space AABB of each cluster (research §2). One invocation per cluster; dispatched
+// as (gridX, gridY, gridZ) workgroups of size 1, so gl_WorkGroupID is the cluster coordinate.
+// Re-run only when the projection or resolution changes.
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+#include "../Common/clusters.glsl"
+
+layout(std430, binding = 0) buffer Clusters {
+    Cluster clusters[];
+};
+
+uniform vec3 gridSize;     // float-valued; converted to uvec3 below
+uniform vec2 screenDimensions;
+uniform vec2 tanHalfFov;   // (tan(fovX/2), tan(fovY/2)) — symmetric perspective
+uniform float zNear;
+uniform float zFar;
+
+// Screen pixel → a point on the view-space ray at z = -1 (camera looks down -Z). Using tanHalfFov
+// directly avoids unprojecting through the reversed-Z matrix.
+vec3 screenToViewRay(vec2 screen) {
+    vec2 ndc = (screen / screenDimensions) * 2.0 - 1.0;
+    return vec3(ndc.x * tanHalfFov.x, ndc.y * tanHalfFov.y, -1.0);
+}
+
+// Intersect the ray (origin → dir-point) with a constant-Z plane (z = zDistance, negative).
+vec3 intersectZPlane(vec3 origin, vec3 through, float zDistance) {
+    vec3 dir = through - origin;
+    float t = (zDistance - origin.z) / dir.z;
+    return origin + t * dir;
+}
+
+void main() {
+    uvec3 grid = uvec3(gridSize);
+    uvec3 c = gl_WorkGroupID;
+    uint index = c.x + c.y * grid.x + c.z * grid.x * grid.y;
+
+    vec2 tileSize = screenDimensions / vec2(grid.xy);
+    vec3 minRay = screenToViewRay(vec2(c.xy) * tileSize);
+    vec3 maxRay = screenToViewRay(vec2(c.xy + uvec2(1u)) * tileSize);
+
+    // Exponential slice boundaries (negative view-space Z).
+    float planeNear = -zNear * pow(zFar / zNear, float(c.z) / float(grid.z));
+    float planeFar  = -zNear * pow(zFar / zNear, float(c.z + 1u) / float(grid.z));
+
+    vec3 eye = vec3(0.0);
+    vec3 minNear = intersectZPlane(eye, minRay, planeNear);
+    vec3 minFar  = intersectZPlane(eye, minRay, planeFar);
+    vec3 maxNear = intersectZPlane(eye, maxRay, planeNear);
+    vec3 maxFar  = intersectZPlane(eye, maxRay, planeFar);
+
+    vec3 aabbMin = min(min(minNear, minFar), min(maxNear, maxFar));
+    vec3 aabbMax = max(max(minNear, minFar), max(maxNear, maxFar));
+
+    clusters[index].minPoint = vec4(aabbMin, 0.0);
+    clusters[index].maxPoint = vec4(aabbMax, 0.0);
+}

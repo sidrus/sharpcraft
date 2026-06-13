@@ -38,7 +38,9 @@ public class FirstPersonCamera(IPhysicsEntity parent, Vector3 offset) : ICamera
         return Matrix4x4.CreateLookAt(pos, pos + fwd, Up);
     }
 
-    public Matrix4x4 GetProjectionMatrix(float aspect) => Matrix4x4.CreatePerspectiveFieldOfView(Zoom * MathF.PI / 180f, aspect, 0.1f, 1000f);
+    // Reversed-Z infinite-far perspective (research §1, §12.2). Requires
+    // glClipControl(LowerLeft, ZeroToOne), a GL_GREATER depth test and a depth clear of 0.0.
+    public Matrix4x4 GetProjectionMatrix(float aspect) => ReversedZ.InfinitePerspective(Zoom * MathF.PI / 180f, aspect, 0.1f);
 
     public void HandleMouse(float xOffset, float yOffset)
     {

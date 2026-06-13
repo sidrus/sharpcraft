@@ -5,7 +5,6 @@ layout (location = 2) in vec3 aNorm;
 
 out vec3 Normal;
 out vec3 FragPos;
-out float FragDistance;
 out vec2 TexCoord;
 out mat3 TBN;
 
@@ -17,6 +16,7 @@ layout (std140, binding = 0) uniform SceneData {
     float FogFar;
     float Exposure;
     float Gamma;
+    mat4 View;
 };
 
 uniform mat4 model;
@@ -28,24 +28,14 @@ void main() {
     vec3 normal = normalize(mat3(model) * aNorm);
     Normal = normal;
 
-    // Improved TBN for axis-aligned voxels
-    vec3 tangent;
-    if (abs(normal.y) > 0.5) {
-        // Top/Bottom faces
-        tangent = vec3(1.0, 0.0, 0.0);
-    } else if (abs(normal.z) > 0.5) {
-        // Front/Back faces
-        tangent = vec3(1.0, 0.0, 0.0);
-    } else {
-        // Left/Right faces
-        tangent = vec3(0.0, 0.0, 1.0);
-    }
-
+    // Tangent basis for axis-aligned voxel faces (the mesh carries no tangents).
+    vec3 tangent = abs(normal.y) > 0.5 ? vec3(1.0, 0.0, 0.0)
+                 : abs(normal.z) > 0.5 ? vec3(1.0, 0.0, 0.0)
+                 : vec3(0.0, 0.0, 1.0);
     tangent = normalize(tangent - dot(tangent, normal) * normal);
     vec3 bitangent = cross(normal, tangent);
     TBN = mat3(tangent, bitangent, normal);
 
-    FragDistance = length(ViewPos.xyz - FragPos);
     TexCoord = aUv;
-    gl_Position = ViewProjection * worldPos;
+    gl_Position = ViewProjection * worldPos; // reversed-Z projection
 }

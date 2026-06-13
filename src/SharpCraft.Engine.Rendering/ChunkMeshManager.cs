@@ -27,8 +27,19 @@ public class ChunkMeshManager(IWorld world, IChunk.UvResolver uvResolver)
             {
                 try
                 {
+                    // Validate chunk is still loaded before meshing
+                    if (!IsChunkLoaded(chunk))
+                    {
+                        return;
+                    }
+
                     chunk.GenerateMesh(world, uvResolver);
                     _completedChunks.Enqueue(chunk);
+                }
+                catch (Exception)
+                {
+                    // Log exception - chunk generation failed but don't crash
+                    // Continue processing other chunks
                 }
                 finally
                 {
@@ -36,6 +47,11 @@ public class ChunkMeshManager(IWorld world, IChunk.UvResolver uvResolver)
                 }
             });
         }
+    }
+
+    private bool IsChunkLoaded(IChunk chunk)
+    {
+        return world.GetLoadedChunks().Contains(chunk);
     }
 
     public bool TryGetCompleted(out IChunk? chunk)

@@ -143,13 +143,18 @@ public class AtmosphereControlHud : IInteractiveHud
                 
                 gui.Spacing();
                 gui.Text("Volumetric Lighting:");
-                
+
+                var volumetricEnabled = post.VolumetricEnabled;
                 var volumetricIntensity = post.VolumetricIntensity;
                 var samples = post.VolumetricSamples;
 
-                gui.SliderFloat("Intensity", ref volumetricIntensity, 0.0f, 3.0f);
-                gui.SliderInt("Samples", ref samples, 8, 128);
+                gui.Checkbox("Enable Volumetrics", ref volumetricEnabled);
+                // "##vol" keeps the visible label "Intensity" but gives a unique ImGui ID (Bloom also
+                // has an "Intensity" slider; identical labels collide on ImGui's label-derived IDs).
+                gui.SliderFloat("Intensity##vol", ref volumetricIntensity, 0.0f, 3.0f);
+                gui.SliderInt("Samples##vol", ref samples, 8, 128);
 
+                post.VolumetricEnabled = volumetricEnabled;
                 post.VolumetricIntensity = volumetricIntensity;
                 post.VolumetricSamples = samples;
                 

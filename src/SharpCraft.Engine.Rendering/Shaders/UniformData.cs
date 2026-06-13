@@ -13,6 +13,10 @@ public struct SceneData
     public float FogFar;
     public float Exposure;
     public float Gamma;
+    // Appended for clustered shading (research §2): lets the forward pass reconstruct a reversed-Z
+    // agnostic view-space Z for cluster selection. Offset is past the original members, so shaders
+    // that don't declare it are unaffected.
+    public Matrix4x4 View;
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -42,4 +46,20 @@ public struct LightingData
     public PointLightDataStd140 PointLight1;
     public PointLightDataStd140 PointLight2;
     public PointLightDataStd140 PointLight3;
+}
+
+/// <summary>
+/// Cascaded shadow map data (research §8), UBO binding 2. Up to 4 cascades; <see cref="SplitDepths"/>
+/// holds each cascade's far view-space distance (x..w) for cascade selection, and <see cref="Params"/>
+/// packs (cascadeCount, shadowMapSize, _, _).
+/// </summary>
+[StructLayout(LayoutKind.Sequential)]
+public struct CsmData
+{
+    public Matrix4x4 LightSpaceMatrix0;
+    public Matrix4x4 LightSpaceMatrix1;
+    public Matrix4x4 LightSpaceMatrix2;
+    public Matrix4x4 LightSpaceMatrix3;
+    public Vector4 SplitDepths;
+    public Vector4 Params;
 }

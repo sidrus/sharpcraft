@@ -48,16 +48,19 @@ public class WaterRenderer : IRenderer
         _shader.SetUniform("normalStrength", context.NormalStrength);
         _shader.SetUniform("time", context.Time);
 
-        // Shadow map
+        // Shadow map (cascaded depth array; water samples cascade 0).
         if (context.ShadowMap > 0)
         {
             _gl.ActiveTexture(TextureUnit.Texture3);
-            _gl.BindTexture(TextureTarget.Texture2D, context.ShadowMap);
+            _gl.BindTexture(TextureTarget.Texture2DArray, context.ShadowMap);
             _shader.SetUniform("shadowMap", 3);
         }
 
-        _shader.SetUniform("useIBL", context.UseIBL ? 1 : 0);
-        if (context.UseIBL)
+        // Only enable IBL when all maps are actually available — sampling an unbound
+        // cubemap returns black, which would kill the sky reflection entirely.
+        var useIbl = context.UseIBL && context.IrradianceMap != 0 && context.PrefilterMap != 0 && context.BrdfLut != 0;
+        _shader.SetUniform("useIBL", useIbl ? 1 : 0);
+        if (useIbl)
         {
             _gl.ActiveTexture(TextureUnit.Texture6);
             _gl.BindTexture(TextureTarget.TextureCubeMap, context.IrradianceMap);
@@ -70,6 +73,21 @@ public class WaterRenderer : IRenderer
             _gl.ActiveTexture(TextureUnit.Texture8);
             _gl.BindTexture(TextureTarget.Texture2D, context.BrdfLut);
             _shader.SetUniform("brdfLUT", 8);
+        }
+
+        // Screen-space reflections (research §7): ray-march the opaque scene snapshot.
+        var useSsr = context.UseSSR && context.OpaqueColorTexture != 0 && context.SceneDepthTexture != 0;
+        _shader.SetUniform("useSSR", useSsr ? 1 : 0);
+        if (useSsr)
+        {
+            _gl.ActiveTexture(TextureUnit.Texture9);
+            _gl.BindTexture(TextureTarget.Texture2D, context.OpaqueColorTexture);
+            _shader.SetUniform("sceneColorTex", 9);
+            _gl.ActiveTexture(TextureUnit.Texture10);
+            _gl.BindTexture(TextureTarget.Texture2D, context.SceneDepthTexture);
+            _shader.SetUniform("sceneDepthTex", 10);
+            _shader.SetUniform("ssrInvViewProj", context.InvViewProj);
+            _shader.SetUniform("invScreenSize", new Vector2(1.0f / context.ScreenWidth, 1.0f / context.ScreenHeight));
         }
 
         _gl.BindVertexArray(_vao);
