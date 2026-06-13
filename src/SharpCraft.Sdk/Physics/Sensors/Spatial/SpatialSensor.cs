@@ -92,6 +92,27 @@ public class SpatialSensor : ISensor<SpatialSensorData>
             submersionDepth = 0;
         }
 
+        // A climbable ledge is a solid horizontal neighbour at foot level with open
+        // space above it to stand in. This lets the player hop out of the water onto
+        // land, while open water (no such neighbour) still can't be walked on.
+        var isNextToClimbableLedge = false;
+        if (isOnWaterSurface)
+        {
+            var blockX = (int)Math.Floor(pos.X);
+            var blockZ = (int)Math.Floor(pos.Z);
+
+            foreach (var (dx, dz) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
+            {
+                var ledge = collisionProvider.GetBlock(blockX + dx, footY, blockZ + dz);
+                var aboveLedge = collisionProvider.GetBlock(blockX + dx, footY + 1, blockZ + dz);
+                if (ledge.IsSolid && !aboveLedge.IsSolid)
+                {
+                    isNextToClimbableLedge = true;
+                    break;
+                }
+            }
+        }
+
         return data with
         {
             BlockBelow = blockBelow,
@@ -101,6 +122,7 @@ public class SpatialSensor : ISensor<SpatialSensorData>
             IsFlying = isFlying,
             IsGrounded = isGrounded,
             IsOnWaterSurface = isOnWaterSurface,
+            IsNextToClimbableLedge = isNextToClimbableLedge,
             SubmersionDepth = submersionDepth,
         };
     }

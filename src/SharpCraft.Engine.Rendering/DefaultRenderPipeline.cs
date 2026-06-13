@@ -17,6 +17,7 @@ public class DefaultRenderPipeline(
     ChunkMeshManager meshManager,
     TerrainRenderer terrainRenderer,
     WaterRenderer waterRenderer,
+    TorchRenderer torchRenderer,
     PostProcessingRenderer postProcessingRenderer)
     : IRenderPipeline
 {
@@ -209,6 +210,10 @@ public class DefaultRenderPipeline(
         // Opaque, forward-lit terrain. Bind the clustered light buffers for the shading pass.
         _clustered.BindForShading();
         terrainRenderer.Render(world, context);
+
+        // Placed torch models (opaque, forward-lit, emissive head). Drawn after terrain so they
+        // depth-test against it.
+        torchRenderer.Render(context);
 
         // Sun disc at the far plane (occluded by terrain via GEqual).
         _sunRenderer.Render(context);
@@ -411,6 +416,7 @@ public class DefaultRenderPipeline(
             cache.Dispose();
             terrainRenderer.Dispose();
             waterRenderer.Dispose();
+            torchRenderer.Dispose();
             postProcessingRenderer.Dispose();
             _framebuffer?.Dispose();
             _csm?.Dispose();

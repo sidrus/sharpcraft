@@ -87,6 +87,66 @@ public class DefaultPlayerMotorTests
     }
 
     [Fact]
+    public void ApplyForces_WhenJumpingOnWaterSurface_ShouldApplyUpwardVelocity()
+    {
+        // Setup
+        var mockPhysics = new Mock<IPhysicsSystem>();
+        mockPhysics.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
+                   .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
+
+        var transform = new Transform { Position = new Vector3(0, 63.5f, 0) };
+        var entity = new PhysicsEntity(transform, mockPhysics.Object);
+
+        // Bobbing at the surface next to a climbable ledge.
+        var motor = new DefaultPlayerMotor
+        {
+            SensorData = new SpatialSensorData
+            {
+                IsOnWaterSurface = true,
+                IsNextToClimbableLedge = true,
+                BlockBelow = new Block { Type = BlockType.Water }
+            }
+        };
+
+        // Act
+        motor.ApplyForces(entity, new MovementIntent { IsJumping = true }, 0.016f);
+
+        // Assert: the player should get a real upward impulse to climb out onto land,
+        // not be pinned at the surface by full gravity.
+        entity.Velocity.Y.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void ApplyForces_WhenJumpingOnOpenWaterSurface_ShouldNotApplyUpwardVelocity()
+    {
+        // Setup
+        var mockPhysics = new Mock<IPhysicsSystem>();
+        mockPhysics.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
+                   .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
+
+        var transform = new Transform { Position = new Vector3(0, 63.5f, 0) };
+        var entity = new PhysicsEntity(transform, mockPhysics.Object);
+
+        // Bobbing at the surface in open water, no ledge to climb onto.
+        var motor = new DefaultPlayerMotor
+        {
+            SensorData = new SpatialSensorData
+            {
+                IsOnWaterSurface = true,
+                IsNextToClimbableLedge = false,
+                BlockBelow = new Block { Type = BlockType.Water }
+            }
+        };
+
+        // Act: spamming jump in open water must not produce upward velocity
+        // (otherwise the player could "walk on water").
+        motor.ApplyForces(entity, new MovementIntent { IsJumping = true }, 0.016f);
+
+        // Assert
+        entity.Velocity.Y.Should().BeLessThanOrEqualTo(0);
+    }
+
+    [Fact]
     public void ApplyForces_ShouldApplyHorizontalMovement()
     {
         // Setup

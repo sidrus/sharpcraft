@@ -52,6 +52,10 @@ public static class Shaders
     public static readonly string SunVertex = LoadShader("Passes\\sun.vert");
     public static readonly string SunFragment = LoadShader("Passes\\sun.frag");
 
+    // Placed 3D torch models (textured box, emissive head).
+    public static readonly string TorchVertex = LoadShader("Passes\\torch.vert");
+    public static readonly string TorchFragment = LoadShader("Passes\\torch.frag");
+
     public static readonly string SkyboxVertex = LoadShader("Passes\\skybox.vert");
     public static readonly string SkyboxFragment = LoadShader("Passes\\skybox.frag");
 

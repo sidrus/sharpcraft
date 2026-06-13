@@ -50,6 +50,7 @@ public partial class Game : IDisposable
     private ShaderProgram? _mainShader;
     private ICamera? _camera;
     private LocalPlayerController? _playerController;
+    private TorchRenderer? _torchRenderer;
     private TextureAtlas? _atlas;
     private bool _useNormalMap = true;
     private bool _useAoMap = true;
@@ -376,9 +377,10 @@ public partial class Game : IDisposable
         _mainShader = new ShaderProgram(_gl, SharpCraft.Engine.Rendering.Shaders.Shaders.DefaultVertex, SharpCraft.Engine.Rendering.Shaders.Shaders.DefaultFragment);
         var terrainRenderer = new TerrainRenderer(_gl, cache, meshManager, _atlas, _sdk.Blocks, _mainShader);
         var waterRenderer = new WaterRenderer(_gl, cache, meshManager, _atlas);
+        _torchRenderer = new TorchRenderer(_gl);
         _postProcessingRenderer = new PostProcessingRenderer(_gl);
-        
-        _renderPipeline = new DefaultRenderPipeline(_gl, _world, cache, meshManager, terrainRenderer, waterRenderer, _postProcessingRenderer);
+
+        _renderPipeline = new DefaultRenderPipeline(_gl, _world, cache, meshManager, terrainRenderer, waterRenderer, _torchRenderer, _postProcessingRenderer);
 
         _worldTime = new WorldTime { DayDurationInMinutes = 5f };
         _lightSystem.WorldTime = _worldTime;
@@ -456,6 +458,11 @@ public partial class Game : IDisposable
             _window?.Close();
         }
 
+        if (key == Key.T)
+        {
+            PlaceTorch();
+        }
+
         var shift = _input.Keyboard.IsKeyPressed(Key.ShiftLeft) || _input.Keyboard.IsKeyPressed(Key.ShiftRight);
 
         if (shift)
@@ -480,6 +487,43 @@ public partial class Game : IDisposable
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// Places a torch on the block the player is currently standing on: a 3D torch model rises from
+    /// the block's top face, and a warm point light is registered so it illuminates the surroundings.
+    /// </summary>
+    private void PlaceTorch()
+    {
+        if (_torchRenderer == null || _playerController == null) return;
+
+        // Only place on a real surface — not mid-jump, and not over air/water/lava.
+        if (!_playerController.BlockBelow.IsSolid || _playerController.IsSwimming || _playerController.IsUnderwater)
+        {
+            return;
+        }
+
+        var p = _playerController.Entity.Position;
+
+        // The supporting block's top face sits at floor(feetY); centre the torch on that block column.
+        var basePos = new Vector3(
+            MathF.Floor(p.X) + 0.5f,
+            MathF.Floor(p.Y),
+            MathF.Floor(p.Z) + 0.5f);
+
+        _torchRenderer.AddTorch(basePos);
+
+        _lightSystem.AddPointLight(new PointLight
+        {
+            Position = basePos + new Vector3(0f, 0.55f, 0f), // at the flame
+            Color = new Vector3(1.0f, 0.55f, 0.2f),
+            Intensity = 3.0f,
+            Constant = 1.0f,
+            Linear = 0.18f,
+            Quadratic = 0.10f
+        });
+
+        LogTorchPlaced(basePos.X, basePos.Y, basePos.Z, _torchRenderer.Count);
     }
 
     public void Run()
@@ -547,4 +591,7 @@ public partial class Game : IDisposable
 
     [LoggerMessage(LogLevel.Error, "World update task failed")]
     partial void LogWorldUpdateTaskFailed(Exception ex);
+
+    [LoggerMessage(LogLevel.Information, "Placed torch at ({x}, {y}, {z}); {count} torch(es) total")]
+    partial void LogTorchPlaced(float x, float y, float z, int count);
 }

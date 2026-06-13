@@ -33,6 +33,13 @@ public record SpatialSensorData
     public bool IsOnWaterSurface { get; init; }
 
     /// <summary>
+    /// Gets a value indicating whether a solid, step-height ledge is adjacent that the
+    /// entity could climb onto from the water surface. Used to allow jumping out onto
+    /// land while still preventing the player from "walking on water" in open water.
+    /// </summary>
+    public bool IsNextToClimbableLedge { get; init; }
+
+    /// <summary>
     /// Gets the depth to which the entity is submerged in a fluid.
     /// </summary>
     public float SubmersionDepth { get; init; }

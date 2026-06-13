@@ -100,9 +100,9 @@ public class LocalPlayerControllerTests
     }
 
     [Fact]
-    public void Update_WhenJumpingFromDepth_ShouldBeAbleToReachAboveSurface()
+    public void Update_WhenHoldingSpaceInOpenWater_ShouldNotRiseAboveSurface()
     {
-        // Setup
+        // Setup: open water (Y=63 occupies 63.0 to 64.0), no land to climb onto.
         var world = new World(Mock.Of<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Mock.Of<IBlockRegistry>());
         for (var x = -5; x <= 5; x++)
         {
@@ -114,7 +114,7 @@ public class LocalPlayerControllerTests
 
         var mockCamera = new Mock<ICamera>();
         var mockPhysicsSystem = new Mock<IPhysicsSystem>();
-        
+
         // Entity starts at Y=62.5 (SubmersionDepth = 1.5m)
         var transform = new Transform { Position = new Vector3(0, 62.5f, 0) };
         var entity = new PhysicsEntity(transform, mockPhysicsSystem.Object);
@@ -127,7 +127,7 @@ public class LocalPlayerControllerTests
         mockPhysicsSystem.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
             .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
 
-        // Run updates until we reach peak height or timeout
+        // Run updates, tracking the highest point reached while holding jump.
         var maxObservedY = 62.5f;
         for (var i = 0; i < 100; i++)
         {
@@ -136,7 +136,54 @@ public class LocalPlayerControllerTests
             if (entity.Position.Y > maxObservedY) maxObservedY = entity.Position.Y;
         }
 
-        // Peak Y should be above 64.0 (surface) to allow jumping out onto land
+        // The player should swim up toward the surface...
+        maxObservedY.Should().BeGreaterThan(63.0f);
+        // ...but must NOT rise above the waterline (no "walking on water" by holding jump).
+        maxObservedY.Should().BeLessThan(64.0f);
+    }
+
+    [Fact]
+    public void Update_WhenJumpingNextToLedge_ShouldClimbAboveSurface()
+    {
+        // Setup: water at Y=63, with a solid block at the waterline the player can climb onto.
+        var world = new World(Mock.Of<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Mock.Of<IBlockRegistry>());
+        for (var x = -5; x <= 5; x++)
+        {
+            for (var z = -5; z <= 5; z++)
+            {
+                world.SetBlock(x, 63, z, BlockType.Water);
+            }
+        }
+
+        // A solid ledge directly beside the player (foot level water block replaced with stone,
+        // open air above it) — something to climb out onto.
+        world.SetBlock(1, 63, 0, BlockType.Stone);
+
+        var mockCamera = new Mock<ICamera>();
+        var mockPhysicsSystem = new Mock<IPhysicsSystem>();
+
+        // Entity starts at Y=62.5 (submerged) next to the ledge.
+        var transform = new Transform { Position = new Vector3(0, 62.5f, 0) };
+        var entity = new PhysicsEntity(transform, mockPhysicsSystem.Object);
+        var mockInput = new Mock<IInputProvider>();
+        mockInput.Setup(i => i.GetMovementIntent(It.IsAny<Vector3>(), It.IsAny<Vector3>()))
+            .Returns(new MovementIntent(Vector3.Zero, true, false, false));
+
+        var controller = new LocalPlayerController(entity, mockCamera.Object, world, mockInput.Object);
+
+        mockPhysicsSystem.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
+            .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
+
+        // Run updates until we reach peak height or timeout.
+        var maxObservedY = 62.5f;
+        for (var i = 0; i < 100; i++)
+        {
+            controller.OnUpdate(0.016f);
+            controller.OnFixedUpdate(0.016f);
+            if (entity.Position.Y > maxObservedY) maxObservedY = entity.Position.Y;
+        }
+
+        // With a ledge to climb onto, the jump should carry the player above the surface.
         maxObservedY.Should().BeGreaterThan(64.0f);
     }
 
