@@ -27,7 +27,7 @@ public sealed unsafe class ShaderStorageBuffer : IDisposable
     /// <summary>Reserve (and zero) <paramref name="sizeBytes"/> of storage.</summary>
     public void Allocate(nuint sizeBytes)
     {
-        _gl.NamedBufferData(_handle, sizeBytes, null, VertexBufferObjectUsage.DynamicDraw);
+        _gl.NamedBufferData(_handle, sizeBytes, null, BufferUsageARB.DynamicDraw);
         _capacity = sizeBytes;
     }
 
@@ -39,7 +39,7 @@ public sealed unsafe class ShaderStorageBuffer : IDisposable
         {
             if (bytes > _capacity)
             {
-                _gl.NamedBufferData(_handle, bytes, p, VertexBufferObjectUsage.DynamicDraw);
+                _gl.NamedBufferData(_handle, bytes, p, BufferUsageARB.DynamicDraw);
                 _capacity = bytes;
             }
             else if (bytes > 0)

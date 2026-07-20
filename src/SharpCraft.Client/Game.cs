@@ -191,7 +191,7 @@ public partial class Game : IDisposable
 
     private void OnRender(double deltaTime)
     {
-        if (_window is null || _renderPipeline is null || _camera is null || _gl is null)
+        if (_window is null || _renderPipeline is null || _camera is null || _gl is null || _hudManager is null)
         {
             return;
         }
@@ -345,7 +345,7 @@ public partial class Game : IDisposable
             }
         }
 
-        _avatarLoader = new AvatarLoader(_window, _gl);
+        _avatarLoader = new AvatarLoader(_gl);
         _avatarLoader.LoadSteamAvatar().Wait();
         _diagnosticsManager = new DiagnosticsManager();
         if (_hudManager.Settings != null)

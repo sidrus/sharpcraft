@@ -1,11 +1,10 @@
 ﻿using SharpCraft.Sdk.UI;
 using Silk.NET.OpenGL;
-using Silk.NET.Windowing;
 using Steamworks;
 
 namespace SharpCraft.Client.Integrations.Steam;
 
-public class AvatarLoader(IWindow window, GL gl) : IDisposable, IAvatarProvider
+public class AvatarLoader(GL gl) : IDisposable, IAvatarProvider
 {
     public uint? AvatarTexture { get; private set; }
 

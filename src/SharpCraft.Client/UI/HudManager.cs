@@ -265,7 +265,7 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
         public void OnUpdate(double deltaTime) { }
 
         public bool IsVisible { get; set; }
-        public event Action? OnVisibilityChanged;
+        public event Action? OnVisibilityChanged { add { } remove { } }
         public bool VSync { get; set; }
 
         // Display Settings (Photoreal Defaults)

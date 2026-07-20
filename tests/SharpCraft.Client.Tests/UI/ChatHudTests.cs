@@ -76,7 +76,7 @@ public class ChatHudTests
         chatHud.Draw(0, mockGui, mockContext);
 
         // Assert
-        mockGui.Received(1).TextWrapped(Arg.Is<string>(s => s.Contains("Unknown command: unknown")));
+        mockGui.Received(1).TextWrapped(Arg.Is<string>(s => s != null && s.Contains("Unknown command: unknown")));
     }
 
     [Fact]

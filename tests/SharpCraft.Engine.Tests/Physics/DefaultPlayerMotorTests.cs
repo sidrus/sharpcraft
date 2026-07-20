@@ -17,7 +17,7 @@ public class DefaultPlayerMotorTests
         // Setup
         var mockPhysics = Substitute.For<IPhysicsSystem>();
         mockPhysics.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
-                   .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
+                   .Returns(ci => ci.ArgAt<Vector3>(0) + ci.ArgAt<Vector3>(1));
 
         var transform = new Transform { Position = new Vector3(0, 10, 0) };
         var entity = new PhysicsEntity(transform, mockPhysics);
@@ -41,7 +41,7 @@ public class DefaultPlayerMotorTests
         // Setup
         var mockPhysics = Substitute.For<IPhysicsSystem>();
         mockPhysics.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
-                   .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
+                   .Returns(ci => ci.ArgAt<Vector3>(0) + ci.ArgAt<Vector3>(1));
 
         var transform = new Transform { Position = new Vector3(0, 10, 0) };
         var entity = new PhysicsEntity(transform, mockPhysics);
@@ -63,7 +63,7 @@ public class DefaultPlayerMotorTests
         // Setup
         var mockPhysics = Substitute.For<IPhysicsSystem>();
         mockPhysics.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
-                   .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
+                   .Returns(ci => ci.ArgAt<Vector3>(0) + ci.ArgAt<Vector3>(1));
 
         var transform = new Transform { Position = new Vector3(0, 1, 0) };
         var entity = new PhysicsEntity(transform, mockPhysics);
@@ -92,7 +92,7 @@ public class DefaultPlayerMotorTests
         // Setup
         var mockPhysics = Substitute.For<IPhysicsSystem>();
         mockPhysics.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
-                   .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
+                   .Returns(ci => ci.ArgAt<Vector3>(0) + ci.ArgAt<Vector3>(1));
 
         var transform = new Transform { Position = new Vector3(0, 63.5f, 0) };
         var entity = new PhysicsEntity(transform, mockPhysics);
@@ -122,7 +122,7 @@ public class DefaultPlayerMotorTests
         // Setup
         var mockPhysics = Substitute.For<IPhysicsSystem>();
         mockPhysics.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
-                   .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
+                   .Returns(ci => ci.ArgAt<Vector3>(0) + ci.ArgAt<Vector3>(1));
 
         var transform = new Transform { Position = new Vector3(0, 63.5f, 0) };
         var entity = new PhysicsEntity(transform, mockPhysics);
@@ -152,7 +152,7 @@ public class DefaultPlayerMotorTests
         // Setup
         var mockPhysics = Substitute.For<IPhysicsSystem>();
         mockPhysics.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
-                   .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
+                   .Returns(ci => ci.ArgAt<Vector3>(0) + ci.ArgAt<Vector3>(1));
 
         var transform = new Transform { Position = new Vector3(0, 10, 0) };
         var entity = new PhysicsEntity(transform, mockPhysics);
@@ -173,7 +173,7 @@ public class DefaultPlayerMotorTests
         // Setup
         var mockPhysics = Substitute.For<IPhysicsSystem>();
         mockPhysics.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
-                   .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
+                   .Returns(ci => ci.ArgAt<Vector3>(0) + ci.ArgAt<Vector3>(1));
 
         var motor = new DefaultPlayerMotor();
         var deltaTime = 1.0f;

@@ -30,7 +30,7 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
     /// <summary>
     /// Gets the mesh for opaque blocks.
     /// </summary>
-    public ChunkMesh OpaqueMesh { get; private set; }
+    public ChunkMesh OpaqueMesh { get; private set; } = new();
 
     /// <inheritdoc />
     IChunkMesh IChunk.OpaqueMesh => OpaqueMesh;
@@ -38,7 +38,7 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
     /// <summary>
     /// Gets the mesh for transparent blocks.
     /// </summary>
-    public ChunkMesh TransparentMesh { get; private set; }
+    public ChunkMesh TransparentMesh { get; private set; } = new();
 
     /// <inheritdoc />
     IChunkMesh IChunk.TransparentMesh => TransparentMesh;

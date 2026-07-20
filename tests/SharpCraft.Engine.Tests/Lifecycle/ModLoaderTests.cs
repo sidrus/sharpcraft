@@ -11,8 +11,11 @@ namespace SharpCraft.Engine.Tests.Lifecycle;
 
 public class ModLoaderTests
 {
-    public class TestMod(ISharpCraftSdk sdk) : IMod
+    public class TestMod : IMod
     {
+        // Reflection-loaded via Activator.CreateInstance(type, sdk); the SDK is unused here.
+        public TestMod(ISharpCraftSdk sdk) => _ = sdk;
+
         public ModManifest Manifest => new(
             Id: "testmod",
             Name: "Test Mod",

@@ -44,7 +44,7 @@ public class LocalPlayerControllerTests
 
         // Mock MoveAndResolve to just apply movement
         mockPhysicsSystem.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
-            .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
+            .Returns(ci => ci.ArgAt<Vector3>(0) + ci.ArgAt<Vector3>(1));
 
         // Run several updates
         var deltaTime = 0.016f;
@@ -88,7 +88,7 @@ public class LocalPlayerControllerTests
         var controller = new LocalPlayerController(entity, mockCamera, world, mockInput);
 
         mockPhysicsSystem.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
-            .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
+            .Returns(ci => ci.ArgAt<Vector3>(0) + ci.ArgAt<Vector3>(1));
 
         // Run one update
         controller.OnUpdate(0.016f);
@@ -125,7 +125,7 @@ public class LocalPlayerControllerTests
         var controller = new LocalPlayerController(entity, mockCamera, world, mockInput);
 
         mockPhysicsSystem.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
-            .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
+            .Returns(ci => ci.ArgAt<Vector3>(0) + ci.ArgAt<Vector3>(1));
 
         // Run updates, tracking the highest point reached while holding jump.
         var maxObservedY = 62.5f;
@@ -172,7 +172,7 @@ public class LocalPlayerControllerTests
         var controller = new LocalPlayerController(entity, mockCamera, world, mockInput);
 
         mockPhysicsSystem.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
-            .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
+            .Returns(ci => ci.ArgAt<Vector3>(0) + ci.ArgAt<Vector3>(1));
 
         // Run updates until we reach peak height or timeout.
         var maxObservedY = 62.5f;

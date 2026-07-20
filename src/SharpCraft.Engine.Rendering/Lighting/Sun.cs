@@ -52,10 +52,8 @@ public class Sun(IWorldTime worldTime, ILightingSystem lightingSystem) : ILifecy
         // 6:30 PM is darkness (2PI + PI/24)
         
         const float twilightStart = MathF.PI - (MathF.PI / 8.0f); // ~4:30 AM
-        const float sunrise = MathF.PI;
         const float fullDayStart = MathF.PI + (MathF.PI / 12.0f);
         const float fullDayEnd = (MathF.PI * 2.0f) - (MathF.PI / 12.0f);
-        const float sunset = MathF.PI * 2.0f;
         const float twilightEnd = (MathF.PI * 2.0f) + (MathF.PI / 8.0f); // ~7:30 PM
         
         if (normalizedAngle >= twilightStart && normalizedAngle < fullDayStart)
