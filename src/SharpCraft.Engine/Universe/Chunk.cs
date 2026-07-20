@@ -87,7 +87,7 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
     {
         if (x < 0 || x >= Size || y < 0 || y >= Height || z < 0 || z >= Size)
         {
-            return new Block(BlockType.Air);
+            return Block.Air;
         }
 
         _blockLock.EnterReadLock();
@@ -102,13 +102,20 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
     }
 
     /// <summary>
-    /// Sets the block type at the specified local coordinates.
+    /// Sets the block at the specified local coordinates, resolving its id and flags from the registry.
     /// </summary>
     /// <param name="x">Local X [0, Size-1].</param>
     /// <param name="y">Local Y [0, Height-1].</param>
     /// <param name="z">Local Z [0, Size-1].</param>
-    /// <param name="type">The new block type.</param>
-    public void SetBlock(int x, int y, int z, BlockType type)
+    /// <param name="blockId">The block's resource location.</param>
+    public void SetBlock(int x, int y, int z, ResourceLocation blockId)
+    {
+        var id = blockRegistry.GetId(blockId);
+        var flags = blockRegistry.GetById(id)?.Flags ?? BlockFlags.None;
+        SetBlock(x, y, z, new Block(id, flags));
+    }
+
+    private void SetBlock(int x, int y, int z, Block block)
     {
         if (x < 0 || x >= Size || y < 0 || y >= Height || z < 0 || z >= Size)
         {
@@ -118,7 +125,7 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
         _blockLock.EnterWriteLock();
         try
         {
-            _blocks[x, y, z] = new Block(type);
+            _blocks[x, y, z] = block;
             Volatile.Write(ref _isDirtyBacking, 1);
         }
         finally
@@ -127,39 +134,15 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
         }
     }
 
-    /// <inheritdoc />
-    public void SetBlock(int x, int y, int z, ResourceLocation blockId)
-    {
-        if (blockRegistry.TryGet(blockId, out var definition))
-        {
-            SetBlock(x, y, z, definition!.Type);
-        }
-        else
-        {
-            // Fallback for common IDs if not in registry yet (or just set to Air)
-            var fallback = blockId.ToString().ToLower() switch
-            {
-                "sharpcraft:dirt" => BlockType.Dirt,
-                "sharpcraft:grass" => BlockType.Grass,
-                "sharpcraft:stone" => BlockType.Stone,
-                "sharpcraft:sand" => BlockType.Sand,
-                "sharpcraft:water" => BlockType.Water,
-                "sharpcraft:bedrock" => BlockType.Bedrock,
-                _ => BlockType.Air
-            };
-            SetBlock(x, y, z, fallback);
-        }
-    }
-
     /// <summary>
-    /// A delegate that resolves UV coordinates for a block type and face direction.
+    /// A delegate that resolves UV coordinates for a block id and face direction.
     /// </summary>
-    public delegate void UvResolver(BlockType type, Direction dir, Span<float> uvs);
+    public delegate void UvResolver(ushort blockId, Direction dir, Span<float> uvs);
 
     /// <inheritdoc />
     void IChunk.GenerateMesh(IWorld world, IChunk.UvResolver uvResolver)
     {
-        GenerateMesh(world, (BlockType type, Direction dir, Span<float> uvs) => uvResolver(type, dir, uvs));
+        GenerateMesh(world, (ushort blockId, Direction dir, Span<float> uvs) => uvResolver(blockId, dir, uvs));
     }
 
     /// <summary>
@@ -199,7 +182,7 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
                 for (var z = 0; z < Size; z++)
                 {
                     var block = blockSnapshot[x, y, z];
-                    if (block.Type == BlockType.Air) continue;
+                    if (block.IsAir) continue;
 
                     var isTransparent = block.IsTransparent;
                     var vList = isTransparent ? transparentVerts : opaqueVerts;
@@ -207,22 +190,22 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
                     ref var offset = ref isTransparent ? ref transparentIndexOffset : ref opaqueIndexOffset;
 
                     if (ShouldRenderFace(blockSnapshot, world, x, y, z - 1, isTransparent)) // North (-Z)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.North, block.Type, uvResolver);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.North, block.Id, uvResolver);
 
                     if (ShouldRenderFace(blockSnapshot, world, x, y, z + 1, isTransparent)) // South (+Z)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.South, block.Type, uvResolver);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.South, block.Id, uvResolver);
 
                     if (ShouldRenderFace(blockSnapshot, world, x + 1, y, z, isTransparent)) // East (+X)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.East, block.Type, uvResolver);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.East, block.Id, uvResolver);
 
                     if (ShouldRenderFace(blockSnapshot, world, x - 1, y, z, isTransparent)) // West (-X)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.West, block.Type, uvResolver);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.West, block.Id, uvResolver);
 
                     if (ShouldRenderFace(blockSnapshot, world, x, y + 1, z, isTransparent)) // Up (+Y)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.Up, block.Type, uvResolver);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.Up, block.Id, uvResolver);
 
                     if (ShouldRenderFace(blockSnapshot, world, x, y - 1, z, isTransparent)) // Down (-Y)
-                        AddFace(vList, iList, ref offset, x, y, z, Direction.Down, block.Type, uvResolver);
+                        AddFace(vList, iList, ref offset, x, y, z, Direction.Down, block.Id, uvResolver);
                 }
             }
         }
@@ -245,7 +228,7 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
         if (x is >= 0 and < Size && y is >= 0 and < Height && z is >= 0 and < Size)
         {
             var neighbor = blocks[x, y, z];
-            if (neighbor.Type == BlockType.Air) return true;
+            if (neighbor.IsAir) return true;
 
             // Water only renders faces exposed to air (top + shoreline edges). It does NOT render an
             // underside against the solid bed — that dark downward face is what showed through clear
@@ -265,13 +248,13 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
         if (y is < 0 or >= Height) return true;
 
         var neighborBlock = world.GetBlock(worldX, y, worldZ);
-        if (neighborBlock.Type == BlockType.Air) return true;
+        if (neighborBlock.IsAir) return true;
         if (currentIsTransparent) return false;
         return neighborBlock.IsTransparent;
     }
 
     private static void AddFace(List<float> vertices, List<uint> indices, ref uint offset,
-        int x, int y, int z, Direction dir, BlockType type, UvResolver uvResolver)
+        int x, int y, int z, Direction dir, ushort blockId, UvResolver uvResolver)
     {
         // Two triangles per face
         indices.Add(offset);
@@ -329,7 +312,7 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
 
         // Texture data
         Span<float> uvs = stackalloc float[8];
-        uvResolver(type, dir, uvs);
+        uvResolver(blockId, dir, uvs);
 
         // Normals
         float nx = 0, ny = 0, nz = 0;

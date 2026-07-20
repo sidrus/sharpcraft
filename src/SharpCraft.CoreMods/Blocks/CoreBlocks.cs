@@ -1,16 +1,26 @@
-﻿using SharpCraft.Sdk.Blocks;
+using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Resources;
 
 namespace SharpCraft.CoreMods.Blocks;
 
 public static class CoreBlocks
 {
+    private static readonly FluidProperties WaterFluid = new(
+        Density: 1000f,
+        Friction: 0.15f,
+        BuoyantGravity: -2.0f,
+        SwimUpVelocity: 2.0f,
+        DeepSwimUpVelocity: 4.0f,
+        DeepSwimDepth: 0.8f,
+        SwimDownVelocity: -2.0f,
+        SpeedMultiplier: 0.5f);
+
     public static readonly BlockDefinition[] Definitions =
     [
         new(
             "sharpcraft:grass",
             "Grass",
-            Type: BlockType.Grass,
+            Friction: 0.5f,
             TextureTop: new ResourceLocation(CoreMod.Namespace, "grass_top"),
             TextureBottom: new ResourceLocation(CoreMod.Namespace, "dirt"),
             TextureSides: new ResourceLocation(CoreMod.Namespace, "grass_side")
@@ -18,31 +28,31 @@ public static class CoreBlocks
         new(
             "sharpcraft:dirt",
             "Dirt",
-            Type: BlockType.Dirt,
+            Friction: 0.5f,
             TextureSides: new ResourceLocation(CoreMod.Namespace, "dirt")
         ),
         new(
             "sharpcraft:stone",
             "Stone",
-            Type: BlockType.Stone,
+            Friction: 0.5f,
             TextureSides: new ResourceLocation(CoreMod.Namespace, "stone")
         ),
         new(
             "sharpcraft:sand",
             "Sand",
-            Type: BlockType.Sand,
             TextureSides: new ResourceLocation(CoreMod.Namespace, "sand")
         ),
         new(
             "sharpcraft:water",
             "Water",
-            Type: BlockType.Water,
+            IsSolid: false,
+            IsTransparent: true,
+            Fluid: WaterFluid,
             TextureSides: new ResourceLocation(CoreMod.Namespace, "water")
         ),
         new(
             "sharpcraft:bedrock",
             "Bedrock",
-            Type: BlockType.Bedrock,
             TextureSides: new ResourceLocation(CoreMod.Namespace, "bedrock")
         )
     ];

@@ -51,11 +51,11 @@ public class GeospatialSensor
             (int)Math.Floor(pos.Y + 0.5f),
             (int)Math.Floor(pos.Z));
 
-        var isUnderwater = blockAbove.IsWater;
-        var isSwimming = isUnderwater || blockAtMid.IsWater;
-        var isOnWaterSurface = blockBelow.IsWater && !isSwimming;
-        var isFlying = blockAbove.Type == BlockType.Air && blockBelow.Type == BlockType.Air;
-        var isGrounded = blockBelow.IsSolid && blockAbove.Type == BlockType.Air;
+        var isSubmerged = blockAbove.IsFluid;
+        var isSwimming = isSubmerged || blockAtMid.IsFluid;
+        var isOnFluidSurface = blockBelow.IsFluid && !isSwimming;
+        var isFlying = blockAbove.IsAir && blockBelow.IsAir;
+        var isGrounded = blockBelow.IsSolid && blockAbove.IsAir;
 
         // Calculate SubmersionDepth (how deep the feet are into water)
         // Water surface is at floor(Y) + 1.0 if the block at floor(Y) is water.
@@ -64,11 +64,11 @@ public class GeospatialSensor
         var blockAtFeet = collisionProvider.GetBlock((int)Math.Floor(pos.X), currentBlockY, (int)Math.Floor(pos.Z));
 
         var submersionDepth = 0f;
-        if (blockAtFeet.IsWater)
+        if (blockAtFeet.IsFluid)
         {
             submersionDepth = (currentBlockY + 1) - pos.Y;
         }
-        else if (collisionProvider.GetBlock((int)Math.Floor(pos.X), currentBlockY - 1, (int)Math.Floor(pos.Z)).IsWater)
+        else if (collisionProvider.GetBlock((int)Math.Floor(pos.X), currentBlockY - 1, (int)Math.Floor(pos.Z)).IsFluid)
         {
             // If feet are just above water (e.g. at 64.04), depth is negative
             submersionDepth = currentBlockY - pos.Y;
@@ -82,7 +82,7 @@ public class GeospatialSensor
         // space above it to stand in. This lets the player hop out of the water onto
         // land, while open water (no such neighbour) still can't be walked on.
         var isNextToClimbableLedge = false;
-        if (isOnWaterSurface)
+        if (isOnFluidSurface)
         {
             var blockX = (int)Math.Floor(pos.X);
             var blockZ = (int)Math.Floor(pos.Z);
@@ -103,11 +103,12 @@ public class GeospatialSensor
         {
             BlockBelow = blockBelow,
             BlockAbove = blockAbove,
-            IsUnderwater = isUnderwater,
+            BlockAtMid = blockAtMid,
+            IsSubmerged = isSubmerged,
             IsSwimming = isSwimming,
             IsFlying = isFlying,
             IsGrounded = isGrounded,
-            IsOnWaterSurface = isOnWaterSurface,
+            IsOnFluidSurface = isOnFluidSurface,
             IsNextToClimbableLedge = isNextToClimbableLedge,
             SubmersionDepth = submersionDepth,
         };

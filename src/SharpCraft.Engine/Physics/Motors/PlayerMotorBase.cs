@@ -24,6 +24,11 @@ public abstract class PlayerMotorBase : IMotor
     public GeospatialSensorData? SensorData { get; set; }
 
     /// <summary>
+    /// Gets or sets the material properties (ground friction, current fluid) of those surroundings.
+    /// </summary>
+    public MaterialSensorData? Material { get; set; }
+
+    /// <summary>
     /// Gets the friction coefficient the motor applied on its last pass.
     /// </summary>
     public float Friction { get; protected set; } = PhysicsConstants.AirFriction;

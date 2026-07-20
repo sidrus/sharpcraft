@@ -11,19 +11,9 @@ public static class PhysicsConstants
     public const float DefaultGravity = -9.81f;
 
     /// <summary>
-    /// The gravity acceleration in water, accounting for buoyancy (m/s^2).
-    /// </summary>
-    public const float WaterGravity = -2.0f;
-
-    /// <summary>
     /// The density of air at sea level (kg/m^3).
     /// </summary>
     public const float AirDensity = 1.225f;
-
-    /// <summary>
-    /// The density of pure water (kg/m^3).
-    /// </summary>
-    public const float WaterDensity = 1000f;
 
     /// <summary>
     /// Default drag coefficient for a human-like entity.
@@ -49,11 +39,6 @@ public static class PhysicsConstants
     /// Default friction coefficient in air.
     /// </summary>
     public const float AirFriction = 0.05f;
-
-    /// <summary>
-    /// Default friction coefficient in water.
-    /// </summary>
-    public const float WaterFriction = 0.15f;
 
     /// <summary>
     /// Default friction coefficient when flying.

@@ -18,7 +18,7 @@ public sealed class WalkingMotor : PlayerMotorBase
         var blockBelow = SensorData?.BlockBelow ?? default;
         var canJump = isGrounded && blockBelow.IsSolid;
 
-        Friction = canJump ? blockBelow.Friction : PhysicsConstants.AirFriction;
+        Friction = canJump ? (Material?.GroundFriction ?? PhysicsConstants.AirFriction) : PhysicsConstants.AirFriction;
 
         var speed = GetBaseSpeed(intent);
         var gravity = PhysicsConstants.DefaultGravity;

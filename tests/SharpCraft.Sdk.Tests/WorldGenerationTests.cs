@@ -1,4 +1,6 @@
 using AwesomeAssertions;
+using SharpCraft.Engine;
+using SharpCraft.Engine.Blocks;
 using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
@@ -35,23 +37,29 @@ public class WorldGenerationTests
     {
         // Arrange
         var sdkGenerator = new FlatWorldGenerator();
-        var blockRegistry = Substitute.For<IBlockRegistry>();
+        var bedrock = new ResourceLocation("sharpcraft", "bedrock");
+        var stone = new ResourceLocation("sharpcraft", "stone");
+        var grass = new ResourceLocation("sharpcraft", "grass");
+        var blockRegistry = new BlockRegistry();
+        blockRegistry.Register(bedrock, new BlockDefinition(bedrock, "Bedrock"));
+        blockRegistry.Register(stone, new BlockDefinition(stone, "Stone"));
+        blockRegistry.Register(grass, new BlockDefinition(grass, "Grass"));
         var chunk = new Chunk(new Vector2<int>(0, 0), blockRegistry);
 
         // Act
         sdkGenerator.GenerateChunk(chunk, 12345);
 
         // Assert
-        chunk.GetBlock(0, 0, 0).Type.Should().Be(BlockType.Bedrock);
-        chunk.GetBlock(0, 1, 0).Type.Should().Be(BlockType.Stone);
-        chunk.GetBlock(0, 4, 0).Type.Should().Be(BlockType.Grass);
-        chunk.GetBlock(0, 5, 0).Type.Should().Be(BlockType.Air);
+        chunk.GetBlock(0, 0, 0).Id.Should().Be(blockRegistry.GetId(bedrock));
+        chunk.GetBlock(0, 1, 0).Id.Should().Be(blockRegistry.GetId(stone));
+        chunk.GetBlock(0, 4, 0).Id.Should().Be(blockRegistry.GetId(grass));
+        chunk.GetBlock(0, 5, 0).IsAir.Should().BeTrue();
     }
 
     [Fact]
     public void WorldGenerationRegistry_ShouldRegisterGenerator()
     {
-        var registry = new WorldGenerationRegistry();
+        var registry = new Registry<IWorldGenerator>();
         var generator = new FlatWorldGenerator();
 
         registry.Register("test:flat", generator);
@@ -62,7 +70,7 @@ public class WorldGenerationTests
     [Fact]
     public void WorldGenerationRegistry_TryGet_ShouldReturnTrueIfFound()
     {
-        var registry = new WorldGenerationRegistry();
+        var registry = new Registry<IWorldGenerator>();
         var generator = new FlatWorldGenerator();
         registry.Register("test:flat", generator);
 
@@ -75,7 +83,7 @@ public class WorldGenerationTests
     [Fact]
     public void WorldGenerationRegistry_TryGet_ShouldReturnFalseIfNotFound()
     {
-        var registry = new WorldGenerationRegistry();
+        var registry = new Registry<IWorldGenerator>();
 
         var result = registry.TryGet("test:nonexistent", out var found);
 
@@ -86,7 +94,7 @@ public class WorldGenerationTests
     [Fact]
     public void WorldGenerationRegistry_All_ShouldReturnAllRegisteredGenerators()
     {
-        var registry = new WorldGenerationRegistry();
+        var registry = new Registry<IWorldGenerator>();
         var generator1 = new FlatWorldGenerator();
         var generator2 = new FlatWorldGenerator();
         registry.Register("test:1", generator1);
@@ -100,7 +108,7 @@ public class WorldGenerationTests
     [Fact]
     public void WorldGenerationRegistry_RegisterDuplicate_ShouldThrow()
     {
-        var registry = new WorldGenerationRegistry();
+        var registry = new Registry<IWorldGenerator>();
         var generator = new FlatWorldGenerator();
         registry.Register("test:flat", generator);
 

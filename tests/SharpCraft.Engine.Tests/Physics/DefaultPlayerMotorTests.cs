@@ -11,6 +11,10 @@ namespace SharpCraft.Engine.Tests.Physics;
 
 public class DefaultPlayerMotorTests
 {
+    private static readonly FluidProperties Water = new(1000f, 0.15f, -2f, 2f, 4f, 0.8f, -2f, 0.5f);
+    private static readonly Block SolidBlock = new(1, BlockFlags.Solid);
+    private static readonly Block FluidBlock = new(2, BlockFlags.Fluid | BlockFlags.Transparent);
+
     [Fact]
     public void ApplyForces_ShouldApplyGravity()
     {
@@ -74,7 +78,7 @@ public class DefaultPlayerMotorTests
             SensorData = new GeospatialSensorData
             {
                 IsGrounded = true,
-                BlockBelow = new Block { Type = BlockType.Stone } // Solid block
+                BlockBelow = SolidBlock
             }
         };
 
@@ -102,10 +106,11 @@ public class DefaultPlayerMotorTests
         {
             SensorData = new GeospatialSensorData
             {
-                IsOnWaterSurface = true,
+                IsOnFluidSurface = true,
                 IsNextToClimbableLedge = true,
-                BlockBelow = new Block { Type = BlockType.Water }
-            }
+                BlockBelow = FluidBlock
+            },
+            Material = new MaterialSensorData { Fluid = Water }
         };
 
         // Act
@@ -132,10 +137,11 @@ public class DefaultPlayerMotorTests
         {
             SensorData = new GeospatialSensorData
             {
-                IsOnWaterSurface = true,
+                IsOnFluidSurface = true,
                 IsNextToClimbableLedge = false,
-                BlockBelow = new Block { Type = BlockType.Water }
-            }
+                BlockBelow = FluidBlock
+            },
+            Material = new MaterialSensorData { Fluid = Water }
         };
 
         // Act: spamming jump in open water must not produce upward velocity

@@ -13,9 +13,10 @@ using SharpCraft.Sdk.Universe;
 
 namespace SharpCraft.Client.Controllers;
 
-public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World world, IInputProvider inputProvider) : IPlayer
+public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World world, IInputProvider inputProvider, IBlockRegistry blocks) : IPlayer
 {
     private readonly GeospatialSensor _sensor = new();
+    private readonly MaterialSensor _material = new(blocks);
     private readonly DefaultPlayerMotor _motor = new();
 
     public Transform Transform => entity.Transform;
@@ -26,8 +27,8 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     public Block BlockBelow => _sensor.LastSense?.BlockBelow ?? default;
     public Block BlockAbove => _sensor.LastSense?.BlockAbove ?? default;
     public bool IsSwimming => _sensor.LastSense?.IsSwimming ?? false;
-    public bool IsUnderwater => _sensor.LastSense?.IsUnderwater ?? false;
-    public bool IsOnWaterSurface => _sensor.LastSense?.IsOnWaterSurface ?? false;
+    public bool IsUnderwater => _sensor.LastSense?.IsSubmerged ?? false;
+    public bool IsOnWaterSurface => _sensor.LastSense?.IsOnFluidSurface ?? false;
     public float SubmersionDepth => _sensor.LastSense?.SubmersionDepth ?? 0f;
 
     public bool IsFlying { get; set; }
@@ -84,6 +85,7 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
         var deltaTime = (float)fixedDeltaTime;
 
         _motor.SensorData = _sensor.LastSense;
+        _motor.Material = _sensor.LastSense is { } sense ? _material.Sense(sense) : null;
         _motor.ApplyForces(entity, _pendingIntent, deltaTime);
 
         entity.Update(deltaTime);

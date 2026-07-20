@@ -8,17 +8,15 @@ namespace SharpCraft.Engine.Tests.Physics;
 
 public class PhysicsSystemTests
 {
+    private static readonly Block Solid = new(1, BlockFlags.Solid);
+
     private class FakeCollisionProvider : ICollisionProvider
     {
-        public Dictionary<Vector3, BlockType> Blocks = new();
+        public Dictionary<Vector3, Block> Blocks = new();
 
         public Block GetBlock(int worldX, int worldY, int worldZ)
         {
-            if (Blocks.TryGetValue(new Vector3(worldX, worldY, worldZ), out var type))
-            {
-                return new Block { Type = type };
-            }
-            return new Block { Type = BlockType.Air };
+            return Blocks.TryGetValue(new Vector3(worldX, worldY, worldZ), out var block) ? block : Block.Air;
         }
     }
 
@@ -43,7 +41,7 @@ public class PhysicsSystemTests
         {
             Blocks =
             {
-                [new Vector3(11, 10, 10)] = BlockType.Stone
+                [new Vector3(11, 10, 10)] = Solid
             }
         };
         var system = new PhysicsSystem(world);
@@ -67,7 +65,7 @@ public class PhysicsSystemTests
         {
             Blocks =
             {
-                [new Vector3(10, 9, 10)] = BlockType.Stone
+                [new Vector3(10, 9, 10)] = Solid
             }
         };
         var system = new PhysicsSystem(world);
@@ -91,7 +89,7 @@ public class PhysicsSystemTests
         {
             Blocks =
             {
-                [new Vector3(10, 12, 10)] = BlockType.Stone
+                [new Vector3(10, 12, 10)] = Solid
             }
         };
         var system = new PhysicsSystem(world);

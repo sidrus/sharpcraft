@@ -46,7 +46,7 @@ public sealed class SkyboxRenderer : IDisposable
         _gl.BindVertexArray(0);
     }
 
-    public void Render(RenderContext context)
+    public void Render(RenderContext context, RenderTargets targets)
     {
         // Reversed-Z: the sky sits at the far plane (depth 0), so GEqual lets it pass where
         // it equals the cleared depth and lose to any nearer geometry (research §12.2).
@@ -78,7 +78,7 @@ public sealed class SkyboxRenderer : IDisposable
         _shader.SetUniform("atmosphereMieScale", context.AtmosphereMieScale);
         _shader.SetUniform("atmosphereOzoneScale", context.AtmosphereOzoneScale);
         _shader.SetUniform("atmosphereMieG", context.AtmosphereMieG);
-        _shader.SetUniform("InvViewProj", context.InvViewProj);
+        _shader.SetUniform("InvViewProj", targets.InvViewProj);
 
         _gl.BindVertexArray(_vao);
         _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);

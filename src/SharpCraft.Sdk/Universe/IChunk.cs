@@ -44,9 +44,9 @@ public interface IChunk : IDisposable
     Block GetBlock(int x, int y, int z);
 
     /// <summary>
-    /// A delegate that resolves UV coordinates for a block type and face direction.
+    /// A delegate that resolves UV coordinates for a block id and face direction.
     /// </summary>
-    delegate void UvResolver(BlockType type, Direction dir, Span<float> uvs);
+    delegate void UvResolver(ushort blockId, Direction dir, Span<float> uvs);
 
     /// <summary>
     /// Generates the visual meshes for the chunk.

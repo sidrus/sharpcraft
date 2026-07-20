@@ -3,7 +3,7 @@
 /// <summary>
 /// A dynamic texture atlas that aggregates textures from the asset registry.
 /// </summary>
-public class TextureAtlas(GL gl, IAssetRegistry assets) : IDisposable
+public class TextureAtlas(GL gl, IRegistry<TextureData> assets) : IDisposable, IAtlasUvs
 {
     private readonly Dictionary<ResourceLocation, (float U, float V, float Width, float Height)> _uvs = new();
     private Texture2d? _diffuseAtlas;

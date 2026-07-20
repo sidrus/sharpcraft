@@ -23,7 +23,7 @@ public class PitchClampingTests
         var camera = new FirstPersonCamera(entity, Vector3.Zero);
         var mockInput = Substitute.For<IInputProvider>();
         
-        var controller = new LocalPlayerController(entity, camera, world, mockInput);
+        var controller = new LocalPlayerController(entity, camera, world, mockInput, Substitute.For<IBlockRegistry>());
         
         // Act
         // Move mouse UP significantly (Pitch should increase)
@@ -50,7 +50,7 @@ public class PitchClampingTests
         var camera = new FirstPersonCamera(entity, Vector3.Zero);
         var mockInput = Substitute.For<IInputProvider>();
         
-        var controller = new LocalPlayerController(entity, camera, world, mockInput);
+        var controller = new LocalPlayerController(entity, camera, world, mockInput, Substitute.For<IBlockRegistry>());
         
         // Act
         mockInput.GetLookDelta().Returns(
@@ -75,7 +75,7 @@ public class PitchClampingTests
         var world = new World(Substitute.For<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Substitute.For<IBlockRegistry>());
         var camera = new FirstPersonCamera(entity, Vector3.Zero);
         var mockInput = Substitute.For<IInputProvider>();
-        var controller = new LocalPlayerController(entity, camera, world, mockInput);
+        var controller = new LocalPlayerController(entity, camera, world, mockInput, Substitute.For<IBlockRegistry>());
 
         // Act
         mockInput.GetLookDelta().Returns(new LookDelta(0, 45f));

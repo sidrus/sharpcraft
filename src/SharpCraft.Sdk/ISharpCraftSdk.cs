@@ -1,5 +1,6 @@
 ﻿using SharpCraft.Sdk.Assets;
 using SharpCraft.Sdk.Blocks;
+using SharpCraft.Sdk.Resources;
 using SharpCraft.Sdk.Messaging;
 using SharpCraft.Sdk.Commands;
 using SharpCraft.Sdk.Rendering;
@@ -16,7 +17,7 @@ public interface ISharpCraftSdk
     /// <summary>
     /// Gets the asset registry.
     /// </summary>
-    IAssetRegistry Assets { get; }
+    IRegistry<TextureData> Assets { get; }
 
     /// <summary>
     /// Gets the block registry.
@@ -36,7 +37,7 @@ public interface ISharpCraftSdk
     /// <summary>
     /// Gets the world and terrain generation registry.
     /// </summary>
-    IWorldGenerationRegistry World { get; }
+    IRegistry<IWorldGenerator> World { get; }
 
     /// <summary>
     /// Gets the HUD registry.

@@ -208,7 +208,7 @@ public partial class Game : IDisposable
         
         // We calculate this separately from the player controller's IsUnderwater to use the 
         // interpolated camera position for visual smoothness and to support different camera types.
-        var isUnderwater = block.IsWater;
+        var isUnderwater = block.IsFluid;
 
         var fogColor = isUnderwater ? new Vector3(0.0f, 0.4f, 0.8f) : new Vector3(0.53f, 0.81f, 0.92f);
         
@@ -336,21 +336,13 @@ public partial class Game : IDisposable
         _inputProvider = new KeyboardMouseInputProvider(inputContext);
 
 
-        _hudManager = new HudManager(_gl, _window, inputContext, _loggerFactory.CreateLogger<HudManager>());
-        _hudManager.InitializeAsync().Wait();
-        
-        // Register HUDs from the SDK registry (registered by mods)
-        if (_sdk.Huds is HudRegistry engineRegistry)
+        if (_sdk.Huds is not HudRegistry hudRegistry)
         {
-            foreach (var hud in engineRegistry.RegisteredHuds)
-            {
-                _hudManager.RegisterHud(hud);
-            }
-            foreach (var cb in engineRegistry.RegisteredCallbacks)
-            {
-                _hudManager.RegisterHud(cb.Name, cb.DrawAction);
-            }
+            throw new InvalidOperationException("Huds registry must be a HudRegistry.");
         }
+
+        _hudManager = new HudManager(_gl, _window, inputContext, hudRegistry, _loggerFactory.CreateLogger<HudManager>());
+        _hudManager.Initialize();
 
         _avatarLoader = new AvatarLoader(_gl);
         _avatarLoader.LoadSteamAvatar().Wait();
@@ -371,12 +363,13 @@ public partial class Game : IDisposable
         _atlas = new TextureAtlas(_gl, _sdk.Assets);
         _atlas.Build();
 
-        var meshManager = new ChunkMeshManager(_world, ResolveUvs, _loggerFactory.CreateLogger<ChunkMeshManager>());
+        var blockAtlas = new BlockAtlas(_atlas, _sdk.Blocks);
+        var meshManager = new ChunkMeshManager(_world, blockAtlas.ResolveUvs, _loggerFactory.CreateLogger<ChunkMeshManager>());
         var physics = new PhysicsSystem(_world);
         var entity = new PhysicsEntity(new Transform { Position = new Vector3(1, 65, -6) }, physics);
 
         _camera = new FirstPersonCamera(entity, Vector3.UnitY * 1.6f);
-        _playerController = new LocalPlayerController(entity, _camera, _world, _inputProvider);
+        _playerController = new LocalPlayerController(entity, _camera, _world, _inputProvider, _sdk.Blocks);
         
         var cache = new ChunkRenderCache(_gl);
         _mainShader = new ShaderProgram(_gl, SharpCraft.Engine.Rendering.Shaders.Shaders.DefaultVertex, SharpCraft.Engine.Rendering.Shaders.Shaders.DefaultFragment);
@@ -397,54 +390,6 @@ public partial class Game : IDisposable
         _lifecycleManager.Register(_sun);
 
         _lifecycleManager.Start();
-    }
-
-    private readonly ConcurrentDictionary<BlockType, BlockDefinition> _typeToDef = new();
-
-    private void ResolveUvs(BlockType type, Direction dir, Span<float> uvs)
-    {
-        if (_atlas == null) return;
-
-        if (!_typeToDef.TryGetValue(type, out var def))
-        {
-            foreach (var registered in _sdk.Blocks.All.Select(r => r.Value))
-            {
-                if (registered.Type != type)
-                {
-                    continue;
-                }
-
-                def = registered;
-                _typeToDef[type] = def;
-                break;
-            }
-        }
-
-        if (def == null)
-        {
-            // Default UVs
-            for (var i = 0; i < 8; i++) uvs[i] = 0;
-            return;
-        }
-
-        var loc = dir switch
-        {
-            Direction.Up => def.TextureTop ?? def.TextureSides,
-            Direction.Down => def.TextureBottom ?? def.TextureSides,
-            _ => def.TextureSides
-        };
-
-        if (loc is { } location && _atlas.TryGetUvs(location, out var uvRect))
-        {
-            uvs[0] = uvRect.U; uvs[1] = uvRect.V + uvRect.Height;
-            uvs[2] = uvRect.U + uvRect.Width; uvs[3] = uvRect.V + uvRect.Height;
-            uvs[4] = uvRect.U + uvRect.Width; uvs[5] = uvRect.V;
-            uvs[6] = uvRect.U; uvs[7] = uvRect.V;
-        }
-        else
-        {
-            for (var i = 0; i < 8; i++) uvs[i] = 0;
-        }
     }
 
     private void RegisterInputHandlers()

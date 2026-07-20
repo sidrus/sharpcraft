@@ -16,25 +16,28 @@ using Silk.NET.Windowing;
 
 namespace SharpCraft.Client.UI;
 
-public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
+public partial class HudManager : ILifecycle, IDisposable
 {
     private ImGuiController _controller;
     private readonly GL _gl;
     private readonly IWindow _window;
     private readonly IInputContext _input;
     private bool _disposed;
-    private readonly Dictionary<string, IHud> _huds = [];
+    private readonly HudRegistry _registry;
     private readonly IGui _gui;
     private readonly IGraphicsSettings _fallbackSettings = new DefaultGraphicsSettings();
+
+    private IReadOnlyList<IHud> Huds => _registry.RegisteredHuds;
 
     public IGraphicsSettings Settings => GetHud<IGraphicsSettings>() ?? _fallbackSettings;
     public ChatHud? Chat => GetHud<ChatHud>();
 
-    public HudManager(GL gl, IWindow window, IInputContext input, ILogger<HudManager> logger)
+    public HudManager(GL gl, IWindow window, IInputContext input, HudRegistry registry, ILogger<HudManager> logger)
     {
         _gl = gl;
         _window = window;
         _input = input;
+        _registry = registry;
         _controller = new ImGuiController(gl, window, input);
         _gui = new ImGuiGui();
         input.Keyboards[0].KeyUp += OnKeyUp;
@@ -44,46 +47,19 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
     {
     }
 
-    public async Task InitializeAsync()
+    public void Initialize()
     {
-        // These are client-specific HUDs that stay in the client for now
-        var chatHud = new ChatHud();
-        chatHud.OnVisibilityChanged += UpdateCursorMode;
-        RegisterHud(chatHud);
+        // Client-specific HUDs register into the same store the mods used.
+        _registry.RegisterHud(new ChatHud());
+        _registry.RegisterHud(new AtmosphereControlHud());
 
-        RegisterHud(new AtmosphereControlHud());
-        
-        UpdateCursorMode();
-
-        await Task.CompletedTask;
-    }
-
-    public void RegisterHud(string name, Action<double> drawAction)
-    {
-        RegisterHud(new SdkHudWrapper(name, drawAction));
-    }
-
-    public void RegisterHud(IHud hud)
-    {
-        _huds[hud.Name] = hud;
-        
-        if (hud is IInteractiveHud interactiveHud)
+        // Any HUD that can open a menu drives the cursor mode.
+        foreach (var interactiveHud in Huds.OfType<IInteractiveHud>())
         {
             interactiveHud.OnVisibilityChanged += UpdateCursorMode;
         }
-    }
 
-    private sealed class SdkHudWrapper(string name, Action<double> drawAction) : IHud
-    {
-        public string Name { get; } = name;
-
-        public void Draw(double deltaTime, IGui gui, IHudContext context)
-        {
-            drawAction(deltaTime);
-        }
-
-        public void OnAwake() { }
-        public void OnUpdate(double deltaTime) { }
+        UpdateCursorMode();
     }
 
     private void OnKeyUp(IKeyboard keyboard, Key key, int scancode)
@@ -94,11 +70,11 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
                 Settings.IsVisible = !Settings.IsVisible;
                 break;
             case Key.F4:
-                var devHud = _huds.Values.OfType<IInteractiveHud>().FirstOrDefault(h => h.Name == "DeveloperHud");
+                var devHud = Huds.OfType<IInteractiveHud>().FirstOrDefault(h => h.Name == "DeveloperHud");
                 if (devHud != null) devHud.IsVisible = !devHud.IsVisible;
                 break;
             case Key.F5:
-                var atmosHud = _huds.Values.OfType<IInteractiveHud>().FirstOrDefault(h => h.Name == "AtmosphereControl");
+                var atmosHud = Huds.OfType<IInteractiveHud>().FirstOrDefault(h => h.Name == "AtmosphereControl");
                 if (atmosHud != null) atmosHud.IsVisible = !atmosHud.IsVisible;
                 break;
         }
@@ -126,7 +102,7 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
     {
         var mouse = _input.Mice[0];
 
-        var isAnyMenuVisible = _huds.Values
+        var isAnyMenuVisible = Huds
             .OfType<IInteractiveHud>()
             .Any(h => h.IsVisible);
         
@@ -145,7 +121,7 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
     {
         var mouse = _input.Mice[0];
         
-        var isAnyMenuVisible = _huds.Values
+        var isAnyMenuVisible = Huds
             .OfType<IInteractiveHud>()
             .Any(h => h.IsVisible);
         
@@ -162,7 +138,7 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
 
     public event Action? OnCursorModeChanged;
 
-    private T? GetHud<T>() where T : class => _huds.Values
+    private T? GetHud<T>() where T : class => Huds
         .OfType<T>()
         .FirstOrDefault();
 
@@ -178,7 +154,7 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
             }
         }
 
-        foreach (var hud in _huds.Values)
+        foreach (var hud in Huds)
         {
             hud.OnUpdate(deltaTime);
         }
@@ -214,7 +190,7 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
         _controller.Update((float)deltaTime);
 
         var context = new HudContext(_world, _player, _meshManager, _lighting, _postProcessing, _sdk, _mods, _avatar, _diagnostics);
-        foreach (var hud in _huds.Values)
+        foreach (var hud in Huds)
         {
             hud.Draw(deltaTime, _gui, context);
         }
@@ -244,7 +220,7 @@ public partial class HudManager : ILifecycle, IDisposable, IHudRegistry
         {
             if (disposing)
             {
-                var disposableHuds = _huds.Values.OfType<IDisposable>();
+                var disposableHuds = Huds.OfType<IDisposable>();
                 foreach (var disposableHud in disposableHuds)
                 {
                     disposableHud.Dispose();

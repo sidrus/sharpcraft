@@ -39,6 +39,8 @@ public class DefaultRenderPipeline(
     private int _lastWidth;
     private int _lastHeight;
 
+    private readonly RenderTargets _targets = new();
+
     private readonly UniformBufferObject<SceneData> _sceneUbo = new(gl, 0);
     private readonly UniformBufferObject<LightingData> _lightingUbo = new(gl, 1);
     private readonly UniformBufferObject<CsmData> _csmUbo = new(gl, 2);
@@ -56,6 +58,8 @@ public class DefaultRenderPipeline(
     {
         if (context.ScreenWidth <= 0 || context.ScreenHeight <= 0) return;
 
+        _targets.Reset();
+
         if (_framebuffer == null || _lastWidth != context.ScreenWidth || _lastHeight != context.ScreenHeight)
         {
             _framebuffer?.Dispose();
@@ -72,7 +76,7 @@ public class DefaultRenderPipeline(
             _shadowMapRenderer = new ShadowMapRenderer(gl, cache, new ShaderProgram(gl, Shaders.Shaders.ShadowVertex, Shaders.Shaders.ShadowFragment));
         }
 
-        context = context with { ShadowMap = csm.DepthArray };
+        _targets.ShadowMap = csm.DepthArray;
 
         // Temporal AA (research §9): jitter the main-pass projection sub-pixel each frame. The
         // unjittered View/Projection are still used for shadows, clustering and culling.
@@ -99,16 +103,9 @@ public class DefaultRenderPipeline(
 
             if (_iblBaker.IsReady)
             {
-                context = context with
-                {
-                    IrradianceMap = _iblBaker.IrradianceMap,
-                    PrefilterMap = _iblBaker.PrefilterMap,
-                    BrdfLut = _iblBaker.BrdfLut
-                };
-            }
-            else
-            {
-                context = context with { UseIBL = false };
+                _targets.IrradianceMap = _iblBaker.IrradianceMap;
+                _targets.PrefilterMap = _iblBaker.PrefilterMap;
+                _targets.BrdfLut = _iblBaker.BrdfLut;
             }
         }
 
@@ -164,20 +161,19 @@ public class DefaultRenderPipeline(
             gl.Clear(ClearBufferMask.DepthBufferBit);
             _shadowMapRenderer?.Render(world, _mainViewProj);
             _depthPrepass.Unbind();
-            context = context with { SceneDepthTexture = _depthPrepass.DepthTextureHandle };
+            _targets.SceneDepthTexture = _depthPrepass.DepthTextureHandle;
 
             if (context.UseSSAO)
             {
                 _gtao ??= new GtaoRenderer(gl);
-                var aoTex = _gtao.Render(_depthPrepass.DepthTextureHandle, _mainProjection,
+                _targets.GtaoTexture = _gtao.Render(_depthPrepass.DepthTextureHandle, _mainProjection,
                     context.ScreenWidth, context.ScreenHeight, context.SsaoRadius, context.SsaoIntensity);
-                context = context with { GtaoTexture = aoTex };
             }
         }
 
         // Inverse of the main (jittered) VP — used to reconstruct world position from depth in SSR.
         Matrix4x4.Invert(_mainViewProj, out var invMainViewProj);
-        context = context with { InvViewProj = invMainViewProj };
+        _targets.InvViewProj = invMainViewProj;
 
         // === MAIN HDR FORWARD PASS ===
         _framebuffer.Bind();
@@ -188,12 +184,12 @@ public class DefaultRenderPipeline(
 
         // Sky fills the background (depth test off, no depth write).
         gl.Disable(EnableCap.DepthTest);
-        _skyboxRenderer.Render(context);
+        _skyboxRenderer.Render(context, _targets);
         gl.Enable(EnableCap.DepthTest);
 
         // Opaque, forward-lit terrain. Bind the clustered light buffers for the shading pass.
         _clustered.BindForShading();
-        terrainRenderer.Render(world, context);
+        terrainRenderer.Render(world, context, _targets);
 
         // Placed torch models (opaque, forward-lit, emissive head). Drawn after terrain so they
         // depth-test against it.
@@ -204,7 +200,7 @@ public class DefaultRenderPipeline(
 
         // Snapshot the opaque HDR scene so the water SSR pass can sample it (a surface can't read
         // the colour attachment it is drawing into). Reuses the pre-pass depth as the scene depth.
-        if (context.UseSSR && context.SceneDepthTexture != 0)
+        if (context.UseSSR && _targets.SceneDepthTexture != 0)
         {
             if (_opaqueColor == null || _opaqueColor.Width != context.ScreenWidth || _opaqueColor.Height != context.ScreenHeight)
             {
@@ -217,7 +213,7 @@ public class DefaultRenderPipeline(
                 ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
             _framebuffer.Bind();
             gl.Viewport(0, 0, width, height);
-            context = context with { OpaqueColorTexture = _opaqueColor.TextureHandle };
+            _targets.OpaqueColorTexture = _opaqueColor.TextureHandle;
         }
 
         // Transparent water (forward, blended). The fix for the z-fighting spikes was depth-WRITE
@@ -228,7 +224,7 @@ public class DefaultRenderPipeline(
         gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         gl.Disable(EnableCap.CullFace);
         gl.DepthMask(false);
-        waterRenderer.Render(world, context);
+        waterRenderer.Render(world, context, _targets);
         gl.DepthMask(true);
         gl.Enable(EnableCap.CullFace);
         gl.Disable(EnableCap.Blend);

@@ -36,7 +36,7 @@ public sealed class TerrainRenderer : IDisposable
         _shader.BindUniformBlock("CsmData", 2);
     }
 
-    public void Render(IWorld world, RenderContext context)
+    public void Render(IWorld world, RenderContext context, RenderTargets targets)
     {
         _meshManager.Process();
         while (_meshManager.TryGetCompleted(out var completedChunk))
@@ -74,43 +74,44 @@ public sealed class TerrainRenderer : IDisposable
         _shader.SetUniform("useRoughness", context.UseRoughnessMap ? 1 : 0);
         _shader.SetUniform("roughnessStrength", context.RoughnessStrength);
 
-        _shader.SetUniform("useIBL", context.UseIBL ? 1 : 0);
-        if (context.UseIBL)
+        var useIbl = context.UseIBL && targets.IrradianceMap != 0;
+        _shader.SetUniform("useIBL", useIbl ? 1 : 0);
+        if (useIbl)
         {
             _gl.ActiveTexture(TextureUnit.Texture6);
-            _gl.BindTexture(TextureTarget.TextureCubeMap, context.IrradianceMap);
+            _gl.BindTexture(TextureTarget.TextureCubeMap, targets.IrradianceMap);
             _shader.SetUniform("irradianceMap", 6);
 
             _gl.ActiveTexture(TextureUnit.Texture7);
-            _gl.BindTexture(TextureTarget.TextureCubeMap, context.PrefilterMap);
+            _gl.BindTexture(TextureTarget.TextureCubeMap, targets.PrefilterMap);
             _shader.SetUniform("prefilterMap", 7);
 
             _gl.ActiveTexture(TextureUnit.Texture8);
-            _gl.BindTexture(TextureTarget.Texture2D, context.BrdfLut);
+            _gl.BindTexture(TextureTarget.Texture2D, targets.BrdfLut);
             _shader.SetUniform("brdfLUT", 8);
         }
 
         _gl.ActiveTexture(TextureUnit.Texture9);
-        _gl.BindTexture(TextureTarget.Texture2DArray, context.ShadowMap);
+        _gl.BindTexture(TextureTarget.Texture2DArray, targets.ShadowMap);
         _shader.SetUniform("shadowMap", 9);
 
         // Screen-space AO (research §7): multiplied into ambient in the shader.
-        _shader.SetUniform("useGtao", context.UseSSAO && context.GtaoTexture > 0 ? 1 : 0);
+        _shader.SetUniform("useGtao", context.UseSSAO && targets.GtaoTexture > 0 ? 1 : 0);
         _gl.ActiveTexture(TextureUnit.Texture10);
-        _gl.BindTexture(TextureTarget.Texture2D, context.GtaoTexture);
+        _gl.BindTexture(TextureTarget.Texture2D, targets.GtaoTexture);
         _shader.SetUniform("gtaoTexture", 10);
         _shader.SetUniform("invScreenSize", new Vector2(1.0f / context.ScreenWidth, 1.0f / context.ScreenHeight));
 
         // Contact shadows (research §7/§8): short screen-space ray toward the sun against the
         // opaque depth, filling the small contact gaps CSM misses.
-        var useContact = context.UseContactShadows && context.SceneDepthTexture > 0;
+        var useContact = context.UseContactShadows && targets.SceneDepthTexture > 0;
         _shader.SetUniform("useContactShadows", useContact ? 1 : 0);
         if (useContact)
         {
             _gl.ActiveTexture(TextureUnit.Texture11);
-            _gl.BindTexture(TextureTarget.Texture2D, context.SceneDepthTexture);
+            _gl.BindTexture(TextureTarget.Texture2D, targets.SceneDepthTexture);
             _shader.SetUniform("sceneDepthTex", 11);
-            _shader.SetUniform("contactInvViewProj", context.InvViewProj);
+            _shader.SetUniform("contactInvViewProj", targets.InvViewProj);
         }
 
         // Clustered forward+ light culling (research §2). Buffers are bound by the pipeline; here we

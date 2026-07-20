@@ -3,6 +3,7 @@ using System.Numerics;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
 using SharpCraft.Sdk.Physics;
+using SharpCraft.Sdk.Resources;
 using SharpCraft.Sdk.Universe;
 
 namespace SharpCraft.Engine.Universe;
@@ -168,7 +169,7 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
     {
         if (worldY is < 0 or >= Chunk.Height)
         {
-            return new Block(BlockType.Air);
+            return Block.Air;
         }
 
         var chunkX = worldX >> 4;
@@ -182,17 +183,17 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
             return chunk.GetBlock(localX, worldY, localZ);
         }
 
-        return new Block(BlockType.Air);
+        return Block.Air;
     }
 
     /// <summary>
-    /// Sets the block type at the specified world coordinates.
+    /// Sets the block at the specified world coordinates.
     /// </summary>
     /// <param name="worldX">The world X coordinate.</param>
     /// <param name="worldY">The world Y coordinate.</param>
     /// <param name="worldZ">The world Z coordinate.</param>
-    /// <param name="type">The new block type.</param>
-    public void SetBlock(int worldX, int worldY, int worldZ, BlockType type)
+    /// <param name="blockId">The block's resource location.</param>
+    public void SetBlock(int worldX, int worldY, int worldZ, ResourceLocation blockId)
     {
         if (worldY is < 0 or >= Chunk.Height)
         {
@@ -206,7 +207,7 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
 
         var coord = new Vector2<int>(chunkX, chunkZ);
         var chunk = GetOrCreateChunk(coord);
-        chunk.SetBlock(localX, worldY, localZ, type);
+        chunk.SetBlock(localX, worldY, localZ, blockId);
 
         // If the edited block sits on a chunk edge, the adjacent chunk's boundary faces depend on it
         // (ShouldRenderFace's cross-chunk path), so re-mesh that neighbour too. A corner edit touches

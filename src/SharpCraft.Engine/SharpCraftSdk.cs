@@ -1,6 +1,7 @@
 ﻿using SharpCraft.Sdk;
 using SharpCraft.Sdk.Assets;
 using SharpCraft.Sdk.Blocks;
+using SharpCraft.Sdk.Resources;
 using SharpCraft.Sdk.Messaging;
 using SharpCraft.Sdk.Commands;
 using SharpCraft.Sdk.Rendering;
@@ -13,20 +14,20 @@ namespace SharpCraft.Engine;
 /// Runtime implementation of the SharpCraft SDK.
 /// </summary>
 public class SharpCraftSdk(
-    IAssetRegistry assets,
+    IRegistry<TextureData> assets,
     IBlockRegistry blocks,
     IChannelManager channels,
     ICommandRegistry commands,
-    IWorldGenerationRegistry world,
+    IRegistry<IWorldGenerator> world,
     IHudRegistry huds,
     ILightingSystem lighting)
     : ISharpCraftSdk
 {
-    public IAssetRegistry Assets { get; } = assets;
+    public IRegistry<TextureData> Assets { get; } = assets;
     public IBlockRegistry Blocks { get; } = blocks;
     public IChannelManager Channels { get; } = channels;
     public ICommandRegistry Commands { get; } = commands;
-    public IWorldGenerationRegistry World { get; } = world;
+    public IRegistry<IWorldGenerator> World { get; } = world;
     public IHudRegistry Huds { get; } = huds;
     public ILightingSystem Lighting { get; } = lighting;
 }

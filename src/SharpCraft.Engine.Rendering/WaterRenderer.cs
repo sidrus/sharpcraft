@@ -31,7 +31,7 @@ public class WaterRenderer : IDisposable
         _shader.BindUniformBlock("LightingData", 1);
     }
 
-    public void Render(IWorld world, RenderContext context)
+    public void Render(IWorld world, RenderContext context, RenderTargets targets)
     {
         _shader.Use();
         _atlas.Bind(
@@ -49,44 +49,44 @@ public class WaterRenderer : IDisposable
         _shader.SetUniform("time", context.Time);
 
         // Shadow map (cascaded depth array; water samples cascade 0).
-        if (context.ShadowMap > 0)
+        if (targets.ShadowMap > 0)
         {
             _gl.ActiveTexture(TextureUnit.Texture3);
-            _gl.BindTexture(TextureTarget.Texture2DArray, context.ShadowMap);
+            _gl.BindTexture(TextureTarget.Texture2DArray, targets.ShadowMap);
             _shader.SetUniform("shadowMap", 3);
         }
 
         // Only enable IBL when all maps are actually available — sampling an unbound
         // cubemap returns black, which would kill the sky reflection entirely.
-        var useIbl = context.UseIBL && context.IrradianceMap != 0 && context.PrefilterMap != 0 && context.BrdfLut != 0;
+        var useIbl = context.UseIBL && targets.IrradianceMap != 0 && targets.PrefilterMap != 0 && targets.BrdfLut != 0;
         _shader.SetUniform("useIBL", useIbl ? 1 : 0);
         if (useIbl)
         {
             _gl.ActiveTexture(TextureUnit.Texture6);
-            _gl.BindTexture(TextureTarget.TextureCubeMap, context.IrradianceMap);
+            _gl.BindTexture(TextureTarget.TextureCubeMap, targets.IrradianceMap);
             _shader.SetUniform("irradianceMap", 6);
 
             _gl.ActiveTexture(TextureUnit.Texture7);
-            _gl.BindTexture(TextureTarget.TextureCubeMap, context.PrefilterMap);
+            _gl.BindTexture(TextureTarget.TextureCubeMap, targets.PrefilterMap);
             _shader.SetUniform("prefilterMap", 7);
 
             _gl.ActiveTexture(TextureUnit.Texture8);
-            _gl.BindTexture(TextureTarget.Texture2D, context.BrdfLut);
+            _gl.BindTexture(TextureTarget.Texture2D, targets.BrdfLut);
             _shader.SetUniform("brdfLUT", 8);
         }
 
         // Screen-space reflections (research §7): ray-march the opaque scene snapshot.
-        var useSsr = context.UseSSR && context.OpaqueColorTexture != 0 && context.SceneDepthTexture != 0;
+        var useSsr = context.UseSSR && targets.OpaqueColorTexture != 0 && targets.SceneDepthTexture != 0;
         _shader.SetUniform("useSSR", useSsr ? 1 : 0);
         if (useSsr)
         {
             _gl.ActiveTexture(TextureUnit.Texture9);
-            _gl.BindTexture(TextureTarget.Texture2D, context.OpaqueColorTexture);
+            _gl.BindTexture(TextureTarget.Texture2D, targets.OpaqueColorTexture);
             _shader.SetUniform("sceneColorTex", 9);
             _gl.ActiveTexture(TextureUnit.Texture10);
-            _gl.BindTexture(TextureTarget.Texture2D, context.SceneDepthTexture);
+            _gl.BindTexture(TextureTarget.Texture2D, targets.SceneDepthTexture);
             _shader.SetUniform("sceneDepthTex", 10);
-            _shader.SetUniform("ssrInvViewProj", context.InvViewProj);
+            _shader.SetUniform("ssrInvViewProj", targets.InvViewProj);
             _shader.SetUniform("invScreenSize", new Vector2(1.0f / context.ScreenWidth, 1.0f / context.ScreenHeight));
         }
 

@@ -1,7 +1,10 @@
 ﻿using System.Numerics;
+using SharpCraft.Engine.Blocks;
 using SharpCraft.Sdk.Numerics;
 using AwesomeAssertions;
 using SharpCraft.Sdk.Blocks;
+using SharpCraft.Sdk.Resources;
+using SharpCraft.Sdk.Universe;
 using NSubstitute;
 using WorldClass = SharpCraft.Engine.Universe.World;
 
@@ -9,7 +12,20 @@ namespace SharpCraft.Engine.Tests;
 
 public class WorldTests
 {
-    private static WorldClass CreateWorld() => new(Substitute.For<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Substitute.For<IBlockRegistry>());
+    private static readonly ResourceLocation Stone = new("sharpcraft", "stone");
+    private static readonly ResourceLocation Dirt = new("sharpcraft", "dirt");
+
+    private static BlockRegistry Blocks()
+    {
+        var registry = new BlockRegistry();
+        registry.Register(Stone, new BlockDefinition(Stone, "Stone"));
+        registry.Register(Dirt, new BlockDefinition(Dirt, "Dirt"));
+        return registry;
+    }
+
+    private static WorldClass CreateWorld() => new(Substitute.For<IWorldGenerator>(), 0, Substitute.For<IBlockRegistry>());
+
+    private static WorldClass CreateWorld(IBlockRegistry blocks) => new(Substitute.For<IWorldGenerator>(), 0, blocks);
 
     [Fact]
     public void GetOrCreateChunk_ShouldCreateNewChunk()
@@ -38,14 +54,15 @@ public class WorldTests
     [Fact]
     public void GetBlock_ShouldReturnBlockFromCorrectChunk()
     {
-        var world = CreateWorld();
+        var blocks = Blocks();
+        var world = CreateWorld(blocks);
         // Set a block at a specific world coordinate
         // (16, 64, 16) is in chunk (1, 1) at local (0, 64, 0)
-        world.SetBlock(16, 64, 16, BlockType.Stone);
+        world.SetBlock(16, 64, 16, Stone);
 
         var block = world.GetBlock(16, 64, 16);
 
-        block.Type.Should().Be(BlockType.Stone);
+        block.Id.Should().Be(blocks.GetId(Stone));
     }
 
     [Fact]
@@ -55,7 +72,7 @@ public class WorldTests
         
         var block = world.GetBlock(1000, 64, 1000);
 
-        block.Type.Should().Be(BlockType.Air);
+        block.IsAir.Should().BeTrue();
     }
 
     [Fact]
@@ -97,16 +114,17 @@ public class WorldTests
     [Fact]
     public void SetBlock_ShouldCreateChunkIfMissing()
     {
-        var world = CreateWorld();
+        var blocks = Blocks();
+        var world = CreateWorld(blocks);
         var wx = 32;
         var wy = 64;
         var wz = 32;
 
         world.GetLoadedChunks().Should().BeEmpty();
 
-        world.SetBlock(wx, wy, wz, BlockType.Dirt);
+        world.SetBlock(wx, wy, wz, Dirt);
 
         world.GetLoadedChunks().Should().HaveCount(1);
-        world.GetBlock(wx, wy, wz).Type.Should().Be(BlockType.Dirt);
+        world.GetBlock(wx, wy, wz).Id.Should().Be(blocks.GetId(Dirt));
     }
 }

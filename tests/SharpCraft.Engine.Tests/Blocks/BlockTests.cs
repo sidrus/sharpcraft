@@ -1,49 +1,44 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using SharpCraft.Sdk.Blocks;
 
 namespace SharpCraft.Engine.Tests.Blocks;
 
 public class BlockTests
 {
-    [Theory]
-    [InlineData(BlockType.Air, false)]
-    [InlineData(BlockType.Water, false)]
-    [InlineData(BlockType.Lava, false)]
-    [InlineData(BlockType.Stone, true)]
-    [InlineData(BlockType.Grass, true)]
-    [InlineData(BlockType.Dirt, true)]
-    [InlineData(BlockType.Sand, true)]
-    [InlineData(BlockType.Bedrock, true)]
-    public void IsSolid_ShouldReturnExpectedValue(BlockType type, bool expected)
+    [Fact]
+    public void IsAir_Id0_ShouldBeTrue()
     {
-        var block = new Block(type);
+        new Block(0, BlockFlags.None).IsAir.Should().BeTrue();
+    }
 
-        block.IsSolid.Should().Be(expected);
+    [Fact]
+    public void IsAir_NonZeroId_ShouldBeFalse()
+    {
+        new Block(1, BlockFlags.Solid).IsAir.Should().BeFalse();
     }
 
     [Theory]
-    [InlineData(BlockType.Air, true)]
-    [InlineData(BlockType.Water, true)]
-    [InlineData(BlockType.Stone, false)]
-    [InlineData(BlockType.Grass, false)]
-    public void IsTransparent_ShouldReturnExpectedValue(BlockType type, bool expected)
+    [InlineData(BlockFlags.Solid, true)]
+    [InlineData(BlockFlags.Transparent, false)]
+    [InlineData(BlockFlags.None, false)]
+    public void IsSolid_ShouldReflectFlag(BlockFlags flags, bool expected)
     {
-        var block = new Block(type);
-
-        block.IsTransparent.Should().Be(expected);
+        new Block(1, flags).IsSolid.Should().Be(expected);
     }
 
     [Theory]
-    [InlineData(BlockType.Grass, 0.5f)]
-    [InlineData(BlockType.Dirt, 0.5f)]
-    [InlineData(BlockType.Stone, 0.5f)]
-    [InlineData(BlockType.Air, 0.01f)]
-    [InlineData(BlockType.Water, 1f)]
-    [InlineData(BlockType.Bedrock, 0.8f)]
-    public void Friction_ShouldReturnExpectedValue(BlockType type, float expected)
+    [InlineData(BlockFlags.Transparent, true)]
+    [InlineData(BlockFlags.Solid, false)]
+    public void IsTransparent_ShouldReflectFlag(BlockFlags flags, bool expected)
     {
-        var block = new Block(type);
+        new Block(1, flags).IsTransparent.Should().Be(expected);
+    }
 
-        block.Friction.Should().Be(expected);
+    [Theory]
+    [InlineData(BlockFlags.Fluid, true)]
+    [InlineData(BlockFlags.Solid, false)]
+    public void IsFluid_ShouldReflectFlag(BlockFlags flags, bool expected)
+    {
+        new Block(1, flags).IsFluid.Should().Be(expected);
     }
 }

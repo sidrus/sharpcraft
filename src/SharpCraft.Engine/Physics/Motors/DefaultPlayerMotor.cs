@@ -12,7 +12,7 @@ namespace SharpCraft.Engine.Physics.Motors;
 public class DefaultPlayerMotor : IMotor
 {
     private readonly WalkingMotor _walking = new();
-    private readonly SwimmingMotor _swimming = new();
+    private readonly FluidMotor _fluid = new();
     private readonly FlyingMotor _flying = new();
 
     private PlayerMotorBase _active;
@@ -28,6 +28,11 @@ public class DefaultPlayerMotor : IMotor
     public GeospatialSensorData? SensorData { get; set; }
 
     /// <summary>
+    /// Gets or sets the material data (ground friction, current fluid) for the active motor.
+    /// </summary>
+    public MaterialSensorData? Material { get; set; }
+
+    /// <summary>
     /// Gets the friction coefficient applied by the active motor on its last pass.
     /// </summary>
     public float Friction => _active.Friction;
@@ -37,6 +42,7 @@ public class DefaultPlayerMotor : IMotor
     {
         _active = SelectMotor(intent);
         _active.SensorData = SensorData;
+        _active.Material = Material;
         _active.ApplyForces(entity, intent, deltaTime);
     }
 
@@ -45,7 +51,7 @@ public class DefaultPlayerMotor : IMotor
         if (intent.IsFlying)
             return _flying;
 
-        var inWater = (SensorData?.IsSwimming ?? false) || (SensorData?.IsOnWaterSurface ?? false);
-        return inWater ? _swimming : _walking;
+        var inFluid = (SensorData?.IsSwimming ?? false) || (SensorData?.IsOnFluidSurface ?? false);
+        return inFluid ? _fluid : _walking;
     }
 }

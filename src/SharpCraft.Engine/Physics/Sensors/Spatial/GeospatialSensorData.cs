@@ -24,14 +24,19 @@ public record GeospatialSensorData
     public bool IsSwimming { get; init; }
 
     /// <summary>
-    /// Gets a value indicating whether the entity is fully underwater.
+    /// Gets the block at the entity's mid-body.
     /// </summary>
-    public bool IsUnderwater { get; init; }
+    public Block BlockAtMid { get; init; }
 
     /// <summary>
-    /// Gets a value indicating whether the entity is on the water surface.
+    /// Gets a value indicating whether the entity is fully submerged in a fluid.
     /// </summary>
-    public bool IsOnWaterSurface { get; init; }
+    public bool IsSubmerged { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether the entity is on a fluid surface.
+    /// </summary>
+    public bool IsOnFluidSurface { get; init; }
 
     /// <summary>
     /// Gets a value indicating whether a solid, step-height ledge is adjacent that the
