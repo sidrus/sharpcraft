@@ -53,8 +53,8 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
 
     private static List<Vector2<int>> GetCoordsInRange(Vector3 center, int bounds)
     {
-        var centerChunkX = (int)Math.Floor(center.X / Chunk.Size);
-        var centerChunkZ = (int)Math.Floor(center.Z / Chunk.Size);
+        var centerChunkX = ChunkCoords.ToChunk(center.X);
+        var centerChunkZ = ChunkCoords.ToChunk(center.Z);
 
         var coords = new List<Vector2<int>>();
         for (var x = centerChunkX - bounds; x <= centerChunkX + bounds; x++)
@@ -82,8 +82,8 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
     /// <param name="range">The range in chunks.</param>
     public void UnloadChunks(Vector3 center, int range)
     {
-        var centerChunkX = (int)Math.Floor(center.X / Chunk.Size);
-        var centerChunkZ = (int)Math.Floor(center.Z / Chunk.Size);
+        var centerChunkX = ChunkCoords.ToChunk(center.X);
+        var centerChunkZ = ChunkCoords.ToChunk(center.Z);
 
         var toRemove = _chunks.Keys.Where(coord =>
             Math.Abs(coord.X - centerChunkX) > range ||
@@ -169,15 +169,15 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
 
     public Block GetBlock(int worldX, int worldY, int worldZ)
     {
-        if (worldY is < 0 or >= Chunk.Height)
+        if (!ChunkCoords.IsWithinHeight(worldY))
         {
             return Block.Air;
         }
 
-        var chunkX = worldX >> 4;
-        var chunkZ = worldZ >> 4;
-        var localX = worldX & 15;
-        var localZ = worldZ & 15;
+        var chunkX = ChunkCoords.ToChunk(worldX);
+        var chunkZ = ChunkCoords.ToChunk(worldZ);
+        var localX = ChunkCoords.ToLocal(worldX);
+        var localZ = ChunkCoords.ToLocal(worldZ);
 
         var coord = new Vector2<int>(chunkX, chunkZ);
         if (_chunks.TryGetValue(coord, out var chunk))
@@ -197,15 +197,15 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
     /// <param name="blockId">The block's resource location.</param>
     public void SetBlock(int worldX, int worldY, int worldZ, ResourceLocation blockId)
     {
-        if (worldY is < 0 or >= Chunk.Height)
+        if (!ChunkCoords.IsWithinHeight(worldY))
         {
             return;
         }
 
-        var chunkX = worldX >> 4;
-        var chunkZ = worldZ >> 4;
-        var localX = worldX & 15;
-        var localZ = worldZ & 15;
+        var chunkX = ChunkCoords.ToChunk(worldX);
+        var chunkZ = ChunkCoords.ToChunk(worldZ);
+        var localX = ChunkCoords.ToLocal(worldX);
+        var localZ = ChunkCoords.ToLocal(worldZ);
 
         var coord = new Vector2<int>(chunkX, chunkZ);
         var chunk = GetOrCreateChunk(coord);

@@ -24,69 +24,7 @@ public partial class ModLoader(ILogger<ModLoader> logger, ISharpCraftSdk sdk)
     /// <param name="modsDirectory">The directory to search for mods.</param>
     public void LoadMods(string modsDirectory)
     {
-        if (!Directory.Exists(modsDirectory))
-        {
-            LogModsDirectoryMissing(modsDirectory);
-            return;
-        }
-
-        var discoveredMods = new List<IMod>();
-
-        foreach (var dir in Directory.GetDirectories(modsDirectory))
-        {
-            var manifestPath = Path.Combine(dir, "mod.json");
-            if (File.Exists(manifestPath))
-            {
-                try
-                {
-                    var manifest = JsonSerializer.Deserialize<ModManifest>(File.ReadAllText(manifestPath), new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
-
-                    if (manifest != null)
-                    {
-                        LogModFound(manifest.Name, manifest.Id, manifest.Version);
-
-                        foreach (var entrypoint in manifest.Entrypoints)
-                        {
-                            if (entrypoint.EndsWith(".dll"))
-                            {
-                                var assemblyPath = Path.Combine(dir, entrypoint);
-                                if (File.Exists(assemblyPath))
-                                {
-                                    try
-                                    {
-                                        var assembly = Assembly.LoadFrom(assemblyPath);
-                                        var modTypes = assembly.GetTypes().Where(t => typeof(IMod).IsAssignableFrom(t) && t is { IsInterface: false, IsAbstract: false });
-
-                                        foreach (var type in modTypes)
-                                        {
-                                            var mod = (IMod)Activator.CreateInstance(type, sdk)!;
-                                            mod.BaseDirectory = dir;
-                                            discoveredMods.Add(mod);
-                                        }
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogAssemblyLoadFailed(ex, assemblyPath, manifest.Id);
-                                    }
-                                }
-                                else
-                                {
-                                    LogAssemblyNotFound(assemblyPath, manifest.Id);
-                                }
-                            }
-                            // TODO: Implement Tier 2 (scripts)
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogManifestLoadFailed(ex, manifestPath);
-                }
-            }
-        }
+        var discoveredMods = DiscoverMods(modsDirectory);
 
         try
         {
@@ -97,6 +35,103 @@ public partial class ModLoader(ILogger<ModLoader> logger, ISharpCraftSdk sdk)
         {
             LogDependencySortFailed(ex);
         }
+    }
+
+    /// <summary>
+    /// Discovers and instantiates every mod under the specified directory, without sorting or
+    /// registering them. Malformed manifests and unloadable assemblies are logged and skipped.
+    /// </summary>
+    /// <param name="modsDirectory">The directory to search for mods.</param>
+    /// <returns>The instantiated mods in discovery order.</returns>
+    public IReadOnlyList<IMod> DiscoverMods(string modsDirectory)
+    {
+        var discoveredMods = new List<IMod>();
+
+        if (!Directory.Exists(modsDirectory))
+        {
+            LogModsDirectoryMissing(modsDirectory);
+            return discoveredMods;
+        }
+
+        foreach (var dir in Directory.GetDirectories(modsDirectory))
+        {
+            var manifestPath = Path.Combine(dir, "mod.json");
+            if (!File.Exists(manifestPath))
+            {
+                continue;
+            }
+
+            var manifest = TryReadManifest(manifestPath);
+            if (manifest == null)
+            {
+                continue;
+            }
+
+            LogModFound(manifest.Name, manifest.Id, manifest.Version);
+            discoveredMods.AddRange(InstantiateMods(dir, manifest));
+        }
+
+        return discoveredMods;
+    }
+
+    private ModManifest? TryReadManifest(string manifestPath)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<ModManifest>(File.ReadAllText(manifestPath), new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+        }
+        catch (Exception ex)
+        {
+            LogManifestLoadFailed(ex, manifestPath);
+            return null;
+        }
+    }
+
+    private IEnumerable<IMod> InstantiateMods(string dir, ModManifest manifest)
+    {
+        var mods = new List<IMod>();
+
+        foreach (var entrypoint in manifest.Entrypoints)
+        {
+            // TODO: Implement Tier 2 (scripts)
+            if (!entrypoint.EndsWith(".dll"))
+            {
+                continue;
+            }
+
+            var assemblyPath = Path.Combine(dir, entrypoint);
+            if (!File.Exists(assemblyPath))
+            {
+                LogAssemblyNotFound(assemblyPath, manifest.Id);
+                continue;
+            }
+
+            try
+            {
+                var assembly = Assembly.LoadFrom(assemblyPath);
+                var modTypes = assembly.GetTypes().Where(t => typeof(IMod).IsAssignableFrom(t) && t is { IsInterface: false, IsAbstract: false });
+
+                foreach (var type in modTypes)
+                {
+                    if (Activator.CreateInstance(type, sdk) is not IMod mod)
+                    {
+                        continue;
+                    }
+
+                    mod.BaseDirectory = dir;
+                    mods.Add(mod);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogAssemblyLoadFailed(ex, assemblyPath, manifest.Id);
+            }
+        }
+
+        return mods;
     }
 
     /// <summary>

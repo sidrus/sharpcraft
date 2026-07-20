@@ -80,6 +80,16 @@ public abstract class PlayerMotorBase : IMotor
     }
 
     /// <summary>
+    /// Integrates gravity into a vertical velocity for one step, clamping the fall at the
+    /// (negative) terminal velocity so nothing accelerates past its medium's limit.
+    /// </summary>
+    protected static float ApplyGravity(float velocityY, float gravity, float terminalVelocity, float deltaTime)
+    {
+        velocityY += gravity * deltaTime;
+        return velocityY < terminalVelocity ? terminalVelocity : velocityY;
+    }
+
+    /// <summary>
     /// Computes the (negative) terminal velocity for falling through a fluid of the given
     /// density under the given gravity.
     /// </summary>

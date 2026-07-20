@@ -46,11 +46,7 @@ public sealed class FluidMotor : PlayerMotorBase
 
         var gravity = fluid.BuoyantGravity;
         var terminalVelocity = ComputeTerminalVelocity(gravity, fluid.Density);
-        velocity.Y += gravity * deltaTime;
-        if (velocity.Y < terminalVelocity)
-        {
-            velocity.Y = terminalVelocity;
-        }
+        velocity.Y = ApplyGravity(velocity.Y, gravity, terminalVelocity, deltaTime);
 
         if (onSurface && !isClimbingOut && velocity.Y > 0f)
         {

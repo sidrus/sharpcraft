@@ -35,11 +35,7 @@ public sealed class WalkingMotor : PlayerMotorBase
         ApplyHorizontalMovement(entity, intent, speed, deltaTime);
 
         velocity = entity.Velocity;
-        velocity.Y += gravity * deltaTime;
-        if (velocity.Y < terminalVelocity)
-        {
-            velocity.Y = terminalVelocity;
-        }
+        velocity.Y = ApplyGravity(velocity.Y, gravity, terminalVelocity, deltaTime);
 
         entity.Velocity = velocity;
     }
