@@ -1,9 +1,10 @@
 ﻿namespace SharpCraft.Sdk.UI;
 
 /// <summary>
-/// Provides access to graphics settings.
+/// Mutable render/graphics state, shared between the settings panel that edits it and the render
+/// pipeline that reads it. Pure state: it is not a HUD and owns no drawing or visibility concerns.
 /// </summary>
-public interface IGraphicsSettings : IInteractiveHud
+public interface IGraphicsSettings
 {
     bool VSync
     {

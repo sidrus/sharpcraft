@@ -23,18 +23,6 @@ public partial class Game
     [LoggerMessage(LogLevel.Information, "GL [{source}/{type}] id={id}: {message}")]
     partial void LogGlInfo(GLEnum source, GLEnum type, int id, string? message);
 
-    [LoggerMessage(LogLevel.Information, "Normal mapping toggled: {state}")]
-    partial void LogNormalMappingToggledState(bool state);
-
-    [LoggerMessage(LogLevel.Information, "Metallic mapping toggled: {state}")]
-    partial void LogMetallicMappingToggledState(bool state);
-
-    [LoggerMessage(LogLevel.Information, "Roughness mapping toggled: {state}")]
-    partial void LogRoughnessMappingToggledState(bool state);
-
-    [LoggerMessage(LogLevel.Information, "AO mapping toggled: {state}")]
-    partial void LogAoMappingToggledState(bool state);
-
     [LoggerMessage(LogLevel.Error, "World update task failed")]
     partial void LogWorldUpdateTaskFailed(Exception ex);
 

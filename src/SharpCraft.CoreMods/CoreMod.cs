@@ -47,7 +47,7 @@ public class CoreMod(ISharpCraftSdk sdk) : IMod
     {
         sdk.Huds.RegisterHud(new MainHud());
         sdk.Huds.RegisterHud(new DebugHud());
-        sdk.Huds.RegisterHud(new GraphicsSettingsHud());
+        sdk.Huds.RegisterHud(new GraphicsSettingsHud(sdk.GraphicsSettings));
         sdk.Huds.RegisterHud(new DeveloperHud());
     }
 

@@ -9,6 +9,7 @@ using SharpCraft.Engine.Rendering.Lighting;
 using SharpCraft.Engine.UI;
 using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk.Resources;
+using SharpCraft.Sdk.UI;
 using SharpCraft.Sdk.Universe;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -38,7 +39,18 @@ var commands = new CommandRegistry();
 var worldGen = new Registry<IWorldGenerator>();
 var huds = new HudRegistry();
 var lighting = new LightingSystem();
-var sdk = new SharpCraftSdk(assets, blocks, channels, commands, worldGen, huds, lighting);
+var graphicsSettings = new GraphicsSettings();
+var sdk = new SharpCraftSdk
+{
+    Assets = assets,
+    Blocks = blocks,
+    Channels = channels,
+    Commands = commands,
+    World = worldGen,
+    Huds = huds,
+    Lighting = lighting,
+    GraphicsSettings = graphicsSettings,
+};
 
 ProgramLog.Starting(logger);
 ProgramLog.ProcessArchitecture(logger, RuntimeInformation.ProcessArchitecture);

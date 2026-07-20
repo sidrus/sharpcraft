@@ -12,21 +12,14 @@ namespace SharpCraft.Engine;
 /// <summary>
 /// Runtime implementation of the SharpCraft SDK.
 /// </summary>
-public class SharpCraftSdk(
-    IRegistry<TextureData> assets,
-    IBlockRegistry blocks,
-    IChannelManager channels,
-    ICommandRegistry commands,
-    IRegistry<IWorldGenerator> world,
-    IHudRegistry huds,
-    ILightingSystem lighting)
-    : ISharpCraftSdk
+public class SharpCraftSdk : ISharpCraftSdk
 {
-    public IRegistry<TextureData> Assets { get; } = assets;
-    public IBlockRegistry Blocks { get; } = blocks;
-    public IChannelManager Channels { get; } = channels;
-    public ICommandRegistry Commands { get; } = commands;
-    public IRegistry<IWorldGenerator> World { get; } = world;
-    public IHudRegistry Huds { get; } = huds;
-    public ILightingSystem Lighting { get; } = lighting;
+    public required IRegistry<TextureData> Assets { get; init; }
+    public required IBlockRegistry Blocks { get; init; }
+    public required IChannelManager Channels { get; init; }
+    public required ICommandRegistry Commands { get; init; }
+    public required IRegistry<IWorldGenerator> World { get; init; }
+    public required IHudRegistry Huds { get; init; }
+    public required ILightingSystem Lighting { get; init; }
+    public required IGraphicsSettings GraphicsSettings { get; init; }
 }

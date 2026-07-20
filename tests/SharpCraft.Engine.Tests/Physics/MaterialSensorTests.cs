@@ -16,7 +16,7 @@ public class MaterialSensorTests
     {
         var registry = new BlockRegistry();
         registry.Register(DirtLoc, new BlockDefinition(DirtLoc, "Dirt", Friction: 0.5f));
-        registry.Register(WaterLoc, new BlockDefinition(WaterLoc, "Water", IsSolid: false, IsTransparent: true, Fluid: Water));
+        registry.Register(WaterLoc, new BlockDefinition(WaterLoc, "Water", Flags: BlockFlags.Transparent | BlockFlags.Fluid, Fluid: Water));
         return registry;
     }
 

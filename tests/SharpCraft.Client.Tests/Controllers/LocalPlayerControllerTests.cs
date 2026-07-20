@@ -25,7 +25,7 @@ public class LocalPlayerControllerTests
         var registry = new BlockRegistry();
         var water = new ResourceLocation("sharpcraft", "water");
         var stone = new ResourceLocation("sharpcraft", "stone");
-        registry.Register(water, new BlockDefinition(water, "Water", IsSolid: false, IsTransparent: true,
+        registry.Register(water, new BlockDefinition(water, "Water", Flags: BlockFlags.Transparent | BlockFlags.Fluid,
             Fluid: new FluidProperties(1000f, 0.15f, -2f, 2f, 4f, 0.8f, -2f, 0.5f)));
         registry.Register(stone, new BlockDefinition(stone, "Stone"));
         return registry;

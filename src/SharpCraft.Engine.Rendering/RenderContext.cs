@@ -1,50 +1,81 @@
-﻿using SharpCraft.Engine.Rendering.Lighting;
+using SharpCraft.Engine.Rendering.Lighting;
 using System.Numerics;
 
 namespace SharpCraft.Engine.Rendering;
 
-public readonly record struct RenderContext(
+/// <summary>Camera transforms and the render target size for a frame.</summary>
+public readonly record struct CameraData(
     Matrix4x4 View,
     Matrix4x4 Projection,
     Vector3 CameraPosition,
-    Vector3 FogColor,
-    float FogNear,
-    float FogFar,
     int ScreenWidth,
-    int ScreenHeight,
-    bool UseNormalMap = true,
-    float NormalStrength = 1f,
-    bool UseAoMap = true,
-    float AoMapStrength = 2f,
-    bool UseSpecularMap = true,
-    float SpecularMapStrength = 1f,
-    bool UseMetallicMap = true,
-    float MetallicStrength = 1f,
-    bool UseRoughnessMap = true,
-    float RoughnessStrength = 1f,
-    DirectionalLightData? Sun = null,
-    PointLightData[]? PointLights = null,
-    float Exposure = 1.0f,
-    float AutoExposureKey = 0.18f,
-    float AutoExposureMin = 0.05f,
-    float AutoExposureMax = 2.0f,
-    float AutoExposureSpeed = 2.5f,
-    float Gamma = 1.6f,
-    bool IsUnderwater = false,
-    float Time = 0.0f,
-    bool UseIbl = false,
-    bool UseTaa = true,
-    bool UseSsao = true,
-    float SsaoRadius = 1.5f,
-    float SsaoIntensity = 2.5f,
-    bool UseSsr = true,
-    bool UseContactShadows = true,
-    bool UseBloom = true,
-    float AtmosphereRayleighScale = 1.0f,
-    float AtmosphereMieScale = 1.0f,
-    float AtmosphereOzoneScale = 1.0f,
-    float AtmosphereMieG = 0.8f
-)
+    int ScreenHeight)
 {
     public Matrix4x4 ViewProjection => View * Projection;
 }
+
+/// <summary>Distance fog colour and range for a frame.</summary>
+public readonly record struct FogData(
+    Vector3 FogColor,
+    float FogNear,
+    float FogFar);
+
+/// <summary>PBR material map toggles and strengths.</summary>
+public readonly record struct PbrSettings(
+    bool UseNormalMap,
+    float NormalStrength,
+    bool UseAoMap,
+    float AoMapStrength,
+    bool UseMetallicMap,
+    float MetallicStrength,
+    bool UseRoughnessMap,
+    float RoughnessStrength,
+    bool UseSpecularMap = true,
+    float SpecularMapStrength = 1f);
+
+/// <summary>Tone-mapping exposure, eye-adaptation, and display gamma.</summary>
+public readonly record struct ExposureSettings(
+    float Exposure,
+    float AutoExposureKey,
+    float AutoExposureMin,
+    float AutoExposureMax,
+    float AutoExposureSpeed,
+    float Gamma);
+
+/// <summary>Atmospheric scattering scales for the sky/volumetrics.</summary>
+public readonly record struct AtmosphereSettings(
+    float RayleighScale,
+    float MieScale,
+    float OzoneScale,
+    float MieG);
+
+/// <summary>The scene's directional sun and point lights for a frame.</summary>
+public readonly record struct SceneLighting(
+    DirectionalLightData? Sun,
+    PointLightData[]? PointLights);
+
+/// <summary>Screen-space and image-based effect toggles/parameters.</summary>
+public readonly record struct EffectSettings(
+    bool UseIbl,
+    bool UseSsao,
+    float SsaoRadius,
+    float SsaoIntensity,
+    bool UseSsr,
+    bool UseContactShadows,
+    bool UseTaa = true,
+    bool UseBloom = true);
+
+/// <summary>
+/// Everything a frame's render pipeline needs, grouped by concern. Built by
+/// <see cref="RenderContextBuilder"/> from the per-frame scene state and the shared graphics settings.
+/// </summary>
+public readonly record struct RenderContext(
+    CameraData Camera,
+    FogData Fog,
+    SceneLighting Lighting,
+    PbrSettings Pbr,
+    ExposureSettings Exposure,
+    AtmosphereSettings Atmosphere,
+    EffectSettings Effects,
+    bool IsUnderwater,
+    float Time);

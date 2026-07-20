@@ -56,9 +56,9 @@ public sealed class SkyboxRenderer : IDisposable
         _shader.Use();
 
         // Pass Sun and Moon data
-        var sunDir = context.Sun?.Direction ?? new Vector3(0, -1, 0);
-        var sunColor = context.Sun?.Color ?? Vector3.One;
-        var sunIntensity = context.Sun?.Intensity ?? 0f;
+        var sunDir = context.Lighting.Sun?.Direction ?? new Vector3(0, -1, 0);
+        var sunColor = context.Lighting.Sun?.Color ?? Vector3.One;
+        var sunIntensity = context.Lighting.Sun?.Intensity ?? 0f;
 
         // Simple Moon (opposite to Sun)
         var moonDir = -sunDir;
@@ -74,10 +74,10 @@ public sealed class SkyboxRenderer : IDisposable
         _shader.SetUniform("moonIntensity", moonIntensity);
 
         // Atmosphere parameters from UI
-        _shader.SetUniform("atmosphereRayleighScale", context.AtmosphereRayleighScale);
-        _shader.SetUniform("atmosphereMieScale", context.AtmosphereMieScale);
-        _shader.SetUniform("atmosphereOzoneScale", context.AtmosphereOzoneScale);
-        _shader.SetUniform("atmosphereMieG", context.AtmosphereMieG);
+        _shader.SetUniform("atmosphereRayleighScale", context.Atmosphere.RayleighScale);
+        _shader.SetUniform("atmosphereMieScale", context.Atmosphere.MieScale);
+        _shader.SetUniform("atmosphereOzoneScale", context.Atmosphere.OzoneScale);
+        _shader.SetUniform("atmosphereMieG", context.Atmosphere.MieG);
         _shader.SetUniform("InvViewProj", targets.InvViewProj);
 
         _gl.BindVertexArray(_vao);

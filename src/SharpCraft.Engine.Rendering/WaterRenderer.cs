@@ -38,8 +38,8 @@ public class WaterRenderer : IDisposable
 
         _shader.SetUniform("textureAtlas", 0);
         _shader.SetUniform("normalMap", 1);
-        _shader.SetUniform("useNormalMap", context.UseNormalMap ? 1 : 0);
-        _shader.SetUniform("normalStrength", context.NormalStrength);
+        _shader.SetUniform("useNormalMap", context.Pbr.UseNormalMap ? 1 : 0);
+        _shader.SetUniform("normalStrength", context.Pbr.NormalStrength);
         _shader.SetUniform("time", context.Time);
 
         // Shadow map (cascaded depth array; water samples cascade 0).
@@ -52,7 +52,7 @@ public class WaterRenderer : IDisposable
 
         // Only enable IBL when all maps are actually available — sampling an unbound
         // cubemap returns black, which would kill the sky reflection entirely.
-        var useIbl = context.UseIbl && targets.IrradianceMap != 0 && targets.PrefilterMap != 0 && targets.BrdfLut != 0;
+        var useIbl = context.Effects.UseIbl && targets.IrradianceMap != 0 && targets.PrefilterMap != 0 && targets.BrdfLut != 0;
         _shader.SetUniform("useIBL", useIbl ? 1 : 0);
         if (useIbl)
         {
@@ -70,7 +70,7 @@ public class WaterRenderer : IDisposable
         }
 
         // Screen-space reflections (research §7): ray-march the opaque scene snapshot.
-        var useSsr = context.UseSsr && targets.OpaqueColorTexture != 0 && targets.SceneDepthTexture != 0;
+        var useSsr = context.Effects.UseSsr && targets.OpaqueColorTexture != 0 && targets.SceneDepthTexture != 0;
         _shader.SetUniform("useSSR", useSsr ? 1 : 0);
         if (useSsr)
         {
@@ -81,12 +81,12 @@ public class WaterRenderer : IDisposable
             _gl.BindTexture(TextureTarget.Texture2D, targets.SceneDepthTexture);
             _shader.SetUniform("sceneDepthTex", 10);
             _shader.SetUniform("ssrInvViewProj", targets.InvViewProj);
-            _shader.SetUniform("invScreenSize", new Vector2(1.0f / context.ScreenWidth, 1.0f / context.ScreenHeight));
+            _shader.SetUniform("invScreenSize", new Vector2(1.0f / context.Camera.ScreenWidth, 1.0f / context.Camera.ScreenHeight));
         }
 
         _gl.BindVertexArray(_vao);
 
-        _frustum.Update(context.ViewProjection);
+        _frustum.Update(context.Camera.ViewProjection);
 
         foreach (var chunk in world.GetLoadedChunks())
         {

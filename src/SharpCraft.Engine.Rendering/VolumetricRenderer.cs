@@ -64,11 +64,11 @@ public sealed class VolumetricRenderer : IDisposable
     public void Render(uint sceneDepth, uint shadowArray, RenderContext context, Matrix4x4 invViewProj,
         float density, float extinction, float intensity, int samples, float mieG, float maxDistance)
     {
-        EnsureTarget(context.ScreenWidth, context.ScreenHeight);
+        EnsureTarget(context.Camera.ScreenWidth, context.Camera.ScreenHeight);
 
-        var lightDir = context.Sun?.Direction ?? Vector3.Normalize(new Vector3(0.8f, -0.5f, 0.1f));
+        var lightDir = context.Lighting.Sun?.Direction ?? Vector3.Normalize(new Vector3(0.8f, -0.5f, 0.1f));
         var toSun = Vector3.Normalize(-lightDir);
-        var sunColor = (context.Sun?.Color ?? new Vector3(1f, 0.95f, 0.8f)) * (context.Sun?.Intensity ?? 0f);
+        var sunColor = (context.Lighting.Sun?.Color ?? new Vector3(1f, 0.95f, 0.8f)) * (context.Lighting.Sun?.Intensity ?? 0f);
 
         _gl.BindFramebuffer(FramebufferTarget.Framebuffer, _fbo);
         _gl.Viewport(0, 0, (uint)_width, (uint)_height);
@@ -84,10 +84,10 @@ public sealed class VolumetricRenderer : IDisposable
         _march.SetUniform("shadowMap", 1);
 
         _march.SetUniform("invViewProj", invViewProj);
-        _march.SetUniform("cameraPos", context.CameraPosition);
+        _march.SetUniform("cameraPos", context.Camera.CameraPosition);
         _march.SetUniform("sunDirection", toSun);
         _march.SetUniform("sunColor", sunColor);
-        _march.SetUniform("fogColor", context.FogColor);
+        _march.SetUniform("fogColor", context.Fog.FogColor);
         _march.SetUniform("density", density);
         _march.SetUniform("extinction", extinction);
         _march.SetUniform("intensity", intensity);

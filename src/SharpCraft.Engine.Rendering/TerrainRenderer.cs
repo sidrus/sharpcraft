@@ -50,22 +50,22 @@ public sealed class TerrainRenderer : IDisposable
 
         _shader.SetUniform("textureAtlas", 0);
         _shader.SetUniform("normalMap", 1);
-        _shader.SetUniform("useNormalMap", context.UseNormalMap ? 1 : 0);
-        _shader.SetUniform("normalStrength", context.NormalStrength);
+        _shader.SetUniform("useNormalMap", context.Pbr.UseNormalMap ? 1 : 0);
+        _shader.SetUniform("normalStrength", context.Pbr.NormalStrength);
 
         _shader.SetUniform("aoMap", 2);
-        _shader.SetUniform("useAO", context.UseAoMap ? 1 : 0);
-        _shader.SetUniform("aoMapStrength", context.AoMapStrength);
+        _shader.SetUniform("useAO", context.Pbr.UseAoMap ? 1 : 0);
+        _shader.SetUniform("aoMapStrength", context.Pbr.AoMapStrength);
 
         _shader.SetUniform("metallicMap", 4);
-        _shader.SetUniform("useMetallic", context.UseMetallicMap ? 1 : 0);
-        _shader.SetUniform("metallicStrength", context.MetallicStrength);
+        _shader.SetUniform("useMetallic", context.Pbr.UseMetallicMap ? 1 : 0);
+        _shader.SetUniform("metallicStrength", context.Pbr.MetallicStrength);
 
         _shader.SetUniform("roughnessMap", 5);
-        _shader.SetUniform("useRoughness", context.UseRoughnessMap ? 1 : 0);
-        _shader.SetUniform("roughnessStrength", context.RoughnessStrength);
+        _shader.SetUniform("useRoughness", context.Pbr.UseRoughnessMap ? 1 : 0);
+        _shader.SetUniform("roughnessStrength", context.Pbr.RoughnessStrength);
 
-        var useIbl = context.UseIbl && targets.IrradianceMap != 0;
+        var useIbl = context.Effects.UseIbl && targets.IrradianceMap != 0;
         _shader.SetUniform("useIBL", useIbl ? 1 : 0);
         if (useIbl)
         {
@@ -87,15 +87,15 @@ public sealed class TerrainRenderer : IDisposable
         _shader.SetUniform("shadowMap", 9);
 
         // Screen-space AO (research §7): multiplied into ambient in the shader.
-        _shader.SetUniform("useGtao", context.UseSsao && targets.GtaoTexture > 0 ? 1 : 0);
+        _shader.SetUniform("useGtao", context.Effects.UseSsao && targets.GtaoTexture > 0 ? 1 : 0);
         _gl.ActiveTexture(TextureUnit.Texture10);
         _gl.BindTexture(TextureTarget.Texture2D, targets.GtaoTexture);
         _shader.SetUniform("gtaoTexture", 10);
-        _shader.SetUniform("invScreenSize", new Vector2(1.0f / context.ScreenWidth, 1.0f / context.ScreenHeight));
+        _shader.SetUniform("invScreenSize", new Vector2(1.0f / context.Camera.ScreenWidth, 1.0f / context.Camera.ScreenHeight));
 
         // Contact shadows (research §7/§8): short screen-space ray toward the sun against the
         // opaque depth, filling the small contact gaps CSM misses.
-        var useContact = context.UseContactShadows && targets.SceneDepthTexture > 0;
+        var useContact = context.Effects.UseContactShadows && targets.SceneDepthTexture > 0;
         _shader.SetUniform("useContactShadows", useContact ? 1 : 0);
         if (useContact)
         {
@@ -108,13 +108,13 @@ public sealed class TerrainRenderer : IDisposable
         // Clustered forward+ light culling (research §2). Buffers are bound by the pipeline; here we
         // just hand the shader the grid parameters so it can find each fragment's cluster.
         _shader.SetUniform("clusterGridSize", new Vector3(ClusteredLighting.GridX, ClusteredLighting.GridY, ClusteredLighting.GridZ));
-        _shader.SetUniform("clusterScreenSize", new Vector2(context.ScreenWidth, context.ScreenHeight));
+        _shader.SetUniform("clusterScreenSize", new Vector2(context.Camera.ScreenWidth, context.Camera.ScreenHeight));
         _shader.SetUniform("clusterZNear", ClusteredLighting.ZNear);
         _shader.SetUniform("clusterZFar", ClusteredLighting.ZFar);
 
         _gl.BindVertexArray(_vao);
 
-        _frustum.Update(context.ViewProjection);
+        _frustum.Update(context.Camera.ViewProjection);
 
         foreach (var chunk in world.GetLoadedChunks())
         {

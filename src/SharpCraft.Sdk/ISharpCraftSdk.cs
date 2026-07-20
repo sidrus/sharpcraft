@@ -68,4 +68,12 @@ public interface ISharpCraftSdk
     {
         get;
     }
+
+    /// <summary>
+    /// Gets the shared graphics settings state, edited by the settings panel and read by the pipeline.
+    /// </summary>
+    IGraphicsSettings GraphicsSettings
+    {
+        get;
+    }
 }

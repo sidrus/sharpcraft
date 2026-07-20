@@ -23,21 +23,20 @@ public class HudManager : ILifecycle, IDisposable
     private bool _disposed;
     private readonly HudRegistry _registry;
     private readonly IGui _gui;
+    private readonly IGraphicsSettings _settings;
 
     private IReadOnlyList<IHud> Huds => _registry.RegisteredHuds;
 
-    public IGraphicsSettings Settings
-    {
-        get => GetHud<IGraphicsSettings>() ?? field;
-    } = new DefaultGraphicsSettings();
+    public IGraphicsSettings Settings => _settings;
 
     public ChatHud? Chat => GetHud<ChatHud>();
 
-    public HudManager(GL gl, IWindow window, IInputContext input, HudRegistry registry)
+    public HudManager(GL gl, IWindow window, IInputContext input, HudRegistry registry, IGraphicsSettings settings)
     {
         _window = window;
         _input = input;
         _registry = registry;
+        _settings = settings;
         _controller = new ImGuiController(gl, window, input);
         _gui = new ImGuiGui();
         input.Keyboards[0].KeyUp += OnKeyUp;
@@ -67,23 +66,13 @@ public class HudManager : ILifecycle, IDisposable
         switch (key)
         {
             case Key.F3:
-                Settings.IsVisible = !Settings.IsVisible;
+                ToggleInteractiveHud("GraphicsSettingsHud");
                 break;
             case Key.F4:
-                var devHud = Huds.OfType<IInteractiveHud>().FirstOrDefault(h => h.Name == "DeveloperHud");
-                if (devHud != null)
-                {
-                    devHud.IsVisible = !devHud.IsVisible;
-                }
-
+                ToggleInteractiveHud("DeveloperHud");
                 break;
             case Key.F5:
-                var atmosHud = Huds.OfType<IInteractiveHud>().FirstOrDefault(h => h.Name == "AtmosphereControl");
-                if (atmosHud != null)
-                {
-                    atmosHud.IsVisible = !atmosHud.IsVisible;
-                }
-
+                ToggleInteractiveHud("AtmosphereControl");
                 break;
         }
 
@@ -149,6 +138,15 @@ public class HudManager : ILifecycle, IDisposable
     private T? GetHud<T>() where T : class => Huds
         .OfType<T>()
         .FirstOrDefault();
+
+    private void ToggleInteractiveHud(string name)
+    {
+        var hud = Huds.OfType<IInteractiveHud>().FirstOrDefault(h => h.Name == name);
+        if (hud != null)
+        {
+            hud.IsVisible = !hud.IsVisible;
+        }
+    }
 
     public void OnUpdate(double deltaTime)
     {
@@ -239,63 +237,5 @@ public class HudManager : ILifecycle, IDisposable
 
             _disposed = true;
         }
-    }
-
-    private sealed class DefaultGraphicsSettings : IGraphicsSettings
-    {
-        public string Name => "DefaultGraphicsSettings";
-        public void Draw(double deltaTime, IGui gui, IHudContext context)
-        {
-        }
-        public void OnAwake()
-        {
-        }
-        public void OnUpdate(double deltaTime)
-        {
-        }
-
-        public bool IsVisible
-        {
-            get; set;
-        }
-        public event Action? OnVisibilityChanged { add { } remove { } }
-        public bool VSync
-        {
-            get; set;
-        }
-
-        // Display Settings (Photoreal Defaults)
-        public float Gamma { get; set; } = 2.2f;          // Standard sRGB display gamma
-        public float Exposure { get; set; } = 1.0f;       // Balanced exposure (compensation on auto)
-
-        // Auto-exposure / eye adaptation
-        public float AutoExposureKey { get; set; } = 0.18f;
-        public float AutoExposureMin { get; set; } = 0.05f;
-        public float AutoExposureMax { get; set; } = 2.0f;
-        public float AutoExposureSpeed { get; set; } = 2.5f;
-
-        // PBR Material Settings (Enhanced for Photoreal)
-        public bool UseNormalMap { get; set; } = true;
-        public float NormalStrength { get; set; } = 1.0f;  // Full strength for detail
-        public bool UseAoMap { get; set; } = true;
-        public float AoMapStrength { get; set; } = 0.8f;   // Stronger AO for depth
-        public bool UseMetallicMap { get; set; } = true;
-        public float MetallicStrength { get; set; } = 1.0f;
-        public bool UseRoughnessMap { get; set; } = true;
-        public float RoughnessStrength { get; set; } = 1.0f;
-
-        // Advanced Lighting (CRITICAL FOR PHOTOREAL)
-        public bool UseIbl { get; set; } = true;          // ENABLED - Essential for PBR!
-        public bool UseSsao { get; set; } = true;         // Screen-space ambient occlusion
-        public float SsaoRadius { get; set; } = 1.5f;
-        public float SsaoIntensity { get; set; } = 2.5f;
-        public bool UseSsr { get; set; } = true;          // Screen-space reflections
-        public bool UseContactShadows { get; set; } = true;
-
-        // Fog Settings
-        public float FogNearFactor { get; set; } = 0.4f;  // Slightly further
-        public float FogFarFactor { get; set; } = 0.98f;  // Extended distance
-
-        public int RenderDistance { get; set; } = 8;
     }
 }

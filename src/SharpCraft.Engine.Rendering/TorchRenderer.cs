@@ -97,7 +97,7 @@ public sealed class TorchRenderer : IDisposable
             snapshot = _torches.ToArray();
         }
 
-        var sun = context.Sun;
+        var sun = context.Lighting.Sun;
         var sunDir = sun?.Direction ?? Vector3.Normalize(new Vector3(0.8f, -0.5f, 0.1f));
         var sunColor = sun.HasValue ? sun.Value.Color * sun.Value.Intensity : new Vector3(1.0f);
 

@@ -17,6 +17,7 @@ using SharpCraft.Sdk;
 using SharpCraft.Sdk.Lifecycle;
 using SharpCraft.Sdk.Numerics;
 using SharpCraft.Sdk.Physics;
+using SharpCraft.Sdk.UI;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
@@ -53,10 +54,6 @@ public partial class Game : IDisposable
     private LocalPlayerController? _playerController;
     private TorchRenderer? _torchRenderer;
     private TextureAtlas? _atlas;
-    private bool _useNormalMap = true;
-    private bool _useAoMap = true;
-    private bool _useMetallicMap = true;
-    private bool _useRoughnessMap = true;
 
     private const double FixedDeltaTime = 1.0 / 60.0;
     private double _accumulator;
@@ -230,44 +227,23 @@ public partial class Game : IDisposable
         _gl.ClearColor(fogColor.X, fogColor.Y, fogColor.Z, 1.0f);
 
         var viewDistance = _world.Size * World.ChunkSize;
-        var context = new RenderContext(
-            View: _camera.GetViewMatrix(alpha),
-            Projection: _camera.GetProjectionMatrix((float)_window.Size.X / _window.Size.Y),
-            CameraPosition: cameraPosition,
-            FogColor: fogColor,
-            FogNear: isUnderwater ? 0.0f : viewDistance * _hudManager.Settings.FogNearFactor,
-            FogFar: isUnderwater ? 20.0f : viewDistance * _hudManager.Settings.FogFarFactor,
-            ScreenWidth: _window.Size.X,
-            ScreenHeight: _window.Size.Y,
-            UseNormalMap: _hudManager.Settings.UseNormalMap,
-            NormalStrength: _hudManager.Settings.NormalStrength,
-            UseAoMap: _hudManager.Settings.UseAoMap,
-            AoMapStrength: _hudManager.Settings.AoMapStrength,
-            UseMetallicMap: _hudManager.Settings.UseMetallicMap,
-            MetallicStrength: _hudManager.Settings.MetallicStrength,
-            UseRoughnessMap: _hudManager.Settings.UseRoughnessMap,
-            RoughnessStrength: _hudManager.Settings.RoughnessStrength,
-            Sun: new DirectionalLightData(_lightSystem.Sun.Direction, _lightSystem.Sun.Color, _lightSystem.Sun.Intensity),
-            PointLights: lights,
-            Exposure: _hudManager.Settings.Exposure,
-            AutoExposureKey: _hudManager.Settings.AutoExposureKey,
-            AutoExposureMin: _hudManager.Settings.AutoExposureMin,
-            AutoExposureMax: _hudManager.Settings.AutoExposureMax,
-            AutoExposureSpeed: _hudManager.Settings.AutoExposureSpeed,
-            Gamma: _hudManager.Settings.Gamma,
-            IsUnderwater: isUnderwater,
-            Time: _worldTime?.Time ?? 0f,
-            UseIbl: _hudManager.Settings.UseIbl,
-            UseSsao: _hudManager.Settings.UseSsao,
-            SsaoRadius: _hudManager.Settings.SsaoRadius,
-            SsaoIntensity: _hudManager.Settings.SsaoIntensity,
-            UseSsr: _hudManager.Settings.UseSsr,
-            UseContactShadows: _hudManager.Settings.UseContactShadows,
-            AtmosphereRayleighScale: _postProcessingRenderer?.RayleighScale ?? 1.0f,
-            AtmosphereMieScale: _postProcessingRenderer?.MieScale ?? 1.0f,
-            AtmosphereOzoneScale: _postProcessingRenderer?.OzoneScale ?? 1.0f,
-            AtmosphereMieG: _postProcessingRenderer?.ScatteringG ?? 0.8f
-        );
+        var context = RenderContextBuilder.Build(
+            view: _camera.GetViewMatrix(alpha),
+            projection: _camera.GetProjectionMatrix((float)_window.Size.X / _window.Size.Y),
+            cameraPosition: cameraPosition,
+            fogColor: fogColor,
+            viewDistance: viewDistance,
+            screenWidth: _window.Size.X,
+            screenHeight: _window.Size.Y,
+            sun: new DirectionalLightData(_lightSystem.Sun.Direction, _lightSystem.Sun.Color, _lightSystem.Sun.Intensity),
+            pointLights: lights,
+            isUnderwater: isUnderwater,
+            time: _worldTime?.Time ?? 0f,
+            settings: _hudManager.Settings,
+            atmosphereRayleigh: _postProcessingRenderer?.RayleighScale ?? 1.0f,
+            atmosphereMie: _postProcessingRenderer?.MieScale ?? 1.0f,
+            atmosphereOzone: _postProcessingRenderer?.OzoneScale ?? 1.0f,
+            atmosphereMieG: _postProcessingRenderer?.ScatteringG ?? 0.8f);
 
         _renderPipeline.Execute(_world, context);
         _hudManager?.Render((float)deltaTime, _world, _playerController, _renderPipeline.MeshManager, _lightSystem, _postProcessingRenderer, _sdk, _mods, _avatarLoader, _diagnosticsManager);
@@ -358,20 +334,27 @@ public partial class Game : IDisposable
             throw new InvalidOperationException("Huds registry must be a HudRegistry.");
         }
 
-        _hudManager = new HudManager(_gl, _window, inputContext, hudRegistry);
+        _hudManager = new HudManager(_gl, _window, inputContext, hudRegistry, _sdk.GraphicsSettings);
         _hudManager.Initialize();
 
         _avatarLoader = new AvatarLoader(_gl);
         _avatarLoader.LoadSteamAvatar().Wait();
         _diagnosticsManager = new DiagnosticsManager();
-        _hudManager.Settings.OnVisibilityChanged += () =>
+
+        var settingsPanel = hudRegistry.RegisteredHuds
+            .OfType<IInteractiveHud>()
+            .FirstOrDefault(h => h.Name == "GraphicsSettingsHud");
+        if (settingsPanel != null)
         {
-            // Force a world update when settings are closed, in case RenderDistance changed
-            if (!_hudManager.Settings.IsVisible)
+            settingsPanel.OnVisibilityChanged += () =>
             {
-                _lastPlayerChunk = null;
-            }
-        };
+                // Force a world update when settings are closed, in case RenderDistance changed
+                if (!settingsPanel.IsVisible)
+                {
+                    _lastPlayerChunk = null;
+                }
+            };
+        }
 
         // Initialize Assets and Atlas
         _atlas = new TextureAtlas(_gl, _sdk.Assets);
@@ -440,31 +423,6 @@ public partial class Game : IDisposable
         if (key == Key.T)
         {
             PlaceTorch();
-        }
-
-        var shift = _input.Keyboard.IsKeyPressed(Key.ShiftLeft) || _input.Keyboard.IsKeyPressed(Key.ShiftRight);
-
-        if (shift)
-        {
-            switch (key)
-            {
-                case Key.N:
-                    _useNormalMap = !_useNormalMap;
-                    LogNormalMappingToggledState(_useNormalMap);
-                    break;
-                case Key.M:
-                    _useMetallicMap = !_useMetallicMap;
-                    LogMetallicMappingToggledState(_useMetallicMap);
-                    break;
-                case Key.R:
-                    _useRoughnessMap = !_useRoughnessMap;
-                    LogRoughnessMappingToggledState(_useRoughnessMap);
-                    break;
-                case Key.L:
-                    _useAoMap = !_useAoMap;
-                    LogAoMappingToggledState(_useAoMap);
-                    break;
-            }
         }
     }
 

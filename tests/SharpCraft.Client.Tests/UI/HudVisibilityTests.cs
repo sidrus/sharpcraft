@@ -1,6 +1,7 @@
 ﻿using AwesomeAssertions;
 using SharpCraft.Client.UI.Chat;
 using SharpCraft.CoreMods.UI;
+using SharpCraft.Sdk.UI;
 
 namespace SharpCraft.Client.Tests.UI;
 
@@ -39,7 +40,7 @@ public class HudVisibilityTests
     [Fact]
     public void GraphicsSettingsHud_SettingIsVisible_ShouldTriggerEvent()
     {
-        var hud = new GraphicsSettingsHud();
+        var hud = new GraphicsSettingsHud(new GraphicsSettings());
         var triggered = false;
         hud.OnVisibilityChanged += () => triggered = true;
 
