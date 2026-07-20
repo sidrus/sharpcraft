@@ -4,7 +4,7 @@ using SharpCraft.Engine.Rendering.Textures;
 
 namespace SharpCraft.Engine.Rendering;
 
-public sealed class TerrainRenderer : IRenderer
+public sealed class TerrainRenderer : IDisposable
 {
     private readonly GL _gl;
     private readonly ChunkRenderCache _cache;

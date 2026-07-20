@@ -8,14 +8,12 @@ using SharpCraft.Sdk;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Input;
 using SharpCraft.Sdk.Physics;
-using SharpCraft.Sdk.Physics.Sensors;
 using SharpCraft.Sdk.Physics.Sensors.Spatial;
 using SharpCraft.Sdk.Universe;
-using IMotor = SharpCraft.Sdk.Physics.Motors.IMotor;
 
 namespace SharpCraft.Client.Controllers;
 
-public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World world, IInputProvider inputProvider) : IController, IPlayer
+public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World world, IInputProvider inputProvider) : IPlayer
 {
     private readonly GeospatialSensor _sensor = new();
     private readonly DefaultPlayerMotor _motor = new();
@@ -23,8 +21,6 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     public Transform Transform => entity.Transform;
     public string Name => nameof(LocalPlayerController);
     public string Id { get; } = Guid.NewGuid().ToString();
-    public IMotor Motor => _motor;
-    public ISensor<SpatialSensorData> SpatialSensor => _sensor;
     public PhysicsEntity Entity => entity;
     IPhysicsEntity IPlayer.Entity => entity;
     public Block BlockBelow => _sensor.LastSense?.BlockBelow ?? default;
@@ -51,11 +47,6 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     public float Pitch => camera is FirstPersonCamera fpc ? fpc.Pitch : (_sensor.LastSense?.Pitch ?? 0f);
 
     /// <summary>
-    /// Gets the current roll angle in degrees.
-    /// </summary>
-    public float Roll => _sensor.LastSense?.Roll ?? 0f;
-
-    /// <summary>
     /// Gets the yaw angle normalized to [0, 360) degrees.
     /// </summary>
     public float NormalizedYaw => (_yaw % 360 + 360) % 360;
@@ -72,8 +63,6 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     /// Gets the last movement intent processed by the controller.
     /// </summary>
     public MovementIntent LastIntent => _pendingIntent;
-
-    private readonly List<object> _components = new();
 
     public void OnUpdate(double deltaTime)
     {
@@ -128,15 +117,5 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
         {
             fpc.HandleMouse(0, lookDelta.Pitch);
         }
-    }
-
-    public T? GetComponent<T>() where T : class
-    {
-        return _components.OfType<T>().FirstOrDefault();
-    }
-
-    public void AddComponent<T>(T component) where T : class
-    {
-        _components.Add(component);
     }
 }

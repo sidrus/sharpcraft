@@ -25,12 +25,9 @@ public class MessageChannel(string name) : IMessageChannel
 
             foreach (var handler in handlersCopy)
             {
-                // This is a bit slow due to dynamic invocation, but flexible.
-                // In a high-performance scenario, we'd want to optimize this.
                 try
                 {
-                    var method = handler.GetType().GetMethod("Invoke");
-                    method?.Invoke(handler, [message]);
+                    ((Delegate)handler).DynamicInvoke(message);
                 }
                 catch (Exception)
                 {

@@ -14,9 +14,4 @@ public record GeospatialSensorData : SpatialSensorData
     /// Gets the vertical orientation (pitch) in degrees.
     /// </summary>
     public float Pitch { get; init; }
-
-    /// <summary>
-    /// Gets the bank orientation (roll) in degrees.
-    /// </summary>
-    public float Roll { get; init; }
 }

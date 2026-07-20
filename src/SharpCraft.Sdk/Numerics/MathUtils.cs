@@ -19,7 +19,7 @@ public static class MathUtils
     /// </summary>
     /// <param name="x">The value to floor.</param>
     /// <returns>The floored value.</returns>
-    public static int FastFloor(float x) => (int)x - (x < (int)x ? 1 : 0);
+    public static int FastFloor(float x) => (int)MathF.Floor(x);
 
     /// <summary>
     /// Computes the dot product of a gradient vector and a 2D offset.

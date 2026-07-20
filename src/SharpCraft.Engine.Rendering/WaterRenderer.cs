@@ -4,7 +4,7 @@ using SharpCraft.Engine.Rendering.Textures;
 
 namespace SharpCraft.Engine.Rendering;
 
-public class WaterRenderer : IRenderer
+public class WaterRenderer : IDisposable
 {
     private readonly GL _gl;
     private readonly ChunkRenderCache _cache;

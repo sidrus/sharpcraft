@@ -2,7 +2,7 @@
 
 namespace SharpCraft.Engine.Rendering.Lighting;
 
-public class PointLight : ILight
+public class PointLight
 {
     public Vector3 Color { get; set; } = Vector3.One;
     public float Intensity { get; set; } = 1.0f;

@@ -209,7 +209,6 @@ public class LocalPlayerControllerTests
             _ = controller.IsGrounded;
             _ = controller.Yaw;
             _ = controller.Pitch;
-            _ = controller.Roll;
             _ = controller.NormalizedYaw;
             _ = controller.Heading;
         };
