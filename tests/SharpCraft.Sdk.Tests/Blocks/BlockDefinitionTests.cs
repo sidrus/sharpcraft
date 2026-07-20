@@ -1,7 +1,5 @@
 using AwesomeAssertions;
 using SharpCraft.Sdk.Blocks;
-using SharpCraft.Sdk.Resources;
-using Xunit;
 
 namespace SharpCraft.Sdk.Tests.Blocks;
 

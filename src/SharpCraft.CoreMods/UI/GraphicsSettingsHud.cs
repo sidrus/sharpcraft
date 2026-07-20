@@ -1,23 +1,22 @@
-﻿using System.Numerics;
-using SharpCraft.Sdk.UI;
+﻿using SharpCraft.Sdk.UI;
+using System.Numerics;
 
 namespace SharpCraft.CoreMods.UI;
 
 /// <summary>
 /// Graphics settings menu.
 /// </summary>
-public class GraphicsSettingsHud : IHud, IGraphicsSettings
+public class GraphicsSettingsHud : IGraphicsSettings
 {
     public string Name => "GraphicsSettingsHud";
 
-    private bool _isVisible;
     public bool IsVisible
     {
-        get => _isVisible;
+        get;
         set
         {
-            if (_isVisible == value) return;
-            _isVisible = value;
+            if (field == value) return;
+            field = value;
             OnVisibilityChanged?.Invoke();
         }
     }
@@ -48,8 +47,8 @@ public class GraphicsSettingsHud : IHud, IGraphicsSettings
 
     // Image-based lighting from the baked procedural sky — the primary ambient
     // light source for the PBR pipeline. Off only as a debugging fallback.
-    private bool _useIBL = true;
-    public bool UseIBL { get => _useIBL; set => _useIBL = value; }
+    private bool _useIbl = true;
+    public bool UseIbl { get => _useIbl; set => _useIbl = value; }
 
     // Screen-space ambient occlusion — adds contact shadows in creases/under ledges.
     private bool _useSsao = true;
@@ -67,7 +66,7 @@ public class GraphicsSettingsHud : IHud, IGraphicsSettings
     private bool _useContactShadows = true;
     public bool UseContactShadows { get => _useContactShadows; set => _useContactShadows = value; }
 
-    private bool _vSync = false;
+    private bool _vSync;
     public bool VSync { get => _vSync; set => _vSync = value; }
 
     // Standard sRGB display gamma; the HDR chain is linear until the final pass
@@ -122,7 +121,7 @@ public class GraphicsSettingsHud : IHud, IGraphicsSettings
                 gui.SliderFloat("Metallic Strength", ref _metallicStrength, 0.0f, 10.0f);
                 gui.Checkbox("Enable Roughness Mapping", ref _useRoughnessMap);
                 gui.SliderFloat("Roughness Strength", ref _roughnessStrength, 0.0f, 10.0f);
-                gui.Checkbox("Enable IBL (Sky Lighting)", ref _useIBL);
+                gui.Checkbox("Enable IBL (Sky Lighting)", ref _useIbl);
                 gui.Checkbox("Enable SSAO (Ambient Occlusion)", ref _useSsao);
                 gui.SliderFloat("SSAO Radius", ref _ssaoRadius, 0.2f, 4.0f);
                 gui.SliderFloat("SSAO Intensity", ref _ssaoIntensity, 0.0f, 8.0f);

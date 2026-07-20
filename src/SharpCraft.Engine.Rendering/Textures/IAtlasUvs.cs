@@ -1,5 +1,3 @@
-using SharpCraft.Sdk.Resources;
-
 namespace SharpCraft.Engine.Rendering.Textures;
 
 /// <summary>

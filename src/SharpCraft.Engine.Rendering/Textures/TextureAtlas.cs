@@ -43,7 +43,7 @@ public class TextureAtlas(GL gl, IRegistry<TextureData> assets) : IDisposable, I
             var yOffset = row * maxTileH;
 
             CopyLayer(data.Data, diffuseData, xOffset, yOffset, atlasWidth, data.Width, data.Height);
-            
+
             if (data.NormalData != null)
                 CopyLayer(data.NormalData, normalData, xOffset, yOffset, atlasWidth, data.Width, data.Height);
             else
@@ -85,11 +85,11 @@ public class TextureAtlas(GL gl, IRegistry<TextureData> assets) : IDisposable, I
         _roughnessAtlas?.Dispose();
 
         _diffuseAtlas = new Texture2d(gl, atlasWidth, atlasHeight, diffuseData, InternalFormat.SrgbAlpha);
-        _normalAtlas = new Texture2d(gl, atlasWidth, atlasHeight, normalData, InternalFormat.Rgba);
-        _aoAtlas = new Texture2d(gl, atlasWidth, atlasHeight, aoData, InternalFormat.Rgba);
-        _specularAtlas = new Texture2d(gl, atlasWidth, atlasHeight, specularData, InternalFormat.Rgba);
-        _metallicAtlas = new Texture2d(gl, atlasWidth, atlasHeight, metallicData, InternalFormat.Rgba);
-        _roughnessAtlas = new Texture2d(gl, atlasWidth, atlasHeight, roughnessData, InternalFormat.Rgba);
+        _normalAtlas = new Texture2d(gl, atlasWidth, atlasHeight, normalData);
+        _aoAtlas = new Texture2d(gl, atlasWidth, atlasHeight, aoData);
+        _specularAtlas = new Texture2d(gl, atlasWidth, atlasHeight, specularData);
+        _metallicAtlas = new Texture2d(gl, atlasWidth, atlasHeight, metallicData);
+        _roughnessAtlas = new Texture2d(gl, atlasWidth, atlasHeight, roughnessData);
     }
 
     private static void CopyLayer(byte[] src, byte[] dst, int xOffset, int yOffset, int dstWidth, int srcWidth, int srcHeight)
@@ -130,9 +130,9 @@ public class TextureAtlas(GL gl, IRegistry<TextureData> assets) : IDisposable, I
         }
     }
 
-    public void Bind(TextureUnit diffuseUnit = TextureUnit.Texture0, 
-                     TextureUnit normalUnit = TextureUnit.Texture1, 
-                     TextureUnit aoUnit = TextureUnit.Texture2, 
+    public void Bind(TextureUnit diffuseUnit = TextureUnit.Texture0,
+                     TextureUnit normalUnit = TextureUnit.Texture1,
+                     TextureUnit aoUnit = TextureUnit.Texture2,
                      TextureUnit specularUnit = TextureUnit.Texture3,
                      TextureUnit metallicUnit = TextureUnit.Texture4,
                      TextureUnit roughnessUnit = TextureUnit.Texture5)

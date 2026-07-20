@@ -35,9 +35,9 @@ public static class MathUtils
     public static (float Yaw, float Pitch, float Roll) ToEulerAngles(Quaternion q)
     {
         // yaw (y-axis rotation)
-        var siny_cosp = 2 * (q.W * q.Y + q.X * q.Z);
-        var cosy_cosp = 1 - 2 * (q.Y * q.Y + q.X * q.X);
-        var yaw = MathF.Atan2(siny_cosp, cosy_cosp);
+        var sinyCosp = 2 * (q.W * q.Y + q.X * q.Z);
+        var cosyCosp = 1 - 2 * (q.Y * q.Y + q.X * q.X);
+        var yaw = MathF.Atan2(sinyCosp, cosyCosp);
 
         // pitch (x-axis rotation)
         var sinp = 2 * (q.W * q.X - q.Z * q.Y);
@@ -48,9 +48,9 @@ public static class MathUtils
             pitch = MathF.Asin(sinp);
 
         // roll (z-axis rotation)
-        var sinr_cosp = 2 * (q.W * q.Z + q.X * q.Y);
-        var cosr_cosp = 1 - 2 * (q.X * q.X + q.Z * q.Z);
-        var roll = MathF.Atan2(sinr_cosp, cosr_cosp);
+        var sinrCosp = 2 * (q.W * q.Z + q.X * q.Y);
+        var cosrCosp = 1 - 2 * (q.X * q.X + q.Z * q.Z);
+        var roll = MathF.Atan2(sinrCosp, cosrCosp);
 
         return (yaw * 180f / MathF.PI, pitch * 180f / MathF.PI, roll * 180f / MathF.PI);
     }

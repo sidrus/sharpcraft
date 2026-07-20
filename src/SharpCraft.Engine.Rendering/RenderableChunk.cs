@@ -10,9 +10,10 @@ public class RenderableChunk(GL gl, IChunk chunk) : IDisposable
 
     private bool _isInitialized;
 
-    public unsafe void UpdateBuffers()
+    public void UpdateBuffers()
     {
-        if (!_isInitialized) {
+        if (!_isInitialized)
+        {
             _opaqueVbo = gl.GenBuffer(); _opaqueEbo = gl.GenBuffer();
             _transparentVbo = gl.GenBuffer(); _transparentEbo = gl.GenBuffer();
             _isInitialized = true;

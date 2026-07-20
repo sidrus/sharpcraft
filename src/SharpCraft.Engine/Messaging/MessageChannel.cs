@@ -1,6 +1,6 @@
-﻿using System.Collections.Concurrent;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using SharpCraft.Sdk.Messaging;
+using System.Collections.Concurrent;
 
 namespace SharpCraft.Engine.Messaging;
 

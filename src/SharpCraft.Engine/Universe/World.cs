@@ -1,10 +1,10 @@
-﻿using System.Collections.Concurrent;
-using System.Numerics;
-using SharpCraft.Sdk.Blocks;
+﻿using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
 using SharpCraft.Sdk.Physics;
 using SharpCraft.Sdk.Resources;
 using SharpCraft.Sdk.Universe;
+using System.Collections.Concurrent;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Universe;
 
@@ -34,7 +34,7 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
     public async Task GenerateAsync(int bounds, Vector3? center = null)
     {
         Size = bounds;
-        
+
         var currentCenter = center ?? Vector3.Zero;
         var coords = GetCoordsInRange(currentCenter, bounds);
 
@@ -129,7 +129,7 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
     public void Generate(int bounds)
     {
         Size = bounds;
-        for(var x = -bounds; x <= bounds; x++)
+        for (var x = -bounds; x <= bounds; x++)
         {
             for (var z = -bounds; z <= bounds; z++)
             {
@@ -164,7 +164,6 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
         return chunk;
     }
 
-    /// <inheritdoc />
     public Block GetBlock(int worldX, int worldY, int worldZ)
     {
         if (worldY is < 0 or >= Chunk.Height)

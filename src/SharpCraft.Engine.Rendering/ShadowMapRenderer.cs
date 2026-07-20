@@ -1,5 +1,5 @@
-﻿using System.Numerics;
-using SharpCraft.Engine.Rendering.Shaders;
+﻿using SharpCraft.Engine.Rendering.Shaders;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Rendering;
 
@@ -29,9 +29,8 @@ public sealed class ShadowMapRenderer : IDisposable
         {
             var chunkPos = chunk.WorldPosition;
             var renderChunk = _cache.Get(chunk);
-            if (renderChunk == null) continue;
-
             var model = Matrix4x4.CreateTranslation(chunkPos);
+
             _shader.SetUniform("model", model);
             renderChunk.BindAndDrawOpaque();
         }

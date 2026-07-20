@@ -1,12 +1,12 @@
-using System.Numerics;
-using NSubstitute;
 using AwesomeAssertions;
+using NSubstitute;
 using SharpCraft.Client.UI.Chat;
-using SharpCraft.Sdk.UI;
 using SharpCraft.Sdk;
 using SharpCraft.Sdk.Commands;
-using SharpCraft.Sdk.Universe;
 using SharpCraft.Sdk.Messaging;
+using SharpCraft.Sdk.UI;
+using SharpCraft.Sdk.Universe;
+using System.Numerics;
 
 namespace SharpCraft.Client.Tests.UI;
 

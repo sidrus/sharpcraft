@@ -5,7 +5,7 @@ namespace SharpCraft.Engine.Physics.Motors;
 /// <summary>
 /// Drives the player through a fluid: buoyancy, swimming up/down, treading at the surface,
 /// and hopping out onto adjacent land. All fluid behavior comes from the block's
-/// <see cref="MaterialSensorData.Fluid"/> data, so water, lava, etc. differ only by values.
+/// data, so water, lava, etc. differ only by values.
 /// </summary>
 public sealed class FluidMotor : PlayerMotorBase
 {

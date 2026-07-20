@@ -1,5 +1,5 @@
-﻿using System.Numerics;
-using SharpCraft.Engine.Rendering.Lighting;
+﻿using SharpCraft.Engine.Rendering.Lighting;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Rendering;
 
@@ -32,12 +32,12 @@ public readonly record struct RenderContext(
     float Gamma = 1.6f,
     bool IsUnderwater = false,
     float Time = 0.0f,
-    bool UseIBL = false,
-    bool UseTAA = true,
-    bool UseSSAO = true,
+    bool UseIbl = false,
+    bool UseTaa = true,
+    bool UseSsao = true,
     float SsaoRadius = 1.5f,
     float SsaoIntensity = 2.5f,
-    bool UseSSR = true,
+    bool UseSsr = true,
     bool UseContactShadows = true,
     bool UseBloom = true,
     float AtmosphereRayleighScale = 1.0f,

@@ -1,5 +1,5 @@
-﻿using System.Numerics;
-using ImGuiNET;
+﻿using ImGuiNET;
+using System.Numerics;
 
 namespace SharpCraft.Client.UI;
 
@@ -57,5 +57,5 @@ public static class Layout
 
         return position;
     }
-    
+
 }

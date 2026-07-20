@@ -1,10 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
-using SharpCraft.Client.Controllers;
+﻿using SharpCraft.Client.Controllers;
+using SharpCraft.Client.UI.Chat;
 using SharpCraft.Engine.Rendering;
 using SharpCraft.Engine.Rendering.Lighting;
-using SharpCraft.Client.UI.Chat;
-using SharpCraft.Engine.Universe;
 using SharpCraft.Engine.UI;
+using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk;
 using SharpCraft.Sdk.Diagnostics;
 using SharpCraft.Sdk.Lifecycle;
@@ -16,25 +15,26 @@ using Silk.NET.Windowing;
 
 namespace SharpCraft.Client.UI;
 
-public partial class HudManager : ILifecycle, IDisposable
+public class HudManager : ILifecycle, IDisposable
 {
-    private ImGuiController _controller;
-    private readonly GL _gl;
+    private readonly ImGuiController _controller;
     private readonly IWindow _window;
     private readonly IInputContext _input;
     private bool _disposed;
     private readonly HudRegistry _registry;
     private readonly IGui _gui;
-    private readonly IGraphicsSettings _fallbackSettings = new DefaultGraphicsSettings();
 
     private IReadOnlyList<IHud> Huds => _registry.RegisteredHuds;
 
-    public IGraphicsSettings Settings => GetHud<IGraphicsSettings>() ?? _fallbackSettings;
+    public IGraphicsSettings Settings
+    {
+        get => GetHud<IGraphicsSettings>() ?? field;
+    } = new DefaultGraphicsSettings();
+
     public ChatHud? Chat => GetHud<ChatHud>();
 
-    public HudManager(GL gl, IWindow window, IInputContext input, HudRegistry registry, ILogger<HudManager> logger)
+    public HudManager(GL gl, IWindow window, IInputContext input, HudRegistry registry)
     {
-        _gl = gl;
         _window = window;
         _input = input;
         _registry = registry;
@@ -105,7 +105,7 @@ public partial class HudManager : ILifecycle, IDisposable
         var isAnyMenuVisible = Huds
             .OfType<IInteractiveHud>()
             .Any(h => h.IsVisible);
-        
+
         if (isAnyMenuVisible)
         {
             mouse.Cursor.CursorMode = CursorMode.Normal;
@@ -120,11 +120,11 @@ public partial class HudManager : ILifecycle, IDisposable
     private void ToggleCursorMode()
     {
         var mouse = _input.Mice[0];
-        
+
         var isAnyMenuVisible = Huds
             .OfType<IInteractiveHud>()
             .Any(h => h.IsVisible);
-        
+
         if (isAnyMenuVisible)
         {
             mouse.Cursor.CursorMode = CursorMode.Normal;
@@ -144,14 +144,11 @@ public partial class HudManager : ILifecycle, IDisposable
 
     public void OnUpdate(double deltaTime)
     {
-        if (Settings != null)
+        _window.VSync = Settings.VSync;
+        if (!Settings.VSync)
         {
-            _window.VSync = Settings.VSync;
-            if (!Settings.VSync)
-            {
-                _window.FramesPerSecond = 0;
-                _window.UpdatesPerSecond = 0;
-            }
+            _window.FramesPerSecond = 0;
+            _window.UpdatesPerSecond = 0;
         }
 
         foreach (var hud in Huds)
@@ -189,7 +186,7 @@ public partial class HudManager : ILifecycle, IDisposable
 
         _controller.Update((float)deltaTime);
 
-        var context = new HudContext(_world, _player, _meshManager, _lighting, _postProcessing, _sdk, _mods, _avatar, _diagnostics);
+        var context = new HudContext(_player, _meshManager, _lighting, _postProcessing, _sdk, _mods, _avatar, _diagnostics);
         foreach (var hud in Huds)
         {
             hud.Draw(deltaTime, _gui, context);
@@ -265,7 +262,7 @@ public partial class HudManager : ILifecycle, IDisposable
         public float RoughnessStrength { get; set; } = 1.0f;
 
         // Advanced Lighting (CRITICAL FOR PHOTOREAL)
-        public bool UseIBL { get; set; } = true;          // ENABLED - Essential for PBR!
+        public bool UseIbl { get; set; } = true;          // ENABLED - Essential for PBR!
         public bool UseSsao { get; set; } = true;         // Screen-space ambient occlusion
         public float SsaoRadius { get; set; } = 1.5f;
         public float SsaoIntensity { get; set; } = 2.5f;

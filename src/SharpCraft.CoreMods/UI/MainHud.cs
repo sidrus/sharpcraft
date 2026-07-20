@@ -1,5 +1,5 @@
-﻿using System.Numerics;
-using SharpCraft.Sdk.UI;
+﻿using SharpCraft.Sdk.UI;
+using System.Numerics;
 
 namespace SharpCraft.CoreMods.UI;
 

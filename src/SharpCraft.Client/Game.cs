@@ -1,22 +1,20 @@
-﻿using System.Collections.Concurrent;
-using System.Numerics;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using SharpCraft.Client.Controllers;
 using SharpCraft.Client.Input;
-using SharpCraft.Engine.Rendering;
-using SharpCraft.Engine.Rendering.Cameras;
-using SharpCraft.Engine.Rendering.Shaders;
-using SharpCraft.Engine.Rendering.Lighting;
-using SharpCraft.Engine.Rendering.Textures;
 using SharpCraft.Client.Integrations.Steam;
 using SharpCraft.Client.UI;
 using SharpCraft.Engine.Diagnostics;
 using SharpCraft.Engine.Lifecycle;
 using SharpCraft.Engine.Physics;
+using SharpCraft.Engine.Rendering;
+using SharpCraft.Engine.Rendering.Cameras;
+using SharpCraft.Engine.Rendering.Lighting;
+using SharpCraft.Engine.Rendering.Shaders;
+using SharpCraft.Engine.Rendering.Textures;
 using SharpCraft.Engine.UI;
 using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk;
-using SharpCraft.Sdk.Blocks;
+using SharpCraft.Sdk.Lifecycle;
 using SharpCraft.Sdk.Numerics;
 using SharpCraft.Sdk.Physics;
 using Silk.NET.Input;
@@ -24,6 +22,8 @@ using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using Steamworks;
+using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace SharpCraft.Client;
 
@@ -36,7 +36,7 @@ public partial class Game : IDisposable
     private readonly ILogger<Game> _logger;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ISharpCraftSdk _sdk;
-    private readonly IEnumerable<SharpCraft.Sdk.Lifecycle.IMod> _mods;
+    private readonly IEnumerable<IMod> _mods;
     private InputManager? _input;
     private KeyboardMouseInputProvider? _inputProvider;
     private HudManager? _hudManager;
@@ -63,7 +63,7 @@ public partial class Game : IDisposable
     private Vector2<int>? _lastPlayerChunk;
     private Task? _worldUpdateTask;
 
-    public Game(IWindow window, World world, ILoggerFactory loggerFactory, ISharpCraftSdk sdk, IEnumerable<SharpCraft.Sdk.Lifecycle.IMod> mods)
+    public Game(IWindow window, World world, ILoggerFactory loggerFactory, ISharpCraftSdk sdk, IEnumerable<IMod> mods)
     {
         _world = world;
         _loggerFactory = loggerFactory;
@@ -125,7 +125,7 @@ public partial class Game : IDisposable
         SteamClient.RunCallbacks();
 
         _lifecycleManager.Update(deltaTime);
-        
+
         if (_input?.Mouse.Cursor.CursorMode == CursorMode.Raw)
         {
             _playerController?.OnUpdate(deltaTime);
@@ -143,13 +143,13 @@ public partial class Game : IDisposable
 
         UpdateWorldChunks();
 
-        if (_diagnosticsManager != null && _world != null && _renderPipeline != null)
+        if (_diagnosticsManager != null && _renderPipeline != null)
         {
             var loadedChunks = _world.GetLoadedChunks().Count();
             var meshQueue = _renderPipeline.MeshManager.DirtyChunksCount + _renderPipeline.MeshManager.ProcessingChunksCount;
             var activeLights = _lightSystem.GetActivePointLights().Count() + 1;
             var velocity = _playerController?.Entity.Velocity.Length() ?? 0f;
-            
+
             _diagnosticsManager.Update(deltaTime, loadedChunks, meshQueue, activeLights, velocity, _worldTime?.FormattedTime ?? string.Empty);
         }
 
@@ -198,27 +198,27 @@ public partial class Game : IDisposable
         }
 
         _lifecycleManager.Render(deltaTime);
-        
+
         var alpha = (float)(_accumulator / FixedDeltaTime);
 
         var lights = _lightSystem.GetActivePointLights().ToArray();
 
         var cameraPosition = (_camera as FirstPersonCamera)?.GetInterpolatedPosition(alpha) ?? _camera.Position;
         var block = _world.GetBlock((int)Math.Floor(cameraPosition.X), (int)Math.Floor(cameraPosition.Y), (int)Math.Floor(cameraPosition.Z));
-        
+
         // We calculate this separately from the player controller's IsUnderwater to use the 
         // interpolated camera position for visual smoothness and to support different camera types.
         var isUnderwater = block.IsFluid;
 
         var fogColor = isUnderwater ? new Vector3(0.0f, 0.4f, 0.8f) : new Vector3(0.53f, 0.81f, 0.92f);
-        
+
         // Apply sun lighting to fog/clear color
         if (!isUnderwater)
         {
             var sunColor = _lightSystem.Sun.Color * _lightSystem.Sun.Intensity;
             var sunDir = Vector3.Normalize(-_lightSystem.Sun.Direction);
             var dotL = Math.Clamp(Vector3.Dot(Vector3.UnitY, sunDir), 0.0f, 1.0f);
-            
+
             // Blend between a dark night color and the sun-lit color
             var ambientLight = new Vector3(0.01f); // Darker constant ambient for night
             fogColor *= Vector3.Lerp(ambientLight, sunColor, dotL);
@@ -254,11 +254,11 @@ public partial class Game : IDisposable
             Gamma: _hudManager.Settings.Gamma,
             IsUnderwater: isUnderwater,
             Time: _worldTime?.Time ?? 0f,
-            UseIBL: _hudManager.Settings.UseIBL,
-            UseSSAO: _hudManager.Settings.UseSsao,
+            UseIbl: _hudManager.Settings.UseIbl,
+            UseSsao: _hudManager.Settings.UseSsao,
             SsaoRadius: _hudManager.Settings.SsaoRadius,
             SsaoIntensity: _hudManager.Settings.SsaoIntensity,
-            UseSSR: _hudManager.Settings.UseSsr,
+            UseSsr: _hudManager.Settings.UseSsr,
             UseContactShadows: _hudManager.Settings.UseContactShadows,
             AtmosphereRayleighScale: _postProcessingRenderer?.RayleighScale ?? 1.0f,
             AtmosphereMieScale: _postProcessingRenderer?.MieScale ?? 1.0f,
@@ -303,8 +303,8 @@ public partial class Game : IDisposable
         if (severity == GLEnum.DebugSeverityNotification) return;
 
         var text = length > 0
-            ? System.Runtime.InteropServices.Marshal.PtrToStringAnsi(message, length)
-            : System.Runtime.InteropServices.Marshal.PtrToStringAnsi(message);
+            ? Marshal.PtrToStringAnsi(message, length)
+            : Marshal.PtrToStringAnsi(message);
 
         if (type == GLEnum.DebugTypePerformance)
         {
@@ -341,23 +341,20 @@ public partial class Game : IDisposable
             throw new InvalidOperationException("Huds registry must be a HudRegistry.");
         }
 
-        _hudManager = new HudManager(_gl, _window, inputContext, hudRegistry, _loggerFactory.CreateLogger<HudManager>());
+        _hudManager = new HudManager(_gl, _window, inputContext, hudRegistry);
         _hudManager.Initialize();
 
         _avatarLoader = new AvatarLoader(_gl);
         _avatarLoader.LoadSteamAvatar().Wait();
         _diagnosticsManager = new DiagnosticsManager();
-        if (_hudManager.Settings != null)
+        _hudManager.Settings.OnVisibilityChanged += () =>
         {
-            _hudManager.Settings.OnVisibilityChanged += () =>
+            // Force a world update when settings are closed, in case RenderDistance changed
+            if (!_hudManager.Settings.IsVisible)
             {
-                // Force a world update when settings are closed, in case RenderDistance changed
-                if (!_hudManager.Settings.IsVisible)
-                {
-                    _lastPlayerChunk = null; 
-                }
-            };
-        }
+                _lastPlayerChunk = null;
+            }
+        };
 
         // Initialize Assets and Atlas
         _atlas = new TextureAtlas(_gl, _sdk.Assets);
@@ -370,10 +367,10 @@ public partial class Game : IDisposable
 
         _camera = new FirstPersonCamera(entity, Vector3.UnitY * 1.6f);
         _playerController = new LocalPlayerController(entity, _camera, _world, _inputProvider, _sdk.Blocks);
-        
+
         var cache = new ChunkRenderCache(_gl);
-        _mainShader = new ShaderProgram(_gl, SharpCraft.Engine.Rendering.Shaders.Shaders.DefaultVertex, SharpCraft.Engine.Rendering.Shaders.Shaders.DefaultFragment);
-        var terrainRenderer = new TerrainRenderer(_gl, cache, meshManager, _atlas, _sdk.Blocks, _mainShader);
+        _mainShader = new ShaderProgram(_gl, Shaders.DefaultVertex, Shaders.DefaultFragment);
+        var terrainRenderer = new TerrainRenderer(_gl, cache, meshManager, _atlas, _mainShader);
         var waterRenderer = new WaterRenderer(_gl, cache, meshManager, _atlas);
         _torchRenderer = new TorchRenderer(_gl);
         _postProcessingRenderer = new PostProcessingRenderer(_gl);
@@ -383,7 +380,7 @@ public partial class Game : IDisposable
         _worldTime = new WorldTime { DayDurationInMinutes = 5f };
         _lightSystem.WorldTime = _worldTime;
         _sun = new Sun(_worldTime, _lightSystem);
-        
+
         if (_input != null) _lifecycleManager.Register(_input);
         if (_hudManager != null) _lifecycleManager.Register(_hudManager);
         _lifecycleManager.Register(_worldTime);
@@ -511,7 +508,7 @@ public partial class Game : IDisposable
                 _mainShader?.Dispose();
                 _hudManager?.Dispose();
                 _input?.Dispose();
-                
+
                 // We do NOT dispose _window here because it's owned by Program.cs
                 // and managed via a using block there.
             }

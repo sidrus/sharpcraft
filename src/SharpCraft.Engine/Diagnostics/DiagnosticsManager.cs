@@ -1,5 +1,5 @@
-﻿using System.Diagnostics;
-using SharpCraft.Sdk.Diagnostics;
+﻿using SharpCraft.Sdk.Diagnostics;
+using System.Diagnostics;
 
 namespace SharpCraft.Engine.Diagnostics;
 
@@ -8,7 +8,7 @@ public class DiagnosticsManager : IDiagnosticsProvider
     private readonly Process _process = Process.GetCurrentProcess();
     private TimeSpan _lastCpuTime = TimeSpan.Zero;
     private readonly Stopwatch _cpuStopwatch = Stopwatch.StartNew();
-    
+
     // History for 5 minutes at 10Hz = 3000 samples
     private const int MaxSamples = 3000;
     private double _sampleTimer;
@@ -32,7 +32,7 @@ public class DiagnosticsManager : IDiagnosticsProvider
         {
             GameTime = gameTime;
         }
-        
+
         if (_sampleTimer >= SampleInterval)
         {
             _sampleTimer -= SampleInterval;
@@ -67,7 +67,7 @@ public class DiagnosticsManager : IDiagnosticsProvider
 
         // Rendering/Mesh
         MeshQueue.AddSample(meshQueue);
-        
+
         // Active Lights
         ActiveLights.AddSample(activeLights);
 

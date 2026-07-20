@@ -1,5 +1,5 @@
-﻿using SharpCraft.Sdk.Lifecycle;
-using SharpCraft.Sdk.Diagnostics;
+﻿using SharpCraft.Sdk.Diagnostics;
+using SharpCraft.Sdk.Lifecycle;
 using SharpCraft.Sdk.Universe;
 
 namespace SharpCraft.Sdk.UI;

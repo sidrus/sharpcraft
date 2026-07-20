@@ -1,8 +1,8 @@
-﻿using System.Numerics;
+﻿using AwesomeAssertions;
 using SharpCraft.Engine.Physics;
-using AwesomeAssertions;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Physics;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Tests.Physics;
 
@@ -12,7 +12,7 @@ public class PhysicsSystemTests
 
     private class FakeCollisionProvider : ICollisionProvider
     {
-        public Dictionary<Vector3, Block> Blocks = new();
+        public readonly Dictionary<Vector3, Block> Blocks = new();
 
         public Block GetBlock(int worldX, int worldY, int worldZ)
         {

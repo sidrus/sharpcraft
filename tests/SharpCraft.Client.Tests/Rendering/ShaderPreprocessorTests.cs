@@ -1,6 +1,5 @@
 ﻿using AwesomeAssertions;
 using SharpCraft.Engine.Rendering.Shaders;
-using Xunit;
 
 namespace SharpCraft.Client.Tests.Rendering;
 

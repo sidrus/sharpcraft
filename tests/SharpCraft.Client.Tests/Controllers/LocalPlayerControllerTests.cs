@@ -1,16 +1,16 @@
-﻿using System.Numerics;
+﻿using AwesomeAssertions;
+using NSubstitute;
 using SharpCraft.Client.Controllers;
 using SharpCraft.Engine.Blocks;
-using SharpCraft.Engine.Rendering.Cameras;
 using SharpCraft.Engine.Physics;
-using SharpCraft.Sdk.Physics;
-using NSubstitute;
-using AwesomeAssertions;
+using SharpCraft.Engine.Rendering.Cameras;
 using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk.Blocks;
-using SharpCraft.Sdk.Resources;
-
 using SharpCraft.Sdk.Input;
+using SharpCraft.Sdk.Physics;
+using SharpCraft.Sdk.Resources;
+using SharpCraft.Sdk.Universe;
+using System.Numerics;
 
 namespace SharpCraft.Client.Tests.Controllers;
 
@@ -35,7 +35,7 @@ public class LocalPlayerControllerTests
     public void Update_WhenHoldingSpaceOnWaterSurface_ShouldEventuallySubmergeDeeply()
     {
         // Setup
-        var world = new World(Substitute.For<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Blocks);
+        var world = new World(Substitute.For<IWorldGenerator>(), 0, Blocks);
         // Water at Y=63 (occupies 63.0 to 64.0)
         for (var x = -5; x <= 5; x++)
         {
@@ -47,7 +47,7 @@ public class LocalPlayerControllerTests
 
         var mockCamera = Substitute.For<ICamera>();
         var mockPhysicsSystem = Substitute.For<IPhysicsSystem>();
-        
+
         // Entity starts at Y=64.0 (feet at water surface)
         var transform = new Transform { Position = new Vector3(0, 64.0f, 0) };
         var entity = new PhysicsEntity(transform, mockPhysicsSystem);
@@ -79,7 +79,7 @@ public class LocalPlayerControllerTests
     public void Update_WhenHoldingSpaceAtShallowSwimmingDepth_ShouldNotSink()
     {
         // Setup
-        var world = new World(Substitute.For<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Blocks);
+        var world = new World(Substitute.For<IWorldGenerator>(), 0, Blocks);
         // Water at Y=63 (occupies 63.0 to 64.0)
         for (var x = -5; x <= 5; x++)
         {
@@ -91,7 +91,7 @@ public class LocalPlayerControllerTests
 
         var mockCamera = Substitute.For<ICamera>();
         var mockPhysicsSystem = Substitute.For<IPhysicsSystem>();
-        
+
         // Entity starts at Y=63.0 (SubmersionDepth = 1.0m)
         // At this depth, IsSwimming is true, but SubmersionDepth <= 1.1f
         var transform = new Transform { Position = new Vector3(0, 63.0f, 0) };
@@ -118,7 +118,7 @@ public class LocalPlayerControllerTests
     public void Update_WhenHoldingSpaceInOpenWater_ShouldNotRiseAboveSurface()
     {
         // Setup: open water (Y=63 occupies 63.0 to 64.0), no land to climb onto.
-        var world = new World(Substitute.For<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Blocks);
+        var world = new World(Substitute.For<IWorldGenerator>(), 0, Blocks);
         for (var x = -5; x <= 5; x++)
         {
             for (var z = -5; z <= 5; z++)
@@ -161,7 +161,7 @@ public class LocalPlayerControllerTests
     public void Update_WhenJumpingNextToLedge_ShouldClimbAboveSurface()
     {
         // Setup: water at Y=63, with a solid block at the waterline the player can climb onto.
-        var world = new World(Substitute.For<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Blocks);
+        var world = new World(Substitute.For<IWorldGenerator>(), 0, Blocks);
         for (var x = -5; x <= 5; x++)
         {
             for (var z = -5; z <= 5; z++)
@@ -206,7 +206,7 @@ public class LocalPlayerControllerTests
     public void Properties_WhenAccessedBeforeSense_ShouldNotThrow()
     {
         // Setup
-        var world = new World(Substitute.For<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Blocks);
+        var world = new World(Substitute.For<IWorldGenerator>(), 0, Blocks);
         var mockCamera = Substitute.For<ICamera>();
         var mockPhysicsSystem = Substitute.For<IPhysicsSystem>();
         var entity = new PhysicsEntity(new Transform(), mockPhysicsSystem);

@@ -1,9 +1,9 @@
-﻿using System.Numerics;
-using SharpCraft.Sdk;
+﻿using SharpCraft.Sdk;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
 using SharpCraft.Sdk.Resources;
 using SharpCraft.Sdk.Universe;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Universe;
 
@@ -12,10 +12,8 @@ namespace SharpCraft.Engine.Universe;
 /// </summary>
 public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkData, IChunk
 {
-    /// <inheritdoc />
     public int X => coord.X;
 
-    /// <inheritdoc />
     public int Z => coord.Y;
     /// <summary>
     /// The horizontal size of a chunk in blocks.
@@ -142,7 +140,7 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
     /// <inheritdoc />
     void IChunk.GenerateMesh(IWorld world, IChunk.UvResolver uvResolver)
     {
-        GenerateMesh(world, (ushort blockId, Direction dir, Span<float> uvs) => uvResolver(blockId, dir, uvs));
+        GenerateMesh(world, (blockId, dir, uvs) => uvResolver(blockId, dir, uvs));
     }
 
     /// <summary>
@@ -212,7 +210,7 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
 
         var newOpaqueMesh = new ChunkMesh { Vertices = opaqueVerts.ToArray(), Indices = opaqueIndices.ToArray() };
         var newTransparentMesh = new ChunkMesh
-            { Vertices = transparentVerts.ToArray(), Indices = transparentIndices.ToArray() };
+        { Vertices = transparentVerts.ToArray(), Indices = transparentIndices.ToArray() };
 
         lock (_meshLock)
         {

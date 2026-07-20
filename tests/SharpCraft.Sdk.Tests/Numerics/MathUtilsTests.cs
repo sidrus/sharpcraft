@@ -1,5 +1,6 @@
-using SharpCraft.Sdk.Numerics;
 using AwesomeAssertions;
+using SharpCraft.Sdk.Numerics;
+using System.Numerics;
 
 namespace SharpCraft.Sdk.Tests.Numerics;
 
@@ -48,7 +49,7 @@ public class MathUtilsTests
     public void ToEulerAngles_ShouldMatchInput_WhenCreatedFromYawPitchRoll(float yaw, float pitch, float roll)
     {
         // Arrange
-        var q = System.Numerics.Quaternion.CreateFromYawPitchRoll(yaw * MathF.PI / 180f, pitch * MathF.PI / 180f, roll * MathF.PI / 180f);
+        var q = Quaternion.CreateFromYawPitchRoll(yaw * MathF.PI / 180f, pitch * MathF.PI / 180f, roll * MathF.PI / 180f);
 
         // Act
         var (resultYaw, resultPitch, resultRoll) = MathUtils.ToEulerAngles(q);

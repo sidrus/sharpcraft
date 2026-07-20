@@ -1,5 +1,5 @@
-using System.Numerics;
 using SharpCraft.Engine.Rendering.Shaders;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Rendering;
 
@@ -43,7 +43,7 @@ public class PostProcessingRenderer : IDisposable
     public PostProcessingRenderer(GL gl)
     {
         _gl = gl;
-        _shader = new ShaderProgram(_gl, Shaders.Shaders.UnderwaterVertex, Shaders.Shaders.FXAAFragment);
+        _shader = new ShaderProgram(_gl, Shaders.Shaders.UnderwaterVertex, Shaders.Shaders.FxaaFragment);
 
         float[] quadVertices =
         {

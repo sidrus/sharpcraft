@@ -1,6 +1,6 @@
-using System.Numerics;
 using SharpCraft.Engine.Rendering.Shaders;
 using SharpCraft.Engine.Rendering.Textures;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Rendering;
 
@@ -98,7 +98,7 @@ public sealed class TorchRenderer : IDisposable
         _shader.Use();
         _shader.SetUniform("sunDirection", sunDir);
         _shader.SetUniform("sunColor", sunColor);
-        _texture.Bind(TextureUnit.Texture0);
+        _texture.Bind();
         _shader.SetUniform("torchTex", 0);
 
         _gl.BindVertexArray(_vao);
@@ -187,15 +187,15 @@ public sealed class TorchRenderer : IDisposable
             }
             else if (y <= 11)
             {
-                colour = ((byte)200, (byte)70, (byte)20); // smouldering ember
+                colour = (200, 70, 20); // smouldering ember
             }
             else if (y <= 13)
             {
-                colour = ((byte)255, (byte)140, (byte)30); // flame body
+                colour = (255, 140, 30); // flame body
             }
             else
             {
-                colour = ((byte)255, (byte)220, (byte)90); // bright tip
+                colour = (255, 220, 90); // bright tip
             }
 
             for (var x = 7; x <= 8; x++)

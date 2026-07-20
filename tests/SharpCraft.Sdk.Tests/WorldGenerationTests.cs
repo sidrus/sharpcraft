@@ -6,7 +6,6 @@ using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
 using SharpCraft.Sdk.Resources;
 using SharpCraft.Sdk.Universe;
-using NSubstitute;
 using IWorldGenerator = SharpCraft.Sdk.Universe.IWorldGenerator;
 
 namespace SharpCraft.Sdk.Tests;

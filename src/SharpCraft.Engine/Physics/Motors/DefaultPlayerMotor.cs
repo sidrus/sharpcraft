@@ -1,13 +1,13 @@
+using SharpCraft.Engine.Physics.Sensors.Spatial;
 using SharpCraft.Sdk.Physics;
 using SharpCraft.Sdk.Physics.Motors;
-using SharpCraft.Engine.Physics.Sensors.Spatial;
 
 namespace SharpCraft.Engine.Physics.Motors;
 
 /// <summary>
 /// The default player motor. Rather than handling every medium in one tangle of branches,
 /// it selects a dedicated motor for the current medium — <see cref="WalkingMotor"/>,
-/// <see cref="SwimmingMotor"/> or <see cref="FlyingMotor"/> — and delegates to it each tick.
+/// <see cref="FluidMotor"/> or <see cref="FlyingMotor"/> — and delegates to it each tick.
 /// </summary>
 public class DefaultPlayerMotor : IMotor
 {

@@ -1,11 +1,11 @@
-﻿using System.Numerics;
+﻿using AwesomeAssertions;
+using NSubstitute;
 using SharpCraft.Engine.Physics;
 using SharpCraft.Engine.Physics.Motors;
-using SharpCraft.Sdk.Physics;
-using AwesomeAssertions;
-using NSubstitute;
-using SharpCraft.Sdk.Blocks;
 using SharpCraft.Engine.Physics.Sensors.Spatial;
+using SharpCraft.Sdk.Blocks;
+using SharpCraft.Sdk.Physics;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Tests.Physics;
 
@@ -71,7 +71,7 @@ public class DefaultPlayerMotorTests
 
         var transform = new Transform { Position = new Vector3(0, 1, 0) };
         var entity = new PhysicsEntity(transform, mockPhysics);
-        
+
         // Mock grounded state via sensor
         var motor = new DefaultPlayerMotor
         {

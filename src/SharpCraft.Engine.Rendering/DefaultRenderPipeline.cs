@@ -1,6 +1,7 @@
-using System.Numerics;
 using SharpCraft.Engine.Rendering.IBL;
+using SharpCraft.Engine.Rendering.Lighting;
 using SharpCraft.Engine.Rendering.Shaders;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Rendering;
 
@@ -28,7 +29,7 @@ public class DefaultRenderPipeline(
     private IblBaker? _iblBaker;
     private ClusteredLighting? _clustered;
     private AutoExposure? _autoExposure;
-    private TemporalAA? _taa;
+    private TemporalAa? _taa;
     private Framebuffer? _depthPrepass;
     private Framebuffer? _opaqueColor;
     private GtaoRenderer? _gtao;
@@ -80,8 +81,8 @@ public class DefaultRenderPipeline(
 
         // Temporal AA (research §9): jitter the main-pass projection sub-pixel each frame. The
         // unjittered View/Projection are still used for shadows, clustering and culling.
-        _taa ??= new TemporalAA(gl);
-        var mainProjection = context.UseTAA
+        _taa ??= new TemporalAa(gl);
+        var mainProjection = context.UseTaa
             ? _taa.ApplyJitter(context.Projection, context.ScreenWidth, context.ScreenHeight)
             : context.Projection;
         _mainProjection = mainProjection;
@@ -93,7 +94,7 @@ public class DefaultRenderPipeline(
         // Image-based lighting bake (research §4.2/§6): refresh the sky env / irradiance /
         // prefilter when the sun moves, and expose the maps to the forward pass. Throttled
         // internally, so most frames this is a no-op.
-        if (context.UseIBL)
+        if (context.UseIbl)
         {
             _iblBaker ??= new IblBaker(gl);
             var lightDir = context.Sun?.Direction ?? Vector3.Normalize(new Vector3(0.8f, -0.5f, 0.1f));
@@ -148,7 +149,7 @@ public class DefaultRenderPipeline(
         // === DEPTH PRE-PASS + GTAO (research §7) ===
         // Render opaque terrain depth at screen res (reuses the shadow shader with the main VP). It
         // feeds GTAO, SSR, and contact shadows (the opaque scene depth they all march against).
-        if (context.UseSSAO || context.UseSSR || context.UseContactShadows)
+        if (context.UseSsao || context.UseSsr || context.UseContactShadows)
         {
             if (_depthPrepass == null || _depthPrepass.Width != context.ScreenWidth || _depthPrepass.Height != context.ScreenHeight)
             {
@@ -163,7 +164,7 @@ public class DefaultRenderPipeline(
             _depthPrepass.Unbind();
             _targets.SceneDepthTexture = _depthPrepass.DepthTextureHandle;
 
-            if (context.UseSSAO)
+            if (context.UseSsao)
             {
                 _gtao ??= new GtaoRenderer(gl);
                 _targets.GtaoTexture = _gtao.Render(_depthPrepass.DepthTextureHandle, _mainProjection,
@@ -200,7 +201,7 @@ public class DefaultRenderPipeline(
 
         // Snapshot the opaque HDR scene so the water SSR pass can sample it (a surface can't read
         // the colour attachment it is drawing into). Reuses the pre-pass depth as the scene depth.
-        if (context.UseSSR && _targets.SceneDepthTexture != 0)
+        if (context.UseSsr && _targets.SceneDepthTexture != 0)
         {
             if (_opaqueColor == null || _opaqueColor.Width != context.ScreenWidth || _opaqueColor.Height != context.ScreenHeight)
             {
@@ -255,7 +256,7 @@ public class DefaultRenderPipeline(
         // === TEMPORAL AA RESOLVE (research §9) ===
         // Reproject + blend history into this frame; downstream passes read the resolved HDR.
         var sceneTexture = _framebuffer.TextureHandle;
-        if (context.UseTAA)
+        if (context.UseTaa)
         {
             sceneTexture = _taa.Resolve(
                 _framebuffer.TextureHandle, _framebuffer.DepthTextureHandle,
@@ -289,7 +290,7 @@ public class DefaultRenderPipeline(
             context.IsUnderwater,
             context.Time,
             context.Exposure,
-            useFxaa: !context.UseTAA,
+            useFxaa: !context.UseTaa,
             bloomTexture: bloomTexture,
             bloomStrength: bloomStrength);
     }
@@ -367,7 +368,7 @@ public class DefaultRenderPipeline(
         Intensity = 0.0f
     };
 
-    private static PointLightDataStd140 MapLight(Lighting.PointLightData light) => new()
+    private static PointLightDataStd140 MapLight(PointLightData light) => new()
     {
         Position = new Vector4(light.Position, 1.0f),
         Color = new Vector4(light.Color, 1.0f),

@@ -4,7 +4,6 @@ using SharpCraft.Engine.Rendering.Textures;
 using SharpCraft.Sdk;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Resources;
-using Xunit;
 
 namespace SharpCraft.Client.Tests;
 

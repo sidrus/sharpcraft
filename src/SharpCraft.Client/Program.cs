@@ -1,13 +1,11 @@
-﻿
-using System.Runtime.InteropServices;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using SharpCraft.Client;
-using SharpCraft.Engine.Rendering.Lighting;
 using SharpCraft.Engine;
 using SharpCraft.Engine.Blocks;
 using SharpCraft.Engine.Commands;
 using SharpCraft.Engine.Lifecycle;
 using SharpCraft.Engine.Messaging;
+using SharpCraft.Engine.Rendering.Lighting;
 using SharpCraft.Engine.UI;
 using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk.Resources;
@@ -15,6 +13,8 @@ using SharpCraft.Sdk.Universe;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Steamworks;
+using System.Numerics;
+using System.Runtime.InteropServices;
 
 // Setup Logging
 using var loggerFactory = LoggerFactory.Create(builder =>
@@ -76,7 +76,7 @@ ProgramLog.GeneratingWorld(logger);
 const int seed = 42;
 var generator = worldGen.Get(new ResourceLocation("sharpcraft", "default"));
 var world = new World(generator, seed, blocks);
-await world.GenerateAsync(32, System.Numerics.Vector3.Zero);
+await world.GenerateAsync(32, Vector3.Zero);
 ProgramLog.WorldGenerationComplete(logger);
 
 // Window & Game Initialization

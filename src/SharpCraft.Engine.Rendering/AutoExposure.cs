@@ -1,5 +1,6 @@
-using System.Diagnostics;
 using SharpCraft.Engine.Rendering.Shaders;
+using System.Diagnostics;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Rendering;
 
@@ -40,7 +41,7 @@ public sealed class AutoExposure : IDisposable
 
         _histogram = new ShaderStorageBuffer(gl, HistogramBinding);
         _histogram.Allocate(256 * sizeof(uint));
-        _histogram.Update<uint>(new uint[256]); // NamedBufferData leaves contents undefined; zero it
+        _histogram.Update(new uint[256]); // NamedBufferData leaves contents undefined; zero it
     }
 
     /// <summary>
@@ -65,7 +66,7 @@ public sealed class AutoExposure : IDisposable
         _build.SetUniform("hdrTexture", 0);
         _build.SetUniform("minLogLum", MinLogLum);
         _build.SetUniform("inverseLogLumRange", 1.0f / LogLumRange);
-        _build.SetUniform("dimensions", new System.Numerics.Vector2(width, height));
+        _build.SetUniform("dimensions", new Vector2(width, height));
         _build.Dispatch((uint)((width + 15) / 16), (uint)((height + 15) / 16), 1);
 
         // Stage 2: reduce + adapt.

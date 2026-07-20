@@ -171,7 +171,7 @@ public class LifecycleManagerTests
         manager.Update(0.16);
 
         obj.DestroyCount.Should().Be(1);
-        
+
         // Verify it's actually removed by running update again
         manager.Update(0.16);
         obj.UpdateCount.Should().Be(1); // Only the first update should have hit it
@@ -241,7 +241,7 @@ public class LifecycleManagerTests
         var obj2 = new FakeLifecycle();
         manager.Register(obj1);
         manager.Register(obj2);
-        
+
         obj1.OnDestroyAction = _ => manager.Unregister(obj2);
 
         manager.Destroy();
@@ -256,7 +256,7 @@ public class LifecycleManagerTests
         var obj1 = new FakeLifecycle();
         var obj2 = new FakeLifecycle();
         manager.Register(obj1);
-        
+
         obj1.OnUpdateAction = _ =>
         {
             manager.Register(obj2);
@@ -268,7 +268,7 @@ public class LifecycleManagerTests
         obj2.AwakeCount.Should().Be(1);
         obj2.StartCount.Should().Be(1);
         obj2.DestroyCount.Should().Be(1);
-        
+
         manager.Update(0.16);
         obj2.UpdateCount.Should().Be(0); // Should not have been updated as it was removed
     }
@@ -280,7 +280,7 @@ public class LifecycleManagerTests
         var obj2 = new FakeLifecycle();
         manager.Register(obj1);
         manager.Register(obj2);
-        
+
         obj1.OnUpdateAction = _ =>
         {
             manager.Unregister(obj2);
@@ -298,13 +298,13 @@ public class LifecycleManagerTests
         var obj1 = new FakeLifecycle();
         var obj2 = new FakeLifecycle();
         manager.Register(obj1);
-        
+
         obj1.OnDestroyAction = _ => manager.Register(obj2);
 
         manager.Destroy();
 
         obj2.AwakeCount.Should().Be(0);
-        
+
         // Ensure it wasn't processed after Destroy finished
         manager.Update(0.16);
         obj2.UpdateCount.Should().Be(0);

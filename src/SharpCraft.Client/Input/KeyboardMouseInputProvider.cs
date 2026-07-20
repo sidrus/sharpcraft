@@ -1,7 +1,7 @@
-﻿using System.Numerics;
-using SharpCraft.Sdk.Input;
+﻿using SharpCraft.Sdk.Input;
 using SharpCraft.Sdk.Physics;
 using Silk.NET.Input;
+using System.Numerics;
 
 namespace SharpCraft.Client.Input;
 
@@ -20,7 +20,7 @@ public class KeyboardMouseInputProvider : IInputProvider
     public KeyboardMouseInputProvider(IInputContext input)
     {
         _input = input;
-        
+
         foreach (var keyboard in _input.Keyboards)
         {
             keyboard.KeyDown += OnKeyDown;

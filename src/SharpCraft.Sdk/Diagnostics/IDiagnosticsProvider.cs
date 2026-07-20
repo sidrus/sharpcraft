@@ -13,7 +13,7 @@ public interface IDiagnosticsProvider
     Metric MeshQueue { get; }
     Metric ActiveLights { get; }
     Metric Velocity { get; }
-    
+
     /// <summary>
     /// Gets the current game time as a string (e.g., "06:00 AM").
     /// </summary>

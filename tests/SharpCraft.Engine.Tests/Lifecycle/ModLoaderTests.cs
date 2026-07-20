@@ -1,11 +1,11 @@
-﻿using System.Reflection;
-using System.Text.Json;
-using AwesomeAssertions;
+﻿using AwesomeAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using SharpCraft.Engine.Lifecycle;
 using SharpCraft.Sdk;
 using SharpCraft.Sdk.Lifecycle;
+using System.Reflection;
+using System.Text.Json;
 
 namespace SharpCraft.Engine.Tests.Lifecycle;
 
@@ -42,7 +42,7 @@ public class ModLoaderTests
         Directory.CreateDirectory(modDir);
 
         var currentAssembly = Assembly.GetExecutingAssembly().Location;
-        
+
         // Copy current assembly to mod dir as testmod.dll
         File.Copy(currentAssembly, Path.Combine(modDir, "testmod.dll"));
 
@@ -55,7 +55,7 @@ public class ModLoaderTests
             Capabilities: [],
             Entrypoints: ["testmod.dll"]
         );
-        
+
         File.WriteAllText(Path.Combine(modDir, "mod.json"), JsonSerializer.Serialize(manifest));
 
         var sdkMock = Substitute.For<ISharpCraftSdk>();

@@ -1,4 +1,3 @@
-using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
 using SharpCraft.Sdk.Physics;
 
@@ -63,7 +62,7 @@ public class GeospatialSensor
         var currentBlockY = (int)Math.Floor(pos.Y);
         var blockAtFeet = collisionProvider.GetBlock((int)Math.Floor(pos.X), currentBlockY, (int)Math.Floor(pos.Z));
 
-        var submersionDepth = 0f;
+        float submersionDepth;
         if (blockAtFeet.IsFluid)
         {
             submersionDepth = (currentBlockY + 1) - pos.Y;

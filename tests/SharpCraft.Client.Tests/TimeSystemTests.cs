@@ -1,9 +1,5 @@
-﻿using System;
-using AwesomeAssertions;
-using Xunit;
-
+﻿using AwesomeAssertions;
 using SharpCraft.Engine.Universe;
-using SharpCraft.Sdk.Universe;
 
 namespace SharpCraft.Client.Tests;
 
@@ -22,7 +18,7 @@ public class TimeSystemTests
         // Act
         // Initial angle should be PI (6 AM) based on current implementation of WorldTime
         var angleAtStart = worldTime.SunAngle;
-        
+
         // Advance time by one full day
         worldTime.OnUpdate(secondsInDay);
         var angleAfterDay = worldTime.SunAngle;
@@ -37,7 +33,7 @@ public class TimeSystemTests
     {
         // Arrange
         var worldTime = new WorldTime { DayDurationInMinutes = 10f };
-        
+
         // Assert various points in time
         // Initially at 0s, it's 6 AM
         worldTime.FormattedTime.Should().Be("06:00 AM");

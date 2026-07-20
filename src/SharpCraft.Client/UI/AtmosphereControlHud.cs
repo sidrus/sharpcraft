@@ -1,5 +1,6 @@
-﻿using System.Numerics;
-using SharpCraft.Sdk.UI;
+﻿using SharpCraft.Sdk.UI;
+using SharpCraft.Sdk.Universe;
+using System.Numerics;
 
 namespace SharpCraft.Client.UI;
 
@@ -43,7 +44,7 @@ public class AtmosphereControlHud : IInteractiveHud
         if (gui.Begin("Atmosphere & Time Control", ref open))
         {
             IsVisible = open;
-            
+
             // ================================================================
             // TIME OF DAY
             // ================================================================
@@ -52,10 +53,10 @@ public class AtmosphereControlHud : IInteractiveHud
                 var time = worldTime.Time;
                 var duration = worldTime.DayDurationInMinutes;
                 var isPaused = worldTime.IsPaused;
-                
+
                 var formattedTime = worldTime.FormattedTime;
                 gui.Text($"Current Time: {formattedTime}");
-                
+
                 // Twilight phase indicator
                 // Sun direction.Y = Sin(angle), but direction points FROM sun TO scene
                 // So sun elevation = -Sin(angle): at noon (1.5π), Sin=-1, elevation=1 (high)
@@ -63,14 +64,14 @@ public class AtmosphereControlHud : IInteractiveHud
                 var sunElevation = -MathF.Sin(sunAngle);
                 var phase = GetTwilightPhase(sunElevation);
                 gui.Text($"Phase: {phase}", GetTwilightColor(phase));
-                
+
                 gui.Checkbox("Pause Time", ref isPaused);
                 worldTime.IsPaused = isPaused;
 
                 if (gui.Button("Sync to 10m Day")) duration = 10f;
                 gui.SameLine();
                 if (gui.Button("Sync to 1h Day")) duration = 60f;
-                
+
                 gui.SliderFloat("Day Duration (min)", ref duration, 1f, 120f);
                 if (Math.Abs(duration - worldTime.DayDurationInMinutes) > 0.01f)
                 {
@@ -83,9 +84,9 @@ public class AtmosphereControlHud : IInteractiveHud
                 {
                     worldTime.Time = time;
                 }
-                
+
                 gui.Spacing();
-                
+
                 // Quick time presets
                 gui.Text("Quick Presets:");
                 if (gui.Button("Dawn")) SetTimeToHour(worldTime, 5.5f);
@@ -95,7 +96,7 @@ public class AtmosphereControlHud : IInteractiveHud
                 if (gui.Button("Morning")) SetTimeToHour(worldTime, 9.0f);
                 gui.SameLine();
                 if (gui.Button("Noon")) SetTimeToHour(worldTime, 12.0f);
-                
+
                 if (gui.Button("Afternoon")) SetTimeToHour(worldTime, 15.0f);
                 gui.SameLine();
                 if (gui.Button("Sunset")) SetTimeToHour(worldTime, 18.0f);
@@ -113,7 +114,7 @@ public class AtmosphereControlHud : IInteractiveHud
             if (gui.CollapsingHeader("Atmospheric Scattering"))
             {
                 gui.Text("Scattering Parameters:");
-                
+
                 var scatteringG = post.ScatteringG;
                 var density = post.DensityMultiplier;
                 var extinction = post.ExtinctionMultiplier;
@@ -125,22 +126,22 @@ public class AtmosphereControlHud : IInteractiveHud
                 post.ScatteringG = scatteringG;
                 post.DensityMultiplier = density;
                 post.ExtinctionMultiplier = extinction;
-                
+
                 gui.Spacing();
                 gui.Text("Atmosphere Composition:");
-                
+
                 var rayleigh = post.RayleighScale;
                 var mie = post.MieScale;
                 var ozone = post.OzoneScale;
-                
+
                 gui.SliderFloat("Rayleigh Scale", ref rayleigh, 0.0f, 3.0f);
                 gui.SliderFloat("Mie Scale", ref mie, 0.0f, 3.0f);
                 gui.SliderFloat("Ozone Scale", ref ozone, 0.0f, 3.0f);
-                
+
                 post.RayleighScale = rayleigh;
                 post.MieScale = mie;
                 post.OzoneScale = ozone;
-                
+
                 gui.Spacing();
                 gui.Text("Volumetric Lighting:");
 
@@ -157,7 +158,7 @@ public class AtmosphereControlHud : IInteractiveHud
                 post.VolumetricEnabled = volumetricEnabled;
                 post.VolumetricIntensity = volumetricIntensity;
                 post.VolumetricSamples = samples;
-                
+
                 // Presets
                 gui.Spacing();
                 gui.Text("Atmosphere Presets:");
@@ -193,27 +194,27 @@ public class AtmosphereControlHud : IInteractiveHud
                     post.ScatteringG = 0.76f;
                 }
             }
-            
+
             gui.Spacing();
-            
+
             // ================================================================
             // TONE MAPPING & EXPOSURE
             // ================================================================
             if (gui.CollapsingHeader("Tone Mapping"))
             {
                 var toneMapMode = post.ToneMapMode;
-                
+
                 gui.Text($"Current: {GetToneMapName(toneMapMode)}");
-                
+
                 if (gui.Button("ACES Filmic")) toneMapMode = 0;
                 gui.SameLine();
                 if (gui.Button("Cinematic")) toneMapMode = 1;
                 gui.SameLine();
                 if (gui.Button("Reinhard")) toneMapMode = 2;
-                
+
                 post.ToneMapMode = toneMapMode;
             }
-            
+
             gui.Spacing();
 
             // ================================================================
@@ -223,16 +224,16 @@ public class AtmosphereControlHud : IInteractiveHud
             {
                 var bloomIntensity = post.BloomIntensity;
                 var bloomThreshold = post.BloomThreshold;
-                
+
                 gui.SliderFloat("Intensity", ref bloomIntensity, 0.0f, 1.0f);
                 gui.SliderFloat("Threshold", ref bloomThreshold, 0.0f, 5.0f);
-                
+
                 post.BloomIntensity = bloomIntensity;
                 post.BloomThreshold = bloomThreshold;
             }
-            
+
             gui.Spacing();
-            
+
             // ================================================================
             // POST-PROCESSING EFFECTS
             // ================================================================
@@ -240,10 +241,10 @@ public class AtmosphereControlHud : IInteractiveHud
             {
                 var vignette = post.VignetteIntensity;
                 var chromatic = post.ChromaticAberration;
-                
+
                 gui.SliderFloat("Vignette", ref vignette, 0.0f, 1.0f);
                 gui.SliderFloat("Chromatic Aberration", ref chromatic, 0.0f, 0.02f);
-                
+
                 post.VignetteIntensity = vignette;
                 post.ChromaticAberration = chromatic;
             }
@@ -251,8 +252,8 @@ public class AtmosphereControlHud : IInteractiveHud
             gui.End();
         }
     }
-    
-    private static void SetTimeToHour(Sdk.Universe.IWorldTime worldTime, float hour)
+
+    private static void SetTimeToHour(IWorldTime worldTime, float hour)
     {
         // Convert hour (0-24) to the correct angle-based time
         // The sun angle system uses: 6 AM = π, 12 PM = 1.5π, 6 PM = 2π/0, 12 AM = 0.5π
@@ -260,11 +261,11 @@ public class AtmosphereControlHud : IInteractiveHud
         var normalizedTime = ((hour - 6f + 24f) % 24f) / 24f;
         var angle = normalizedTime * MathF.PI * 2f + MathF.PI;
         if (angle >= MathF.PI * 2f) angle -= MathF.PI * 2f;
-        
+
         var timeScale = (MathF.PI * 2f) / (worldTime.DayDurationInMinutes * 60f);
         worldTime.Time = angle / timeScale;
     }
-    
+
     private static string GetTwilightPhase(float sunElevation)
     {
         if (sunElevation > 0.0f) return "Day";
@@ -273,7 +274,7 @@ public class AtmosphereControlHud : IInteractiveHud
         if (sunElevation > -0.309f) return "Astronomical Twilight";
         return "Night";
     }
-    
+
     private static Vector4 GetTwilightColor(string phase)
     {
         return phase switch
@@ -286,7 +287,7 @@ public class AtmosphereControlHud : IInteractiveHud
             _ => new Vector4(1.0f, 1.0f, 1.0f, 1.0f)
         };
     }
-    
+
     private static string GetToneMapName(int mode)
     {
         return mode switch

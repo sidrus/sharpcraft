@@ -1,11 +1,11 @@
-﻿using System.Numerics;
+﻿using AwesomeAssertions;
+using NSubstitute;
 using SharpCraft.Engine.Blocks;
-using SharpCraft.Sdk.Numerics;
-using AwesomeAssertions;
 using SharpCraft.Sdk.Blocks;
+using SharpCraft.Sdk.Numerics;
 using SharpCraft.Sdk.Resources;
 using SharpCraft.Sdk.Universe;
-using NSubstitute;
+using System.Numerics;
 using WorldClass = SharpCraft.Engine.Universe.World;
 
 namespace SharpCraft.Engine.Tests;
@@ -69,7 +69,7 @@ public class WorldTests
     public void GetBlock_ShouldReturnAir_ForUnloadedChunk()
     {
         var world = CreateWorld();
-        
+
         var block = world.GetBlock(1000, 64, 1000);
 
         block.IsAir.Should().BeTrue();

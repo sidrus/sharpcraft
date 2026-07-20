@@ -22,7 +22,7 @@ public class SimplexNoise : INoiseGenerator
             .OrderBy(x => random.Next())
             .ToArray();
 
-        for(var i = 0; i < 512; i++)
+        for (var i = 0; i < 512; i++)
         {
             _perm[i] = p[i & 255];
         }
@@ -31,14 +31,14 @@ public class SimplexNoise : INoiseGenerator
     /// <inheritdoc />
     public float Evaluate(float x, float y)
     {
-        const float F2 = 0.366025403f; // (Math.Sqrt(3) - 1) / 2
-        const float G2 = 0.211324865f; // (3 - Math.Sqrt(3)) / 6
+        const float f2 = 0.366025403f; // (Math.Sqrt(3) - 1) / 2
+        const float g2 = 0.211324865f; // (3 - Math.Sqrt(3)) / 6
 
-        var s = (x + y) * F2;
+        var s = (x + y) * f2;
         var i = (int)MathF.Floor(x + s);
         var j = (int)MathF.Floor(y + s);
 
-        var t = (i + j) * G2;
+        var t = (i + j) * g2;
         var X0 = i - t;
         var Y0 = j - t;
         var x0 = x - X0;
@@ -48,10 +48,10 @@ public class SimplexNoise : INoiseGenerator
         if (x0 > y0) { i1 = 1; j1 = 0; }
         else { i1 = 0; j1 = 1; }
 
-        var x1 = x0 - i1 + G2;
-        var y1 = y0 - j1 + G2;
-        var x2 = x0 - 1f + 2f * G2;
-        var y2 = y0 - 1f + 2f * G2;
+        var x1 = x0 - i1 + g2;
+        var y1 = y0 - j1 + g2;
+        var x2 = x0 - 1f + 2f * g2;
+        var y2 = y0 - 1f + 2f * g2;
 
         var ii = i & 255;
         var jj = j & 255;

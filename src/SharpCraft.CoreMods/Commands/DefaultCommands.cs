@@ -1,7 +1,7 @@
-﻿using System.Numerics;
-using SharpCraft.Sdk;
+﻿using SharpCraft.Sdk;
 using SharpCraft.Sdk.Commands;
 using SharpCraft.Sdk.UI;
+using System.Numerics;
 
 namespace SharpCraft.CoreMods.Commands;
 

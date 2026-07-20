@@ -1,5 +1,5 @@
-using System.Numerics;
 using SharpCraft.Engine.Rendering.Shaders;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Rendering.IBL;
 
@@ -67,6 +67,9 @@ public sealed class IblBaker : IDisposable
     }
 
     /// <param name="sunDirection">Direction TO the sun (normalized).</param>
+    /// <param name="sunColor"></param>
+    /// <param name="mieG"></param>
+    /// <param name="captureIntensity"></param>
     public void Update(Vector3 sunDirection, Vector3 sunColor, float mieG, float captureIntensity)
     {
         if (!_brdfBaked)
@@ -125,7 +128,7 @@ public sealed class IblBaker : IDisposable
         for (var mip = 0; mip < PrefilterMips; mip++)
         {
             var mipSize = PrefilterSize >> mip;
-            var roughness = PrefilterMips > 1 ? (float)mip / (PrefilterMips - 1) : 0f;
+            var roughness = (float)mip / (PrefilterMips - 1);
             _prefilter.SetUniform("roughness", roughness);
             RenderCubeFaces(_prefilter, _prefilterCube, mipSize, mip);
         }

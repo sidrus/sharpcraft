@@ -1,4 +1,7 @@
 using SharpCraft.CoreMods.Blocks;
+using SharpCraft.CoreMods.Commands;
+using SharpCraft.CoreMods.UI;
+using SharpCraft.CoreMods.Universe;
 using SharpCraft.Sdk;
 using SharpCraft.Sdk.Assets;
 using SharpCraft.Sdk.Lifecycle;
@@ -37,15 +40,15 @@ public class CoreMod(ISharpCraftSdk sdk) : IMod
 
     private void RegisterCommands()
     {
-        Commands.DefaultCommands.Register(sdk);
+        DefaultCommands.Register(sdk);
     }
 
     private void RegisterHuds()
     {
-        sdk.Huds.RegisterHud(new UI.MainHud());
-        sdk.Huds.RegisterHud(new UI.DebugHud());
-        sdk.Huds.RegisterHud(new UI.GraphicsSettingsHud());
-        sdk.Huds.RegisterHud(new UI.DeveloperHud());
+        sdk.Huds.RegisterHud(new MainHud());
+        sdk.Huds.RegisterHud(new DebugHud());
+        sdk.Huds.RegisterHud(new GraphicsSettingsHud());
+        sdk.Huds.RegisterHud(new DeveloperHud());
     }
 
     public void OnDisable()
@@ -55,7 +58,7 @@ public class CoreMod(ISharpCraftSdk sdk) : IMod
 
     private void RegisterWorldGenerators()
     {
-        sdk.World.Register(new ResourceLocation(Namespace, "default"), new Universe.DefaultWorldGenerator());
+        sdk.World.Register(new ResourceLocation(Namespace, "default"), new DefaultWorldGenerator());
     }
 
     private void LoadTextures()

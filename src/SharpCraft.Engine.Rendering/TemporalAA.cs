@@ -1,5 +1,5 @@
-using System.Numerics;
 using SharpCraft.Engine.Rendering.Shaders;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Rendering;
 
@@ -10,7 +10,7 @@ namespace SharpCraft.Engine.Rendering;
 /// previous-frame position of any pixel follows from its depth and the previous view-projection —
 /// no per-object motion-vector buffer required. History lives in two ping-ponged fp16 targets.
 /// </summary>
-public sealed class TemporalAA : IDisposable
+public sealed class TemporalAa : IDisposable
 {
     private const int JitterSamples = 8;
     private const float BlendFactor = 0.1f; // current-frame weight; history = 0.9
@@ -29,7 +29,7 @@ public sealed class TemporalAA : IDisposable
     private int _width;
     private int _height;
 
-    public TemporalAA(GL gl)
+    public TemporalAa(GL gl)
     {
         _gl = gl;
         _resolve = new ShaderProgram(gl, Shaders.Shaders.UnderwaterVertex, Shaders.Shaders.TaaResolveFragment);

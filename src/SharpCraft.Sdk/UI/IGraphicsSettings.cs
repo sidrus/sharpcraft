@@ -17,17 +17,17 @@ public interface IGraphicsSettings : IInteractiveHud
 
     bool UseNormalMap { get; set; }
     float NormalStrength { get; set; }
-    
+
     bool UseAoMap { get; set; }
     float AoMapStrength { get; set; }
-    
+
     bool UseMetallicMap { get; set; }
     float MetallicStrength { get; set; }
-    
+
     bool UseRoughnessMap { get; set; }
     float RoughnessStrength { get; set; }
-    
-    bool UseIBL { get; set; }
+
+    bool UseIbl { get; set; }
 
     bool UseSsao { get; set; }
     float SsaoRadius { get; set; }      // view-space sampling radius (world units)

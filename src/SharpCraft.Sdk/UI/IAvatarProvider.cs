@@ -14,7 +14,7 @@ public interface IAvatarProvider
     /// Gets the texture ID of the user's avatar.
     /// </summary>
     IntPtr? AvatarTextureId { get; }
-    
+
     /// <summary>
     /// Whether the avatar is valid and loaded.
     /// </summary>

@@ -13,17 +13,19 @@ public sealed class CascadedShadowMap : IDisposable
     private readonly uint _fbo;
     private readonly uint _depthArray;
     private readonly uint _size;
-    private readonly int _cascadeCount;
 
     public uint DepthArray => _depthArray;
     public uint Size => _size;
-    public int CascadeCount => _cascadeCount;
+    public int CascadeCount
+    {
+        get;
+    }
 
     public CascadedShadowMap(GL gl, uint size, int cascadeCount)
     {
         _gl = gl;
         _size = size;
-        _cascadeCount = cascadeCount;
+        CascadeCount = cascadeCount;
 
         _depthArray = _gl.CreateTexture(TextureTarget.Texture2DArray);
         _gl.TextureStorage3D(_depthArray, 1, (GLEnum)SizedInternalFormat.DepthComponent32f, size, size, (uint)cascadeCount);

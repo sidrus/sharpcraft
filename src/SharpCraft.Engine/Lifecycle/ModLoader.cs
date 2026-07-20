@@ -1,8 +1,8 @@
-﻿using System.Reflection;
-using System.Text.Json;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using SharpCraft.Sdk;
 using SharpCraft.Sdk.Lifecycle;
+using System.Reflection;
+using System.Text.Json;
 
 namespace SharpCraft.Engine.Lifecycle;
 
@@ -47,7 +47,7 @@ public partial class ModLoader(ILogger<ModLoader> logger, ISharpCraftSdk sdk)
                     if (manifest != null)
                     {
                         LogModFound(manifest.Name, manifest.Id, manifest.Version);
-                        
+
                         foreach (var entrypoint in manifest.Entrypoints)
                         {
                             if (entrypoint.EndsWith(".dll"))
@@ -59,7 +59,7 @@ public partial class ModLoader(ILogger<ModLoader> logger, ISharpCraftSdk sdk)
                                     {
                                         var assembly = Assembly.LoadFrom(assemblyPath);
                                         var modTypes = assembly.GetTypes().Where(t => typeof(IMod).IsAssignableFrom(t) && t is { IsInterface: false, IsAbstract: false });
-                                        
+
                                         foreach (var type in modTypes)
                                         {
                                             var mod = (IMod)Activator.CreateInstance(type, sdk)!;

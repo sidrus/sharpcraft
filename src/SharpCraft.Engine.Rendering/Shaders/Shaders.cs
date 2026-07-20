@@ -1,4 +1,4 @@
-﻿namespace SharpCraft.Engine.Rendering.Shaders;
+namespace SharpCraft.Engine.Rendering.Shaders;
 
 public static class Shaders
 {
@@ -8,31 +8,31 @@ public static class Shaders
     private static string LoadShader(string path)
     {
         var fullPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Shaders", path);
-        
+
         if (!File.Exists(fullPath))
         {
             throw new FileNotFoundException($"Shader file not found: {fullPath}");
         }
-        
+
         var source = File.ReadAllText(fullPath);
         var result = Preprocessor.Process(source, Path.GetDirectoryName(fullPath)!);
-        
+
         // Validate the processed shader
         if (string.IsNullOrWhiteSpace(result))
         {
             throw new InvalidOperationException($"Shader preprocessing produced empty result for: {path}");
         }
-        
+
         if (!result.Contains("#version"))
         {
             throw new InvalidOperationException($"Shader missing #version directive after preprocessing: {path}");
         }
-        
+
         if (!result.Contains("void main()") && !result.Contains("void main(void)"))
         {
             throw new InvalidOperationException($"Shader missing main function after preprocessing: {path}");
         }
-        
+
         return result;
     }
 
@@ -44,7 +44,7 @@ public static class Shaders
     public static readonly string UnderwaterVertex = LoadShader("Passes\\underwater.vert");
 
     // Final output transform: tonemap -> FXAA -> sRGB -> dither.
-    public static readonly string FXAAFragment = LoadShader("Passes\\fxaa.frag");
+    public static readonly string FxaaFragment = LoadShader("Passes\\fxaa.frag");
 
     public static readonly string ShadowVertex = LoadShader("Passes\\shadow.vert");
     public static readonly string ShadowFragment = LoadShader("Passes\\shadow.frag");

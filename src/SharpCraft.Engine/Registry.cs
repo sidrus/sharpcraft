@@ -1,7 +1,6 @@
-﻿using System.Collections.Concurrent;
-using SharpCraft.Sdk;
-
+﻿using SharpCraft.Sdk;
 using SharpCraft.Sdk.Resources;
+using System.Collections.Concurrent;
 
 namespace SharpCraft.Engine;
 

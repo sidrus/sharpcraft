@@ -25,7 +25,7 @@ public class ChunkRenderCache(GL gl) : IDisposable
     public void Update(IEnumerable<IChunk> activeChunks)
     {
         _currentGeneration++;
-        
+
         // Mark active chunks with current generation
         foreach (var chunk in activeChunks)
         {

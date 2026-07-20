@@ -39,7 +39,7 @@ public interface IGui
     void DrawImage(IntPtr textureId, Vector2 size, Vector2? uv0 = null, Vector2? uv1 = null, Vector4? tintCol = null, Vector4? borderCol = null);
 
     void Panel(string title, Action content);
-    
+
     bool IsItemHovered();
     void SetTooltip(string text);
 

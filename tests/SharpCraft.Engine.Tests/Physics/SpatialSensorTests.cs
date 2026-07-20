@@ -1,10 +1,10 @@
-using System.Numerics;
-using SharpCraft.Engine.Physics;
-using SharpCraft.Sdk.Physics;
 using AwesomeAssertions;
 using NSubstitute;
-using SharpCraft.Sdk.Blocks;
+using SharpCraft.Engine.Physics;
 using SharpCraft.Engine.Physics.Sensors.Spatial;
+using SharpCraft.Sdk.Blocks;
+using SharpCraft.Sdk.Physics;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Tests.Physics;
 

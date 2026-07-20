@@ -1,9 +1,8 @@
-﻿using SharpCraft.Sdk.Assets;
-using SharpCraft.Sdk.Blocks;
-using SharpCraft.Sdk.Resources;
-using SharpCraft.Sdk.Messaging;
+﻿using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Commands;
+using SharpCraft.Sdk.Messaging;
 using SharpCraft.Sdk.Rendering;
+using SharpCraft.Sdk.Resources;
 using SharpCraft.Sdk.UI;
 using SharpCraft.Sdk.Universe;
 

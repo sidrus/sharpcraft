@@ -1,6 +1,6 @@
-﻿using System.Numerics;
-using SharpCraft.Engine.Rendering.Shaders;
+﻿using SharpCraft.Engine.Rendering.Shaders;
 using SharpCraft.Engine.Rendering.Textures;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Rendering;
 
@@ -10,7 +10,6 @@ public sealed class TerrainRenderer : IDisposable
     private readonly ChunkRenderCache _cache;
     private readonly ChunkMeshManager _meshManager;
     private readonly TextureAtlas _atlas;
-    private readonly IBlockRegistry _blocks;
     private readonly ShaderProgram _shader;
     private readonly Frustum _frustum = new();
     private readonly uint _vao;
@@ -20,14 +19,12 @@ public sealed class TerrainRenderer : IDisposable
         ChunkRenderCache cache,
         ChunkMeshManager meshManager,
         TextureAtlas atlas,
-        IBlockRegistry blocks,
         ShaderProgram shader)
     {
         _gl = gl;
         _cache = cache;
         _meshManager = meshManager;
         _atlas = atlas;
-        _blocks = blocks;
         _vao = gl.GenVertexArray();
         _shader = shader;
 
@@ -49,13 +46,7 @@ public sealed class TerrainRenderer : IDisposable
         }
 
         _shader.Use();
-        _atlas.Bind(
-            TextureUnit.Texture0, 
-            TextureUnit.Texture1, 
-            TextureUnit.Texture2, 
-            TextureUnit.Texture3,
-            TextureUnit.Texture4,
-            TextureUnit.Texture5);
+        _atlas.Bind();
 
         _shader.SetUniform("textureAtlas", 0);
         _shader.SetUniform("normalMap", 1);
@@ -74,7 +65,7 @@ public sealed class TerrainRenderer : IDisposable
         _shader.SetUniform("useRoughness", context.UseRoughnessMap ? 1 : 0);
         _shader.SetUniform("roughnessStrength", context.RoughnessStrength);
 
-        var useIbl = context.UseIBL && targets.IrradianceMap != 0;
+        var useIbl = context.UseIbl && targets.IrradianceMap != 0;
         _shader.SetUniform("useIBL", useIbl ? 1 : 0);
         if (useIbl)
         {
@@ -96,7 +87,7 @@ public sealed class TerrainRenderer : IDisposable
         _shader.SetUniform("shadowMap", 9);
 
         // Screen-space AO (research §7): multiplied into ambient in the shader.
-        _shader.SetUniform("useGtao", context.UseSSAO && targets.GtaoTexture > 0 ? 1 : 0);
+        _shader.SetUniform("useGtao", context.UseSsao && targets.GtaoTexture > 0 ? 1 : 0);
         _gl.ActiveTexture(TextureUnit.Texture10);
         _gl.BindTexture(TextureTarget.Texture2D, targets.GtaoTexture);
         _shader.SetUniform("gtaoTexture", 10);

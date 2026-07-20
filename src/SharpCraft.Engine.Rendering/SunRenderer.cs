@@ -1,5 +1,5 @@
-﻿using System.Numerics;
-using SharpCraft.Engine.Rendering.Shaders;
+﻿using SharpCraft.Engine.Rendering.Shaders;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Rendering;
 
@@ -14,7 +14,7 @@ public sealed class SunRenderer : IDisposable
     {
         _gl = gl;
         _shader = new ShaderProgram(_gl, Shaders.Shaders.SunVertex, Shaders.Shaders.SunFragment);
-        
+
         _shader.BindUniformBlock("SceneData", 0);
 
         float[] vertices = {
@@ -44,7 +44,7 @@ public sealed class SunRenderer : IDisposable
         {
             _gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), (void*)0);
         }
-        
+
         _gl.BindVertexArray(0);
     }
 

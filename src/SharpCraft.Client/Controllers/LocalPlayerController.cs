@@ -1,15 +1,14 @@
-﻿using System.Numerics;
-using SharpCraft.Engine.Rendering.Cameras;
-using SharpCraft.Sdk.Numerics;
-using SharpCraft.Engine.Physics;
+﻿using SharpCraft.Engine.Physics;
 using SharpCraft.Engine.Physics.Motors;
+using SharpCraft.Engine.Physics.Sensors.Spatial;
+using SharpCraft.Engine.Rendering.Cameras;
 using SharpCraft.Engine.Universe;
-using SharpCraft.Sdk;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Input;
+using SharpCraft.Sdk.Numerics;
 using SharpCraft.Sdk.Physics;
-using SharpCraft.Engine.Physics.Sensors.Spatial;
 using SharpCraft.Sdk.Universe;
+using System.Numerics;
 
 namespace SharpCraft.Client.Controllers;
 
@@ -59,7 +58,7 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
 
     private float _yaw;
     private MovementIntent _pendingIntent;
-    
+
     /// <summary>
     /// Gets the last movement intent processed by the controller.
     /// </summary>
@@ -94,7 +93,7 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     private void SensorPass()
     {
         _sensor.Sense(world, entity);
-        
+
         // Sync _yaw from entity rotation if it's the first time or if external change occurred
         // Rotation is applied as -_yaw, so Heading from sensor (rotation angle) is -_yaw
         var rotationHeading = _sensor.LastSense?.Heading ?? 0f;

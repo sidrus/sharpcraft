@@ -1,8 +1,8 @@
-﻿using System.Numerics;
+﻿using AwesomeAssertions;
+using NSubstitute;
 using SharpCraft.Engine.Physics;
 using SharpCraft.Sdk.Physics;
-using AwesomeAssertions;
-using NSubstitute;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Tests.Physics;
 

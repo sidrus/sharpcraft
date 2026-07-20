@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using SharpCraft.Sdk.Blocks;
+﻿using SharpCraft.Sdk.Blocks;
 
 namespace SharpCraft.Sdk.Universe;
 

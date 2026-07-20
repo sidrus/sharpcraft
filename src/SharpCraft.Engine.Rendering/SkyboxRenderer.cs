@@ -1,5 +1,5 @@
-﻿using System.Numerics;
-using SharpCraft.Engine.Rendering.Shaders;
+﻿using SharpCraft.Engine.Rendering.Shaders;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Rendering;
 
@@ -54,25 +54,25 @@ public sealed class SkyboxRenderer : IDisposable
         _gl.Disable(EnableCap.CullFace);
 
         _shader.Use();
-        
+
         // Pass Sun and Moon data
         var sunDir = context.Sun?.Direction ?? new Vector3(0, -1, 0);
         var sunColor = context.Sun?.Color ?? Vector3.One;
         var sunIntensity = context.Sun?.Intensity ?? 0f;
-        
+
         // Simple Moon (opposite to Sun)
         var moonDir = -sunDir;
         var moonColor = new Vector3(0.5f, 0.6f, 1.0f);
         var moonIntensity = 1.0f - sunIntensity;
-        
+
         _shader.SetUniform("sunDir", sunDir);
         _shader.SetUniform("sunColor", sunColor);
         _shader.SetUniform("sunIntensity", sunIntensity);
-        
+
         _shader.SetUniform("moonDir", moonDir);
         _shader.SetUniform("moonColor", moonColor);
         _shader.SetUniform("moonIntensity", moonIntensity);
-        
+
         // Atmosphere parameters from UI
         _shader.SetUniform("atmosphereRayleighScale", context.AtmosphereRayleighScale);
         _shader.SetUniform("atmosphereMieScale", context.AtmosphereMieScale);

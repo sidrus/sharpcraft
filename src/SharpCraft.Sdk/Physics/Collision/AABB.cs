@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace SharpCraft.Sdk.Physics.Collision;
 
@@ -7,7 +7,7 @@ namespace SharpCraft.Sdk.Physics.Collision;
 /// </summary>
 /// <param name="Min">The minimum corner of the bounding box.</param>
 /// <param name="Max">The maximum corner of the bounding box.</param>
-public record struct AABB(Vector3 Min, Vector3 Max)
+public readonly record struct Aabb(Vector3 Min, Vector3 Max)
 {
     /// <summary>
     /// Gets the center of the bounding box.
@@ -29,7 +29,7 @@ public record struct AABB(Vector3 Min, Vector3 Max)
     /// </summary>
     /// <param name="other">The other bounding box.</param>
     /// <returns>True if they intersect, otherwise false.</returns>
-    public bool Intersects(AABB other) =>
+    public bool Intersects(Aabb other) =>
         Min.X < other.Max.X && Max.X > other.Min.X &&
         Min.Y < other.Max.Y && Max.Y > other.Min.Y &&
         Min.Z < other.Max.Z && Max.Z > other.Min.Z;
@@ -40,7 +40,7 @@ public record struct AABB(Vector3 Min, Vector3 Max)
     /// <param name="position">The center position (X/Z) and bottom position (Y).</param>
     /// <param name="size">The dimensions of the box.</param>
     /// <returns>A new AABB.</returns>
-    public static AABB FromPositionSize(Vector3 position, Vector3 size) =>
+    public static Aabb FromPositionSize(Vector3 position, Vector3 size) =>
         new(position - new Vector3(size.X / 2, 0, size.Z / 2),
             position + new Vector3(size.X / 2, size.Y, size.Z / 2));
 }

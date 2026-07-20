@@ -1,6 +1,9 @@
-﻿using System.Numerics;
-using SharpCraft.Sdk.UI;
+﻿using SharpCraft.Sdk.Commands;
 using SharpCraft.Sdk.Diagnostics;
+using SharpCraft.Sdk.Resources;
+using SharpCraft.Sdk.UI;
+using SharpCraft.Sdk.Universe;
+using System.Numerics;
 
 namespace SharpCraft.CoreMods.UI;
 
@@ -21,13 +24,13 @@ public class DebugHud : IHud
 
         gui.SetNextWindowPos(new Vector2(10, 10), GuiCond.FirstUseEver);
         gui.SetNextWindowSize(new Vector2(400, 600), GuiCond.FirstUseEver);
-        
+
         var open = true;
         if (gui.Begin("Diagnostics HUD", ref open))
         {
             gui.SetWindowFontScale(1.2f);
             DrawTimeRangeSelector(gui);
-            
+
             if (gui.BeginTabBar("DiagnosticsTabs"))
             {
                 if (gui.BeginTabItem("General"))
@@ -49,7 +52,7 @@ public class DebugHud : IHud
                     DrawModsTab(gui, context);
                     gui.EndTabItem();
                 }
-                
+
                 gui.EndTabBar();
             }
         }
@@ -70,7 +73,7 @@ public class DebugHud : IHud
     {
         gui.Property("Game Time", diagnostics.GameTime, color: new Vector4(1, 1, 0, 1));
         gui.Spacing();
-        
+
         DrawMetricInfo(gui, diagnostics.Fps, "FPS", "F1");
         DrawMetricInfo(gui, diagnostics.CpuUsage, "CPU %", "F1");
         DrawMetricInfo(gui, diagnostics.RamUsage, "RAM (MB)", "F0");
@@ -88,17 +91,18 @@ public class DebugHud : IHud
     {
         var latest = metric.Latest;
         var avg = metric.Average;
-        
+
         gui.Text($"{label}: {latest.ToString(format)} (avg: {avg.ToString(format)})");
         // PlotLines not yet in IGui, skipping for now or I can add it
         gui.Spacing();
     }
 
-    private static void DrawPlayerTab(IGui gui, SharpCraft.Sdk.Universe.IPlayer? player)
+    private static void DrawPlayerTab(IGui gui, IPlayer? player)
     {
         if (player == null) return;
-        
-        gui.Panel("Player", () => {
+
+        gui.Panel("Player", () =>
+        {
             var pos = player.Entity.Position;
 
             gui.Property("Position", string.Format("{0:F1}, {1:F1}, {2:F1}", pos.X, pos.Y, pos.Z));
@@ -121,11 +125,12 @@ public class DebugHud : IHud
         });
     }
 
-    private static void DrawEnvironmentTab(IGui gui, SharpCraft.Sdk.Universe.IPlayer? player)
+    private static void DrawEnvironmentTab(IGui gui, IPlayer? player)
     {
         if (player == null) return;
 
-        gui.Panel("Environment", () => {
+        gui.Panel("Environment", () =>
+        {
             // gui.Property("Standing on", ...); // Need way to get block info
             gui.Property("Friction", player.Friction.ToString("F2"));
         });
@@ -150,13 +155,13 @@ public class DebugHud : IHud
             DrawResourceCount(gui, "Assets", context.Sdk.Assets.All, mod.Id);
             DrawCommandCount(gui, context.Sdk.Commands.All, mod.Id);
             DrawResourceCount(gui, "World Generators", context.Sdk.World.All, mod.Id);
-                
+
             gui.Unindent();
             gui.Spacing();
         }
     }
 
-    private static void DrawResourceCount<T>(IGui gui, string label, IEnumerable<KeyValuePair<SharpCraft.Sdk.Resources.ResourceLocation, T>> registry, string modId)
+    private static void DrawResourceCount<T>(IGui gui, string label, IEnumerable<KeyValuePair<ResourceLocation, T>> registry, string modId)
     {
         var count = registry.Count(kv => kv.Key.Namespace == modId);
         if (count > 0)
@@ -165,7 +170,7 @@ public class DebugHud : IHud
         }
     }
 
-    private static void DrawCommandCount(IGui gui, IReadOnlyDictionary<string, Action<SharpCraft.Sdk.Commands.CommandContext>> commands, string modId)
+    private static void DrawCommandCount(IGui gui, IReadOnlyDictionary<string, Action<CommandContext>> commands, string modId)
     {
         var count = commands.Count(kv => kv.Key.StartsWith($"{modId}:"));
         if (count > 0)

@@ -1,6 +1,6 @@
-﻿using System.Numerics;
-using SharpCraft.Sdk.Lifecycle;
+﻿using SharpCraft.Sdk.Lifecycle;
 using Silk.NET.Input;
+using System.Numerics;
 
 namespace SharpCraft.Client.Input;
 

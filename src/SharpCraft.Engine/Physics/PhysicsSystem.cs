@@ -1,6 +1,6 @@
-﻿using System.Numerics;
-using SharpCraft.Sdk.Physics;
+﻿using SharpCraft.Sdk.Physics;
 using SharpCraft.Sdk.Physics.Collision;
+using System.Numerics;
 
 namespace SharpCraft.Engine.Physics;
 
@@ -60,14 +60,14 @@ public sealed class PhysicsSystem(ICollisionProvider world) : IPhysicsSystem
 
     private bool HasCollision(Vector3 position, Vector3 size)
     {
-        var entityAABB = AABB.FromPositionSize(position, size);
+        var entityAabb = Aabb.FromPositionSize(position, size);
 
-        var minX = (int)MathF.Floor(entityAABB.Min.X);
-        var minY = (int)MathF.Floor(entityAABB.Min.Y);
-        var minZ = (int)MathF.Floor(entityAABB.Min.Z);
-        var maxX = (int)MathF.Floor(entityAABB.Max.X);
-        var maxY = (int)MathF.Floor(entityAABB.Max.Y);
-        var maxZ = (int)MathF.Floor(entityAABB.Max.Z);
+        var minX = (int)MathF.Floor(entityAabb.Min.X);
+        var minY = (int)MathF.Floor(entityAabb.Min.Y);
+        var minZ = (int)MathF.Floor(entityAabb.Min.Z);
+        var maxX = (int)MathF.Floor(entityAabb.Max.X);
+        var maxY = (int)MathF.Floor(entityAabb.Max.Y);
+        var maxZ = (int)MathF.Floor(entityAabb.Max.Z);
 
         for (var x = minX; x <= maxX; x++)
         {
@@ -77,8 +77,8 @@ public sealed class PhysicsSystem(ICollisionProvider world) : IPhysicsSystem
                 {
                     if (world.GetBlock(x, y, z).IsSolid)
                     {
-                        var blockAABB = new AABB(new Vector3(x, y, z), new Vector3(x + 1, y + 1, z + 1));
-                        if (entityAABB.Intersects(blockAABB))
+                        var blockAabb = new Aabb(new Vector3(x, y, z), new Vector3(x + 1, y + 1, z + 1));
+                        if (entityAabb.Intersects(blockAabb))
                         {
                             return true;
                         }

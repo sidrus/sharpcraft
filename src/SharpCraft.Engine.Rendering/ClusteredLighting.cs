@@ -1,7 +1,7 @@
-using System.Numerics;
-using System.Runtime.InteropServices;
 using SharpCraft.Engine.Rendering.Lighting;
 using SharpCraft.Engine.Rendering.Shaders;
+using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace SharpCraft.Engine.Rendering;
 
@@ -63,9 +63,9 @@ public sealed class ClusteredLighting : IDisposable
         const int lightStride = 48;           // sizeof(GpuLight)
         const int maxLightsPerCluster = 100;  // must match cluster_cull_lights.comp
         _clusters.Allocate(ClusterCount * 32);
-        _lights.Allocate((nuint)(MaxLights * lightStride));
+        _lights.Allocate(MaxLights * lightStride);
         _lightGrid.Allocate(ClusterCount * 8); // uvec2
-        _lightIndex.Allocate((nuint)(ClusterCount * maxLightsPerCluster * sizeof(uint)));
+        _lightIndex.Allocate(ClusterCount * maxLightsPerCluster * sizeof(uint));
         _globalCount.Allocate(sizeof(uint));
     }
 
@@ -119,7 +119,7 @@ public sealed class ClusteredLighting : IDisposable
                 Atten = new Vector4(l.Constant, l.Linear, l.Quadratic, 0f)
             };
         }
-        _lights.Update<GpuLight>(_lightScratch.AsSpan(0, Math.Max(n, 1)));
+        _lights.Update(_lightScratch.AsSpan(0, Math.Max(n, 1)));
         count = (uint)n;
     }
 

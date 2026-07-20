@@ -4,17 +4,15 @@ public unsafe class UniformBufferObject<T> : IDisposable where T : unmanaged
 {
     private readonly GL _gl;
     private readonly uint _handle;
-    private readonly uint _bindingPoint;
 
     public UniformBufferObject(GL gl, uint bindingPoint)
     {
         _gl = gl;
-        _bindingPoint = bindingPoint;
         _handle = _gl.GenBuffer();
 
         _gl.BindBuffer(BufferTargetARB.UniformBuffer, _handle);
         _gl.BufferData(BufferTargetARB.UniformBuffer, (nuint)sizeof(T), null, BufferUsageARB.DynamicDraw);
-        _gl.BindBufferBase(BufferTargetARB.UniformBuffer, _bindingPoint, _handle);
+        _gl.BindBufferBase(BufferTargetARB.UniformBuffer, bindingPoint, _handle);
         _gl.BindBuffer(BufferTargetARB.UniformBuffer, 0);
     }
 

@@ -1,5 +1,5 @@
-﻿using System.Numerics;
-using SharpCraft.Sdk.Physics;
+﻿using SharpCraft.Sdk.Physics;
+using System.Numerics;
 
 namespace SharpCraft.Sdk.Input;
 

@@ -62,10 +62,10 @@ public static class PhysicsConstants
         float area)
     {
         var absGravity = MathF.Abs(gravity);
-        
+
         // Prevent division by zero or negative results
         if (absGravity < 1e-6f) return 100f;
-        
+
         var denominator = density * dragCoefficient * area;
         if (denominator < 1e-6f) return 100f;
 

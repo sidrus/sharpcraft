@@ -1,22 +1,23 @@
-﻿using System.Numerics;
-using SharpCraft.Sdk.UI;
+﻿using SharpCraft.Sdk.UI;
+using System.Numerics;
 
 namespace SharpCraft.CoreMods.UI;
 
 public class DeveloperHud : IInteractiveHud
 {
     public string Name => "DeveloperHud";
-    private bool _isVisible;
+
     public bool IsVisible
     {
-        get => _isVisible;
+        get;
         set
         {
-            if (_isVisible == value) return;
-            _isVisible = value;
+            if (field == value) return;
+            field = value;
             OnVisibilityChanged?.Invoke();
         }
     }
+
     public event Action? OnVisibilityChanged;
 
     public void Draw(double deltaTime, IGui gui, IHudContext context)

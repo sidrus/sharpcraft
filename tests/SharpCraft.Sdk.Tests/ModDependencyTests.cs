@@ -1,6 +1,6 @@
 using AwesomeAssertions;
-using SharpCraft.Sdk.Lifecycle;
 using SharpCraft.Engine.Lifecycle;
+using SharpCraft.Sdk.Lifecycle;
 
 namespace SharpCraft.Sdk.Tests;
 
