@@ -13,8 +13,7 @@ public class PostProcessingRenderer : IDisposable
 {
     private readonly GL _gl;
     private readonly ShaderProgram _shader;
-    private readonly uint _vao;
-    private readonly uint _vbo;
+    private readonly FullscreenQuad _quad;
     private bool _disposed;
 
     // Tone mapping (0=ACES Hill, 1=AgX, 2=Reinhard) and display-space effects.
@@ -44,32 +43,7 @@ public class PostProcessingRenderer : IDisposable
     {
         _gl = gl;
         _shader = new ShaderProgram(_gl, Shaders.Shaders.UnderwaterVertex, Shaders.Shaders.FxaaFragment);
-
-        float[] quadVertices =
-        {
-            -1.0f,  1.0f, 0.0f, 1.0f,
-            -1.0f, -1.0f, 0.0f, 0.0f,
-             1.0f, -1.0f, 1.0f, 0.0f,
-            -1.0f,  1.0f, 0.0f, 1.0f,
-             1.0f, -1.0f, 1.0f, 0.0f,
-             1.0f,  1.0f, 1.0f, 1.0f
-        };
-
-        _vao = _gl.GenVertexArray();
-        _vbo = _gl.GenBuffer();
-        _gl.BindVertexArray(_vao);
-        _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vbo);
-        unsafe
-        {
-            fixed (float* v = quadVertices)
-            {
-                _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(quadVertices.Length * sizeof(float)), v, BufferUsageARB.StaticDraw);
-            }
-            _gl.EnableVertexAttribArray(0);
-            _gl.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), (void*)0);
-            _gl.EnableVertexAttribArray(1);
-            _gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-        }
+        _quad = new FullscreenQuad(_gl);
     }
 
     /// <summary>Resolves the HDR scene texture to the SDR backbuffer.</summary>
@@ -100,8 +74,7 @@ public class PostProcessingRenderer : IDisposable
         _gl.ActiveTexture(TextureUnit.Texture0);
         _gl.BindTexture(TextureTarget.Texture2D, sceneTexture);
 
-        _gl.BindVertexArray(_vao);
-        _gl.DrawArrays(PrimitiveType.Triangles, 0, 6);
+        _quad.Draw();
 
         _gl.Enable(EnableCap.DepthTest);
     }
@@ -123,8 +96,7 @@ public class PostProcessingRenderer : IDisposable
         {
             _shader.Dispose();
         }
-        _gl.DeleteVertexArray(_vao);
-        _gl.DeleteBuffer(_vbo);
+        _quad.Dispose();
         _disposed = true;
     }
 

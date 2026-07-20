@@ -17,8 +17,7 @@ public sealed class BloomRenderer : IDisposable
     private readonly ShaderProgram _down;
     private readonly ShaderProgram _up;
     private readonly uint _fbo;
-    private readonly uint _quadVao;
-    private readonly uint _quadVbo;
+    private readonly FullscreenQuad _quad;
 
     private readonly List<(uint tex, int w, int h)> _mips = new();
     private int _srcWidth;
@@ -30,28 +29,7 @@ public sealed class BloomRenderer : IDisposable
         _gl = gl;
         _down = new ShaderProgram(gl, Shaders.Shaders.UnderwaterVertex, Shaders.Shaders.BloomDownFragment);
         _up = new ShaderProgram(gl, Shaders.Shaders.UnderwaterVertex, Shaders.Shaders.BloomUpFragment);
-
-        float[] quad =
-        {
-            -1f,  1f, 0f, 1f,  -1f, -1f, 0f, 0f,   1f, -1f, 1f, 0f,
-            -1f,  1f, 0f, 1f,   1f, -1f, 1f, 0f,   1f,  1f, 1f, 1f
-        };
-        _quadVao = gl.GenVertexArray();
-        _quadVbo = gl.GenBuffer();
-        gl.BindVertexArray(_quadVao);
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _quadVbo);
-        unsafe
-        {
-            fixed (float* p = quad)
-            {
-                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(quad.Length * sizeof(float)), p, BufferUsageARB.StaticDraw);
-            }
-
-            gl.EnableVertexAttribArray(0);
-            gl.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), (void*)0);
-            gl.EnableVertexAttribArray(1);
-            gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-        }
+        _quad = new FullscreenQuad(gl);
 
         _fbo = gl.CreateFramebuffer();
         gl.NamedFramebufferDrawBuffer(_fbo, ColorBuffer.ColorAttachment0);
@@ -69,7 +47,6 @@ public sealed class BloomRenderer : IDisposable
         _gl.Disable(EnableCap.DepthTest);
         _gl.Disable(EnableCap.Blend);
         _gl.BindFramebuffer(FramebufferTarget.Framebuffer, _fbo);
-        _gl.BindVertexArray(_quadVao);
 
         // === Downsample chain ===
         _down.Use();
@@ -88,7 +65,7 @@ public sealed class BloomRenderer : IDisposable
             _down.SetUniform("srcTexelSize", new Vector2(1.0f / srcW, 1.0f / srcH));
             _down.SetUniform("firstPass", i == 0 ? 1 : 0);
             _down.SetUniform("threshold", threshold);
-            _gl.DrawArrays(PrimitiveType.Triangles, 0, 6);
+            _quad.Draw();
         }
 
         // === Upsample chain (additive accumulation) ===
@@ -105,7 +82,7 @@ public sealed class BloomRenderer : IDisposable
             _gl.BindTexture(TextureTarget.Texture2D, srcTex);
             _up.SetUniform("srcTexture", 0);
             _up.SetUniform("srcTexelSize", new Vector2(1.0f / srcW, 1.0f / srcH));
-            _gl.DrawArrays(PrimitiveType.Triangles, 0, 6);
+            _quad.Draw();
         }
         _gl.Disable(EnableCap.Blend);
 
@@ -166,8 +143,7 @@ public sealed class BloomRenderer : IDisposable
         _up.Dispose();
         DeleteMips();
         _gl.DeleteFramebuffer(_fbo);
-        _gl.DeleteVertexArray(_quadVao);
-        _gl.DeleteBuffer(_quadVbo);
+        _quad.Dispose();
         _disposed = true;
     }
 }

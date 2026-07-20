@@ -17,8 +17,7 @@ public sealed class TemporalAa : IDisposable
 
     private readonly GL _gl;
     private readonly ShaderProgram _resolve;
-    private readonly uint _quadVao;
-    private readonly uint _quadVbo;
+    private readonly FullscreenQuad _quad;
 
     private Framebuffer? _historyA;
     private Framebuffer? _historyB;
@@ -33,32 +32,7 @@ public sealed class TemporalAa : IDisposable
     {
         _gl = gl;
         _resolve = new ShaderProgram(gl, Shaders.Shaders.UnderwaterVertex, Shaders.Shaders.TaaResolveFragment);
-
-        float[] quad =
-        {
-            -1f,  1f, 0f, 1f,
-            -1f, -1f, 0f, 0f,
-             1f, -1f, 1f, 0f,
-            -1f,  1f, 0f, 1f,
-             1f, -1f, 1f, 0f,
-             1f,  1f, 1f, 1f
-        };
-        _quadVao = gl.GenVertexArray();
-        _quadVbo = gl.GenBuffer();
-        gl.BindVertexArray(_quadVao);
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _quadVbo);
-        unsafe
-        {
-            fixed (float* p = quad)
-            {
-                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(quad.Length * sizeof(float)), p, BufferUsageARB.StaticDraw);
-            }
-
-            gl.EnableVertexAttribArray(0);
-            gl.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), (void*)0);
-            gl.EnableVertexAttribArray(1);
-            gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-        }
+        _quad = new FullscreenQuad(gl);
     }
 
     /// <summary>
@@ -115,8 +89,7 @@ public sealed class TemporalAa : IDisposable
         _resolve.SetUniform("blendFactor", BlendFactor);
         _resolve.SetUniform("historyValid", _historyValid ? 1 : 0);
 
-        _gl.BindVertexArray(_quadVao);
-        _gl.DrawArrays(PrimitiveType.Triangles, 0, 6);
+        _quad.Draw();
 
         target.Unbind();
         _gl.Enable(EnableCap.DepthTest);
@@ -162,8 +135,7 @@ public sealed class TemporalAa : IDisposable
     public void Dispose()
     {
         _resolve.Dispose();
-        _gl.DeleteVertexArray(_quadVao);
-        _gl.DeleteBuffer(_quadVbo);
+        _quad.Dispose();
         _historyA?.Dispose();
         _historyB?.Dispose();
     }

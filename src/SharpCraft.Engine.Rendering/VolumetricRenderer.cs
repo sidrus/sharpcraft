@@ -17,13 +17,9 @@ public sealed class VolumetricRenderer : IDisposable
     private readonly GL _gl;
     private readonly ShaderProgram _march;
     private readonly ShaderProgram _composite;
-    private readonly uint _quadVao;
-    private readonly uint _quadVbo;
+    private readonly FullscreenQuad _quad;
 
-    private uint _fbo;
-    private uint _scatterTexture; // rgb = in-scatter, a = transmittance
-    private int _width;           // half-res
-    private int _height;
+    private readonly ColorTarget _target; // rgb = in-scatter, a = transmittance; half-res
     private int _frame;
     private bool _disposed;
 
@@ -32,28 +28,8 @@ public sealed class VolumetricRenderer : IDisposable
         _gl = gl;
         _march = new ShaderProgram(gl, Shaders.Shaders.UnderwaterVertex, Shaders.Shaders.VolumetricMarchFragment);
         _composite = new ShaderProgram(gl, Shaders.Shaders.UnderwaterVertex, Shaders.Shaders.VolumetricCompositeFragment);
-
-        float[] quad =
-        {
-            -1f,  1f, 0f, 1f,  -1f, -1f, 0f, 0f,   1f, -1f, 1f, 0f,
-            -1f,  1f, 0f, 1f,   1f, -1f, 1f, 0f,   1f,  1f, 1f, 1f
-        };
-        _quadVao = gl.GenVertexArray();
-        _quadVbo = gl.GenBuffer();
-        gl.BindVertexArray(_quadVao);
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _quadVbo);
-        unsafe
-        {
-            fixed (float* p = quad)
-            {
-                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(quad.Length * sizeof(float)), p, BufferUsageARB.StaticDraw);
-            }
-
-            gl.EnableVertexAttribArray(0);
-            gl.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), (void*)0);
-            gl.EnableVertexAttribArray(1);
-            gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-        }
+        _quad = new FullscreenQuad(gl);
+        _target = new ColorTarget(gl, SizedInternalFormat.Rgba16f);
     }
 
     /// <summary>
@@ -64,14 +40,16 @@ public sealed class VolumetricRenderer : IDisposable
     public void Render(uint sceneDepth, uint shadowArray, RenderContext context, Matrix4x4 invViewProj,
         float density, float extinction, float intensity, int samples, float mieG, float maxDistance)
     {
-        EnsureTarget(context.Camera.ScreenWidth, context.Camera.ScreenHeight);
+        var halfWidth = Math.Max(1, context.Camera.ScreenWidth / 2);
+        var halfHeight = Math.Max(1, context.Camera.ScreenHeight / 2);
+        _target.EnsureSize(halfWidth, halfHeight);
 
         var lightDir = context.Lighting.Sun?.Direction ?? Vector3.Normalize(new Vector3(0.8f, -0.5f, 0.1f));
         var toSun = Vector3.Normalize(-lightDir);
         var sunColor = (context.Lighting.Sun?.Color ?? new Vector3(1f, 0.95f, 0.8f)) * (context.Lighting.Sun?.Intensity ?? 0f);
 
-        _gl.BindFramebuffer(FramebufferTarget.Framebuffer, _fbo);
-        _gl.Viewport(0, 0, (uint)_width, (uint)_height);
+        _target.Bind();
+        _gl.Viewport(0, 0, (uint)halfWidth, (uint)halfHeight);
         _gl.Disable(EnableCap.DepthTest);
         _gl.Disable(EnableCap.Blend);
 
@@ -96,8 +74,7 @@ public sealed class VolumetricRenderer : IDisposable
         _march.SetUniform("maxDistance", maxDistance);
         _march.SetUniform("frameJitter", (_frame++ % 8) / 8.0f);
 
-        _gl.BindVertexArray(_quadVao);
-        _gl.DrawArrays(PrimitiveType.Triangles, 0, 6);
+        _quad.Draw();
 
         _gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         _gl.Enable(EnableCap.DepthTest);
@@ -117,48 +94,17 @@ public sealed class VolumetricRenderer : IDisposable
 
         _composite.Use();
         _gl.ActiveTexture(TextureUnit.Texture0);
-        _gl.BindTexture(TextureTarget.Texture2D, _scatterTexture);
+        _gl.BindTexture(TextureTarget.Texture2D, _target.Texture);
         _composite.SetUniform("scatterTexture", 0);
         _gl.ActiveTexture(TextureUnit.Texture1);
         _gl.BindTexture(TextureTarget.Texture2D, sceneDepth);
         _composite.SetUniform("depthTexture", 1);
         _composite.SetUniform("near", near);
 
-        _gl.BindVertexArray(_quadVao);
-        _gl.DrawArrays(PrimitiveType.Triangles, 0, 6);
+        _quad.Draw();
 
         _gl.Disable(EnableCap.Blend);
         _gl.Enable(EnableCap.DepthTest);
-    }
-
-    private void EnsureTarget(int fullWidth, int fullHeight)
-    {
-        int w = Math.Max(1, fullWidth / 2);
-        int h = Math.Max(1, fullHeight / 2);
-        if (_fbo != 0 && _width == w && _height == h)
-        {
-            return;
-        }
-
-        if (_fbo != 0)
-        {
-            _gl.DeleteFramebuffer(_fbo);
-            _gl.DeleteTexture(_scatterTexture);
-        }
-
-        _scatterTexture = _gl.CreateTexture(TextureTarget.Texture2D);
-        _gl.TextureStorage2D(_scatterTexture, 1, SizedInternalFormat.Rgba16f, (uint)w, (uint)h);
-        _gl.TextureParameter(_scatterTexture, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        _gl.TextureParameter(_scatterTexture, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-        _gl.TextureParameter(_scatterTexture, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-        _gl.TextureParameter(_scatterTexture, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-
-        _fbo = _gl.CreateFramebuffer();
-        _gl.NamedFramebufferTexture(_fbo, FramebufferAttachment.ColorAttachment0, _scatterTexture, 0);
-        _gl.NamedFramebufferDrawBuffer(_fbo, ColorBuffer.ColorAttachment0);
-
-        _width = w;
-        _height = h;
     }
 
     public void Dispose()
@@ -170,13 +116,8 @@ public sealed class VolumetricRenderer : IDisposable
 
         _march.Dispose();
         _composite.Dispose();
-        _gl.DeleteVertexArray(_quadVao);
-        _gl.DeleteBuffer(_quadVbo);
-        if (_fbo != 0)
-        {
-            _gl.DeleteFramebuffer(_fbo);
-            _gl.DeleteTexture(_scatterTexture);
-        }
+        _quad.Dispose();
+        _target.Dispose();
         _disposed = true;
     }
 }
