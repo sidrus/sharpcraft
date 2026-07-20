@@ -1,4 +1,5 @@
 ﻿using SharpCraft.Client.Controllers;
+using SharpCraft.Client.Input;
 using SharpCraft.Client.UI.Chat;
 using SharpCraft.Engine.Rendering;
 using SharpCraft.Engine.Rendering.Lighting;
@@ -24,6 +25,7 @@ public class HudManager : ILifecycle, IDisposable
     private readonly HudRegistry _registry;
     private readonly IGui _gui;
     private readonly IGraphicsSettings _settings;
+    private readonly Keymap _keymap = new();
 
     private IReadOnlyList<IHud> Huds => _registry.RegisteredHuds;
 
@@ -52,6 +54,11 @@ public class HudManager : ILifecycle, IDisposable
         _registry.RegisterHud(new ChatHud());
         _registry.RegisterHud(new AtmosphereControlHud());
 
+        _keymap.Bind(Key.F3, () => ToggleInteractiveHud("GraphicsSettingsHud"));
+        _keymap.Bind(Key.F4, () => ToggleInteractiveHud("DeveloperHud"));
+        _keymap.Bind(Key.F5, () => ToggleInteractiveHud("AtmosphereControl"));
+        _keymap.Bind(Key.AltLeft, ToggleCursorMode);
+
         // Any HUD that can open a menu drives the cursor mode.
         foreach (var interactiveHud in Huds.OfType<IInteractiveHud>())
         {
@@ -63,18 +70,7 @@ public class HudManager : ILifecycle, IDisposable
 
     private void OnKeyUp(IKeyboard keyboard, Key key, int scancode)
     {
-        switch (key)
-        {
-            case Key.F3:
-                ToggleInteractiveHud("GraphicsSettingsHud");
-                break;
-            case Key.F4:
-                ToggleInteractiveHud("DeveloperHud");
-                break;
-            case Key.F5:
-                ToggleInteractiveHud("AtmosphereControl");
-                break;
-        }
+        _keymap.Handle(key);
 
         if (Chat is { IsTyping: false })
         {
@@ -87,11 +83,6 @@ public class HudManager : ILifecycle, IDisposable
                     Chat.StartTyping("/");
                     break;
             }
-        }
-
-        if (key == Key.AltLeft)
-        {
-            ToggleCursorMode();
         }
     }
 

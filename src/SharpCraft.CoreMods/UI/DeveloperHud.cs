@@ -3,28 +3,11 @@ using System.Numerics;
 
 namespace SharpCraft.CoreMods.UI;
 
-public class DeveloperHud : IInteractiveHud
+public class DeveloperHud : InteractiveHud
 {
-    public string Name => "DeveloperHud";
+    public override string Name => "DeveloperHud";
 
-    public bool IsVisible
-    {
-        get;
-        set
-        {
-            if (field == value)
-            {
-                return;
-            }
-
-            field = value;
-            OnVisibilityChanged?.Invoke();
-        }
-    }
-
-    public event Action? OnVisibilityChanged;
-
-    public void Draw(double deltaTime, IGui gui, IHudContext context)
+    public override void Draw(double deltaTime, IGui gui, IHudContext context)
     {
         if (!IsVisible)
         {
@@ -64,12 +47,5 @@ public class DeveloperHud : IInteractiveHud
         {
             IsVisible = visible;
         }
-    }
-
-    public void OnAwake()
-    {
-    }
-    public void OnUpdate(double deltaTime)
-    {
     }
 }

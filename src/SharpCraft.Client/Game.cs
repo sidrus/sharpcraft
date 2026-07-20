@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using SharpCraft.Client.Controllers;
+using SharpCraft.Client.Gameplay;
 using SharpCraft.Client.Input;
 using SharpCraft.Client.Integrations.Steam;
 using SharpCraft.Client.UI;
+using SharpCraft.Client.Universe;
 using SharpCraft.Engine.Diagnostics;
 using SharpCraft.Engine.Lifecycle;
 using SharpCraft.Engine.Physics;
@@ -57,8 +59,7 @@ public partial class Game : IDisposable
 
     private const double FixedDeltaTime = 1.0 / 60.0;
     private double _accumulator;
-    private Vector2<int>? _lastPlayerChunk;
-    private Task? _worldUpdateTask;
+    private WorldStreamer? _worldStreamer;
 
     public Game(IWindow window, World world, ILoggerFactory loggerFactory, ISharpCraftSdk sdk, IEnumerable<IMod> mods)
     {
@@ -156,38 +157,12 @@ public partial class Game : IDisposable
 
     private void UpdateWorldChunks()
     {
-        if (_playerController == null || _hudManager?.Settings == null)
+        if (_playerController == null || _hudManager?.Settings == null || _worldStreamer == null)
         {
             return;
         }
 
-        var playerPos = _playerController.Entity.Position;
-        var currentChunkX = (int)Math.Floor(playerPos.X / World.ChunkSize);
-        var currentChunkZ = (int)Math.Floor(playerPos.Z / World.ChunkSize);
-        var currentChunk = new Vector2<int>(currentChunkX, currentChunkZ);
-
-        var canStartNew = _worldUpdateTask == null ||
-            (_worldUpdateTask.IsCompleted && !_worldUpdateTask.IsFaulted && !_worldUpdateTask.IsCanceled);
-
-        if ((_lastPlayerChunk == null || currentChunk != _lastPlayerChunk.Value) && canStartNew)
-        {
-            _lastPlayerChunk = currentChunk;
-            var renderDistance = _hudManager.Settings.RenderDistance;
-
-            _worldUpdateTask = Task.Run(async () =>
-            {
-                try
-                {
-                    await _world.GenerateAsync(renderDistance, playerPos);
-                    _world.UnloadChunks(playerPos, renderDistance + 1); // +1 to give some buffer
-                }
-                catch (Exception ex)
-                {
-                    LogWorldUpdateTaskFailed(ex);
-                    // Don't rethrow - allow game to continue with current chunks
-                }
-            });
-        }
+        _worldStreamer.Update(_playerController.Entity.Position, _hudManager.Settings.RenderDistance);
     }
 
     private void OnRender(double deltaTime)
@@ -344,6 +319,20 @@ public partial class Game : IDisposable
         var settingsPanel = hudRegistry.RegisteredHuds
             .OfType<IInteractiveHud>()
             .FirstOrDefault(h => h.Name == "GraphicsSettingsHud");
+        _worldStreamer = new WorldStreamer((renderDistance, position) => Task.Run(async () =>
+        {
+            try
+            {
+                await _world.GenerateAsync(renderDistance, position);
+                _world.UnloadChunks(position, renderDistance + 1); // +1 to give some buffer
+            }
+            catch (Exception ex)
+            {
+                LogWorldUpdateTaskFailed(ex);
+                // Don't rethrow - allow game to continue with current chunks
+            }
+        }));
+
         if (settingsPanel != null)
         {
             settingsPanel.OnVisibilityChanged += () =>
@@ -351,7 +340,7 @@ public partial class Game : IDisposable
                 // Force a world update when settings are closed, in case RenderDistance changed
                 if (!settingsPanel.IsVisible)
                 {
-                    _lastPlayerChunk = null;
+                    _worldStreamer.ForceRefresh();
                 }
             };
         }
@@ -438,18 +427,12 @@ public partial class Game : IDisposable
         }
 
         // Only place on a real surface — not mid-jump, and not over air/water/lava.
-        if (!_playerController.BlockBelow.IsSolid || _playerController.IsSwimming || _playerController.IsUnderwater)
+        if (!TorchPlacement.CanPlace(_playerController.BlockBelow.IsSolid, _playerController.IsSwimming, _playerController.IsUnderwater))
         {
             return;
         }
 
-        var p = _playerController.Entity.Position;
-
-        // The supporting block's top face sits at floor(feetY); centre the torch on that block column.
-        var basePos = new Vector3(
-            MathF.Floor(p.X) + 0.5f,
-            MathF.Floor(p.Y),
-            MathF.Floor(p.Z) + 0.5f);
+        var basePos = TorchPlacement.BasePosition(_playerController.Entity.Position);
 
         _torchRenderer.AddTorch(basePos);
 

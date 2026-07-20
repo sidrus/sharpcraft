@@ -4,38 +4,18 @@ using System.Numerics;
 
 namespace SharpCraft.Client.UI;
 
-public class AtmosphereControlHud : IInteractiveHud
+public class AtmosphereControlHud : InteractiveHud
 {
-    public string Name => "AtmosphereControl";
+    public override string Name => "AtmosphereControl";
 
-    private bool _isVisible = true;
-
-    public bool IsVisible
+    public AtmosphereControlHud()
     {
-        get => _isVisible;
-        set
-        {
-            if (_isVisible != value)
-            {
-                _isVisible = value;
-                OnVisibilityChanged?.Invoke();
-            }
-        }
+        IsVisible = true;
     }
 
-    public event Action? OnVisibilityChanged;
-
-    public void OnAwake()
+    public override void Draw(double deltaTime, IGui gui, IHudContext context)
     {
-    }
-
-    public void OnUpdate(double deltaTime)
-    {
-    }
-
-    public void Draw(double deltaTime, IGui gui, IHudContext context)
-    {
-        if (!_isVisible)
+        if (!IsVisible)
         {
             return;
         }
@@ -54,7 +34,7 @@ public class AtmosphereControlHud : IInteractiveHud
         }
 
         gui.SetNextWindowSize(new Vector2(420, 600), GuiCond.FirstUseEver);
-        var open = _isVisible;
+        var open = IsVisible;
         if (gui.Begin("Atmosphere & Time Control", ref open))
         {
             IsVisible = open;

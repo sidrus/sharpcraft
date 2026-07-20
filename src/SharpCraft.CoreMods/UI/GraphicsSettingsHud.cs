@@ -7,28 +7,11 @@ namespace SharpCraft.CoreMods.UI;
 /// Settings panel that edits the shared <see cref="IGraphicsSettings"/> state. Owns only its own
 /// panel visibility; all persisted values live on the injected settings.
 /// </summary>
-public class GraphicsSettingsHud(IGraphicsSettings settings) : IInteractiveHud
+public class GraphicsSettingsHud(IGraphicsSettings settings) : InteractiveHud
 {
-    public string Name => "GraphicsSettingsHud";
+    public override string Name => "GraphicsSettingsHud";
 
-    public bool IsVisible
-    {
-        get;
-        set
-        {
-            if (field == value)
-            {
-                return;
-            }
-
-            field = value;
-            OnVisibilityChanged?.Invoke();
-        }
-    }
-
-    public event Action? OnVisibilityChanged;
-
-    public void Draw(double deltaTime, IGui gui, IHudContext context)
+    public override void Draw(double deltaTime, IGui gui, IHudContext context)
     {
         if (!IsVisible)
         {
@@ -143,13 +126,5 @@ public class GraphicsSettingsHud(IGraphicsSettings settings) : IInteractiveHud
         {
             IsVisible = visible;
         }
-    }
-
-    public void OnAwake()
-    {
-    }
-
-    public void OnUpdate(double deltaTime)
-    {
     }
 }
