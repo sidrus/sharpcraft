@@ -33,7 +33,6 @@ public readonly record struct RenderContext(
     bool IsUnderwater = false,
     float Time = 0.0f,
     bool UseIBL = false,
-    bool UseClusteredLighting = false,
     bool UseTAA = true,
     bool UseSSAO = true,
     float SsaoRadius = 1.5f,

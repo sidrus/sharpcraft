@@ -25,7 +25,7 @@ public class DefaultPlayerMotor : IMotor
     /// <summary>
     /// Gets or sets the sensor data used to choose and drive the active motor.
     /// </summary>
-    public SpatialSensorData? SensorData { get; set; }
+    public GeospatialSensorData? SensorData { get; set; }
 
     /// <summary>
     /// Gets the friction coefficient applied by the active motor on its last pass.

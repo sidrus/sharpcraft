@@ -35,8 +35,8 @@ public class SimplexNoise : INoiseGenerator
         const float G2 = 0.211324865f; // (3 - Math.Sqrt(3)) / 6
 
         var s = (x + y) * F2;
-        var i = MathUtils.FastFloor(x + s);
-        var j = MathUtils.FastFloor(y + s);
+        var i = (int)MathF.Floor(x + s);
+        var j = (int)MathF.Floor(y + s);
 
         var t = (i + j) * G2;
         var X0 = i - t;

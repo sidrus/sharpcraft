@@ -6,7 +6,7 @@ using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Input;
 using SharpCraft.Sdk.Physics;
-using Moq;
+using NSubstitute;
 using AwesomeAssertions;
 
 namespace SharpCraft.Client.Tests.Controllers;
@@ -17,13 +17,13 @@ public class PitchClampingTests
     public void Pitch_ShouldBeClamped_WhenLookDeltaIsLarge()
     {
         // Arrange
-        var mockPhysicsSystem = new Mock<IPhysicsSystem>();
-        var entity = new PhysicsEntity(new Transform(), mockPhysicsSystem.Object);
-        var world = new World(Mock.Of<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Mock.Of<IBlockRegistry>());
+        var mockPhysicsSystem = Substitute.For<IPhysicsSystem>();
+        var entity = new PhysicsEntity(new Transform(), mockPhysicsSystem);
+        var world = new World(Substitute.For<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Substitute.For<IBlockRegistry>());
         var camera = new FirstPersonCamera(entity, Vector3.Zero);
-        var mockInput = new Mock<IInputProvider>();
+        var mockInput = Substitute.For<IInputProvider>();
         
-        var controller = new LocalPlayerController(entity, camera, world, mockInput.Object);
+        var controller = new LocalPlayerController(entity, camera, world, mockInput);
         
         // Act
         // Move mouse UP significantly (Pitch should increase)
@@ -31,7 +31,7 @@ public class PitchClampingTests
         
         // We need to simulate the update loop or call HandleLook via reflection if private, 
         // but HandleLook is called in OnUpdate.
-        mockInput.Setup(i => i.GetLookDelta()).Returns(largeUpDelta);
+        mockInput.GetLookDelta().Returns(largeUpDelta);
         
         controller.OnUpdate(0.016f);
         
@@ -44,19 +44,19 @@ public class PitchClampingTests
     public void Pitch_ShouldBeClamped_WhenMultipleLookDeltasAreApplied()
     {
         // Arrange
-        var mockPhysicsSystem = new Mock<IPhysicsSystem>();
-        var entity = new PhysicsEntity(new Transform(), mockPhysicsSystem.Object);
-        var world = new World(Mock.Of<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Mock.Of<IBlockRegistry>());
+        var mockPhysicsSystem = Substitute.For<IPhysicsSystem>();
+        var entity = new PhysicsEntity(new Transform(), mockPhysicsSystem);
+        var world = new World(Substitute.For<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Substitute.For<IBlockRegistry>());
         var camera = new FirstPersonCamera(entity, Vector3.Zero);
-        var mockInput = new Mock<IInputProvider>();
+        var mockInput = Substitute.For<IInputProvider>();
         
-        var controller = new LocalPlayerController(entity, camera, world, mockInput.Object);
+        var controller = new LocalPlayerController(entity, camera, world, mockInput);
         
         // Act
-        mockInput.SetupSequence(i => i.GetLookDelta())
-            .Returns(new LookDelta(0, 50f))
-            .Returns(new LookDelta(0, 50f))
-            .Returns(new LookDelta(0, 50f));
+        mockInput.GetLookDelta().Returns(
+            new LookDelta(0, 50f),
+            new LookDelta(0, 50f),
+            new LookDelta(0, 50f));
             
         controller.OnUpdate(0.016f); // Pitch = 50
         controller.OnUpdate(0.016f); // Pitch = 89 (clamped from 100)
@@ -70,15 +70,15 @@ public class PitchClampingTests
     public void Camera_Forward_ShouldMatchPitch()
     {
         // Arrange
-        var mockPhysicsSystem = new Mock<IPhysicsSystem>();
-        var entity = new PhysicsEntity(new Transform(), mockPhysicsSystem.Object);
-        var world = new World(Mock.Of<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Mock.Of<IBlockRegistry>());
+        var mockPhysicsSystem = Substitute.For<IPhysicsSystem>();
+        var entity = new PhysicsEntity(new Transform(), mockPhysicsSystem);
+        var world = new World(Substitute.For<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Substitute.For<IBlockRegistry>());
         var camera = new FirstPersonCamera(entity, Vector3.Zero);
-        var mockInput = new Mock<IInputProvider>();
-        var controller = new LocalPlayerController(entity, camera, world, mockInput.Object);
+        var mockInput = Substitute.For<IInputProvider>();
+        var controller = new LocalPlayerController(entity, camera, world, mockInput);
 
         // Act
-        mockInput.Setup(i => i.GetLookDelta()).Returns(new LookDelta(0, 45f));
+        mockInput.GetLookDelta().Returns(new LookDelta(0, 45f));
         controller.OnUpdate(0.016f);
         
         // At this point, camera.Pitch should be 45.

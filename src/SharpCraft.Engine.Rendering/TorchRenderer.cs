@@ -8,7 +8,7 @@ namespace SharpCraft.Engine.Rendering;
 /// Draws placed torches as small textured 3D boxes in the world. Each torch is a thin tapered
 /// column whose wooden handle is sun/ambient lit and whose burning head is emissive (so it blooms
 /// in the HDR pass). The actual light it casts on the surroundings comes from a separate
-/// <see cref="Lighting.PointLight"/> registered when the torch is placed.
+/// <see cref="Lighting.PointLightData"/> registered when the torch is placed.
 /// </summary>
 public sealed class TorchRenderer : IDisposable
 {

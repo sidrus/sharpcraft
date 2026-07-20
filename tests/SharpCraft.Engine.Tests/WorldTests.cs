@@ -2,14 +2,14 @@
 using SharpCraft.Sdk.Numerics;
 using AwesomeAssertions;
 using SharpCraft.Sdk.Blocks;
-using Moq;
+using NSubstitute;
 using WorldClass = SharpCraft.Engine.Universe.World;
 
 namespace SharpCraft.Engine.Tests;
 
 public class WorldTests
 {
-    private static WorldClass CreateWorld() => new(Mock.Of<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Mock.Of<IBlockRegistry>());
+    private static WorldClass CreateWorld() => new(Substitute.For<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Substitute.For<IBlockRegistry>());
 
     [Fact]
     public void GetOrCreateChunk_ShouldCreateNewChunk()

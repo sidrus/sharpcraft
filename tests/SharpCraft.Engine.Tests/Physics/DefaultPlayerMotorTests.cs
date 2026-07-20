@@ -3,7 +3,7 @@ using SharpCraft.Engine.Physics;
 using SharpCraft.Engine.Physics.Motors;
 using SharpCraft.Sdk.Physics;
 using AwesomeAssertions;
-using Moq;
+using NSubstitute;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Physics.Sensors.Spatial;
 
@@ -15,12 +15,12 @@ public class DefaultPlayerMotorTests
     public void ApplyForces_ShouldApplyGravity()
     {
         // Setup
-        var mockPhysics = new Mock<IPhysicsSystem>();
-        mockPhysics.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
-                   .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
+        var mockPhysics = Substitute.For<IPhysicsSystem>();
+        mockPhysics.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
+                   .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
 
         var transform = new Transform { Position = new Vector3(0, 10, 0) };
-        var entity = new PhysicsEntity(transform, mockPhysics.Object);
+        var entity = new PhysicsEntity(transform, mockPhysics);
         var motor = new DefaultPlayerMotor();
         var deltaTime = 1.0f;
 
@@ -39,12 +39,12 @@ public class DefaultPlayerMotorTests
     public void ApplyForces_WhenFlying_ShouldNotApplyGravity()
     {
         // Setup
-        var mockPhysics = new Mock<IPhysicsSystem>();
-        mockPhysics.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
-                   .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
+        var mockPhysics = Substitute.For<IPhysicsSystem>();
+        mockPhysics.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
+                   .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
 
         var transform = new Transform { Position = new Vector3(0, 10, 0) };
-        var entity = new PhysicsEntity(transform, mockPhysics.Object);
+        var entity = new PhysicsEntity(transform, mockPhysics);
         var motor = new DefaultPlayerMotor();
         var deltaTime = 1.0f;
 
@@ -61,17 +61,17 @@ public class DefaultPlayerMotorTests
     public void ApplyForces_WhenJumpingOnGround_ShouldApplyUpwardVelocity()
     {
         // Setup
-        var mockPhysics = new Mock<IPhysicsSystem>();
-        mockPhysics.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
-                   .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
+        var mockPhysics = Substitute.For<IPhysicsSystem>();
+        mockPhysics.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
+                   .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
 
         var transform = new Transform { Position = new Vector3(0, 1, 0) };
-        var entity = new PhysicsEntity(transform, mockPhysics.Object);
+        var entity = new PhysicsEntity(transform, mockPhysics);
         
         // Mock grounded state via sensor
         var motor = new DefaultPlayerMotor
         {
-            SensorData = new SpatialSensorData
+            SensorData = new GeospatialSensorData
             {
                 IsGrounded = true,
                 BlockBelow = new Block { Type = BlockType.Stone } // Solid block
@@ -90,17 +90,17 @@ public class DefaultPlayerMotorTests
     public void ApplyForces_WhenJumpingOnWaterSurface_ShouldApplyUpwardVelocity()
     {
         // Setup
-        var mockPhysics = new Mock<IPhysicsSystem>();
-        mockPhysics.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
-                   .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
+        var mockPhysics = Substitute.For<IPhysicsSystem>();
+        mockPhysics.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
+                   .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
 
         var transform = new Transform { Position = new Vector3(0, 63.5f, 0) };
-        var entity = new PhysicsEntity(transform, mockPhysics.Object);
+        var entity = new PhysicsEntity(transform, mockPhysics);
 
         // Bobbing at the surface next to a climbable ledge.
         var motor = new DefaultPlayerMotor
         {
-            SensorData = new SpatialSensorData
+            SensorData = new GeospatialSensorData
             {
                 IsOnWaterSurface = true,
                 IsNextToClimbableLedge = true,
@@ -120,17 +120,17 @@ public class DefaultPlayerMotorTests
     public void ApplyForces_WhenJumpingOnOpenWaterSurface_ShouldNotApplyUpwardVelocity()
     {
         // Setup
-        var mockPhysics = new Mock<IPhysicsSystem>();
-        mockPhysics.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
-                   .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
+        var mockPhysics = Substitute.For<IPhysicsSystem>();
+        mockPhysics.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
+                   .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
 
         var transform = new Transform { Position = new Vector3(0, 63.5f, 0) };
-        var entity = new PhysicsEntity(transform, mockPhysics.Object);
+        var entity = new PhysicsEntity(transform, mockPhysics);
 
         // Bobbing at the surface in open water, no ledge to climb onto.
         var motor = new DefaultPlayerMotor
         {
-            SensorData = new SpatialSensorData
+            SensorData = new GeospatialSensorData
             {
                 IsOnWaterSurface = true,
                 IsNextToClimbableLedge = false,
@@ -150,12 +150,12 @@ public class DefaultPlayerMotorTests
     public void ApplyForces_ShouldApplyHorizontalMovement()
     {
         // Setup
-        var mockPhysics = new Mock<IPhysicsSystem>();
-        mockPhysics.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
-                   .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
+        var mockPhysics = Substitute.For<IPhysicsSystem>();
+        mockPhysics.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
+                   .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
 
         var transform = new Transform { Position = new Vector3(0, 10, 0) };
-        var entity = new PhysicsEntity(transform, mockPhysics.Object);
+        var entity = new PhysicsEntity(transform, mockPhysics);
         var motor = new DefaultPlayerMotor();
 
         // Act
@@ -171,20 +171,20 @@ public class DefaultPlayerMotorTests
     public void ApplyForces_WhenSprinting_ShouldMoveFaster()
     {
         // Setup
-        var mockPhysics = new Mock<IPhysicsSystem>();
-        mockPhysics.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
-                   .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
+        var mockPhysics = Substitute.For<IPhysicsSystem>();
+        mockPhysics.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
+                   .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
 
         var motor = new DefaultPlayerMotor();
         var deltaTime = 1.0f;
 
         // Walk
-        var entityWalk = new PhysicsEntity(new Transform { Position = Vector3.Zero }, mockPhysics.Object);
+        var entityWalk = new PhysicsEntity(new Transform { Position = Vector3.Zero }, mockPhysics);
         motor.ApplyForces(entityWalk, new MovementIntent { Direction = Vector3.UnitX, IsSprinting = false }, deltaTime);
         entityWalk.Update(deltaTime);
 
         // Sprint
-        var entitySprint = new PhysicsEntity(new Transform { Position = Vector3.Zero }, mockPhysics.Object);
+        var entitySprint = new PhysicsEntity(new Transform { Position = Vector3.Zero }, mockPhysics);
         motor.ApplyForces(entitySprint, new MovementIntent { Direction = Vector3.UnitX, IsSprinting = true }, deltaTime);
         entitySprint.Update(deltaTime);
 

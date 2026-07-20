@@ -2,7 +2,7 @@
 using SharpCraft.Engine.Physics;
 using SharpCraft.Sdk.Physics;
 using AwesomeAssertions;
-using Moq;
+using NSubstitute;
 
 namespace SharpCraft.Engine.Tests.Physics;
 
@@ -11,31 +11,31 @@ public class PhysicsEntityTests
     [Fact]
     public void Update_ShouldCallMoveAndResolve()
     {
-        var mockPhysics = new Mock<IPhysicsSystem>();
+        var mockPhysics = Substitute.For<IPhysicsSystem>();
         var transform = new Transform { Position = new Vector3(0, 10, 0) };
-        var entity = new PhysicsEntity(transform, mockPhysics.Object)
+        var entity = new PhysicsEntity(transform, mockPhysics)
         {
             Velocity = new Vector3(0, -1, 0)
         };
         var deltaTime = 1.0f;
 
-        mockPhysics.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
+        mockPhysics.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
                    .Returns(new Vector3(0, 9, 0));
 
         entity.Update(deltaTime);
 
-        mockPhysics.Verify(p => p.MoveAndResolve(new Vector3(0, 10, 0), new Vector3(0, -1, 0), entity.Size), Times.Once);
+        mockPhysics.Received(1).MoveAndResolve(new Vector3(0, 10, 0), new Vector3(0, -1, 0), entity.Size);
         entity.Position.Y.Should().Be(9);
     }
 
     [Fact]
     public void Update_ShouldUpdatePreviousPosition()
     {
-        var mockPhysics = new Mock<IPhysicsSystem>();
+        var mockPhysics = Substitute.For<IPhysicsSystem>();
         var transform = new Transform { Position = new Vector3(0, 10, 0) };
-        var entity = new PhysicsEntity(transform, mockPhysics.Object);
-        
-        mockPhysics.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
+        var entity = new PhysicsEntity(transform, mockPhysics);
+
+        mockPhysics.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
                    .Returns(new Vector3(0, 9, 0));
 
         entity.Update(1.0f);
@@ -46,15 +46,15 @@ public class PhysicsEntityTests
     [Fact]
     public void IsGrounded_ShouldBeTrue_WhenVerticalMovementIsBlockedByFloor()
     {
-        var mockPhysics = new Mock<IPhysicsSystem>();
+        var mockPhysics = Substitute.For<IPhysicsSystem>();
         var transform = new Transform { Position = new Vector3(0, 1.001f, 0) };
-        var entity = new PhysicsEntity(transform, mockPhysics.Object)
+        var entity = new PhysicsEntity(transform, mockPhysics)
         {
             Velocity = new Vector3(0, -1, 0) // Moving down
         };
 
         // Mock physics: return 1.001 instead of 0.001 (floor hit)
-        mockPhysics.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
+        mockPhysics.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
                    .Returns(new Vector3(0, 1.001f, 0));
 
         entity.Update(1.0f);

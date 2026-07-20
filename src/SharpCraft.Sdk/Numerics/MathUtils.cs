@@ -15,13 +15,6 @@ public static class MathUtils
     ];
 
     /// <summary>
-    /// Calculates the largest integer less than or equal to the specified float.
-    /// </summary>
-    /// <param name="x">The value to floor.</param>
-    /// <returns>The floored value.</returns>
-    public static int FastFloor(float x) => (int)MathF.Floor(x);
-
-    /// <summary>
     /// Computes the dot product of a gradient vector and a 2D offset.
     /// </summary>
     /// <param name="g">The index of the gradient vector.</param>
@@ -33,15 +26,6 @@ public static class MathUtils
         var grad = Gradients[g];
         return grad.X * x + grad.Y * y;
     }
-
-    /// <summary>
-    /// Performs linear interpolation between two values.
-    /// </summary>
-    /// <param name="a">The start value.</param>
-    /// <param name="b">The end value.</param>
-    /// <param name="t">The interpolation factor [0, 1].</param>
-    /// <returns>The interpolated value.</returns>
-    public static float Lerp(float a, float b, float t) => a + (b - a) * t;
 
     /// <summary>
     /// Extracts Euler angles (Yaw, Pitch, Roll) from a quaternion in degrees.

@@ -1,4 +1,3 @@
-using SharpCraft.Sdk.Numerics;
 using SharpCraft.Sdk.Physics;
 
 namespace SharpCraft.Engine.Physics.Motors;
@@ -20,11 +19,11 @@ public sealed class FlyingMotor : PlayerMotorBase
 
         var velocity = entity.Velocity;
         if (intent.IsJumping)
-            velocity.Y = MathUtils.Lerp(velocity.Y, speed, deltaTime * VerticalResponse);
+            velocity.Y = float.Lerp(velocity.Y, speed, deltaTime * VerticalResponse);
         else if (intent.IsDescending)
-            velocity.Y = MathUtils.Lerp(velocity.Y, -speed, deltaTime * VerticalResponse);
+            velocity.Y = float.Lerp(velocity.Y, -speed, deltaTime * VerticalResponse);
         else
-            velocity.Y = MathUtils.Lerp(velocity.Y, 0, deltaTime * VerticalResponse);
+            velocity.Y = float.Lerp(velocity.Y, 0, deltaTime * VerticalResponse);
         entity.Velocity = velocity;
 
         ApplyHorizontalMovement(entity, intent, speed, deltaTime);

@@ -1,5 +1,4 @@
 using System.Numerics;
-using SharpCraft.Sdk.Numerics;
 using SharpCraft.Sdk.Physics;
 using SharpCraft.Sdk.Physics.Motors;
 using SharpCraft.Sdk.Physics.Sensors.Spatial;
@@ -22,7 +21,7 @@ public abstract class PlayerMotorBase : IMotor
     /// <summary>
     /// Gets or sets the sensor data describing the entity's surroundings.
     /// </summary>
-    public SpatialSensorData? SensorData { get; set; }
+    public GeospatialSensorData? SensorData { get; set; }
 
     /// <summary>
     /// Gets the friction coefficient the motor applied on its last pass.
@@ -58,8 +57,8 @@ public abstract class PlayerMotorBase : IMotor
         if (moveDir.LengthSquared() > 0)
             moveDir = Vector3.Normalize(moveDir);
 
-        velocity.X = MathUtils.Lerp(velocity.X, moveDir.X * speed, deltaFriction);
-        velocity.Z = MathUtils.Lerp(velocity.Z, moveDir.Z * speed, deltaFriction);
+        velocity.X = float.Lerp(velocity.X, moveDir.X * speed, deltaFriction);
+        velocity.Z = float.Lerp(velocity.Z, moveDir.Z * speed, deltaFriction);
 
         entity.Velocity = velocity;
     }

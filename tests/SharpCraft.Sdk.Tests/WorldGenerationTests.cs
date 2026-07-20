@@ -4,7 +4,7 @@ using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
 using SharpCraft.Sdk.Resources;
 using SharpCraft.Sdk.Universe;
-using Moq;
+using NSubstitute;
 using IWorldGenerator = SharpCraft.Sdk.Universe.IWorldGenerator;
 
 namespace SharpCraft.Sdk.Tests;
@@ -35,7 +35,7 @@ public class WorldGenerationTests
     {
         // Arrange
         var sdkGenerator = new FlatWorldGenerator();
-        var blockRegistry = Mock.Of<IBlockRegistry>();
+        var blockRegistry = Substitute.For<IBlockRegistry>();
         var chunk = new Chunk(new Vector2<int>(0, 0), blockRegistry);
 
         // Act

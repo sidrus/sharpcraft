@@ -3,7 +3,7 @@ using SharpCraft.Client.Controllers;
 using SharpCraft.Engine.Rendering.Cameras;
 using SharpCraft.Engine.Physics;
 using SharpCraft.Sdk.Physics;
-using Moq;
+using NSubstitute;
 using AwesomeAssertions;
 using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk.Blocks;
@@ -14,13 +14,13 @@ namespace SharpCraft.Client.Tests.Controllers;
 
 public class LocalPlayerControllerTests
 {
-    private readonly IInputProvider _inputProvider = Mock.Of<IInputProvider>();
+    private readonly IInputProvider _inputProvider = Substitute.For<IInputProvider>();
 
     [Fact]
     public void Update_WhenHoldingSpaceOnWaterSurface_ShouldEventuallySubmergeDeeply()
     {
         // Setup
-        var world = new World(Mock.Of<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Mock.Of<IBlockRegistry>());
+        var world = new World(Substitute.For<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Substitute.For<IBlockRegistry>());
         // Water at Y=63 (occupies 63.0 to 64.0)
         for (var x = -5; x <= 5; x++)
         {
@@ -30,21 +30,21 @@ public class LocalPlayerControllerTests
             }
         }
 
-        var mockCamera = new Mock<ICamera>();
-        var mockPhysicsSystem = new Mock<IPhysicsSystem>();
+        var mockCamera = Substitute.For<ICamera>();
+        var mockPhysicsSystem = Substitute.For<IPhysicsSystem>();
         
         // Entity starts at Y=64.0 (feet at water surface)
         var transform = new Transform { Position = new Vector3(0, 64.0f, 0) };
-        var entity = new PhysicsEntity(transform, mockPhysicsSystem.Object);
-        var mockInput = new Mock<IInputProvider>();
-        mockInput.Setup(i => i.GetMovementIntent(It.IsAny<Vector3>(), It.IsAny<Vector3>()))
+        var entity = new PhysicsEntity(transform, mockPhysicsSystem);
+        var mockInput = Substitute.For<IInputProvider>();
+        mockInput.GetMovementIntent(Arg.Any<Vector3>(), Arg.Any<Vector3>())
             .Returns(new MovementIntent(Vector3.Zero, true, false, false));
 
-        var controller = new LocalPlayerController(entity, mockCamera.Object, world, mockInput.Object);
+        var controller = new LocalPlayerController(entity, mockCamera, world, mockInput);
 
         // Mock MoveAndResolve to just apply movement
-        mockPhysicsSystem.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
-            .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
+        mockPhysicsSystem.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
+            .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
 
         // Run several updates
         var deltaTime = 0.016f;
@@ -64,7 +64,7 @@ public class LocalPlayerControllerTests
     public void Update_WhenHoldingSpaceAtShallowSwimmingDepth_ShouldNotSink()
     {
         // Setup
-        var world = new World(Mock.Of<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Mock.Of<IBlockRegistry>());
+        var world = new World(Substitute.For<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Substitute.For<IBlockRegistry>());
         // Water at Y=63 (occupies 63.0 to 64.0)
         for (var x = -5; x <= 5; x++)
         {
@@ -74,21 +74,21 @@ public class LocalPlayerControllerTests
             }
         }
 
-        var mockCamera = new Mock<ICamera>();
-        var mockPhysicsSystem = new Mock<IPhysicsSystem>();
+        var mockCamera = Substitute.For<ICamera>();
+        var mockPhysicsSystem = Substitute.For<IPhysicsSystem>();
         
         // Entity starts at Y=63.0 (SubmersionDepth = 1.0m)
         // At this depth, IsSwimming is true, but SubmersionDepth <= 1.1f
         var transform = new Transform { Position = new Vector3(0, 63.0f, 0) };
-        var entity = new PhysicsEntity(transform, mockPhysicsSystem.Object);
-        var mockInput = new Mock<IInputProvider>();
-        mockInput.Setup(i => i.GetMovementIntent(It.IsAny<Vector3>(), It.IsAny<Vector3>()))
+        var entity = new PhysicsEntity(transform, mockPhysicsSystem);
+        var mockInput = Substitute.For<IInputProvider>();
+        mockInput.GetMovementIntent(Arg.Any<Vector3>(), Arg.Any<Vector3>())
             .Returns(new MovementIntent(Vector3.Zero, true, false, false));
 
-        var controller = new LocalPlayerController(entity, mockCamera.Object, world, mockInput.Object);
+        var controller = new LocalPlayerController(entity, mockCamera, world, mockInput);
 
-        mockPhysicsSystem.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
-            .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
+        mockPhysicsSystem.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
+            .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
 
         // Run one update
         controller.OnUpdate(0.016f);
@@ -103,7 +103,7 @@ public class LocalPlayerControllerTests
     public void Update_WhenHoldingSpaceInOpenWater_ShouldNotRiseAboveSurface()
     {
         // Setup: open water (Y=63 occupies 63.0 to 64.0), no land to climb onto.
-        var world = new World(Mock.Of<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Mock.Of<IBlockRegistry>());
+        var world = new World(Substitute.For<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Substitute.For<IBlockRegistry>());
         for (var x = -5; x <= 5; x++)
         {
             for (var z = -5; z <= 5; z++)
@@ -112,20 +112,20 @@ public class LocalPlayerControllerTests
             }
         }
 
-        var mockCamera = new Mock<ICamera>();
-        var mockPhysicsSystem = new Mock<IPhysicsSystem>();
+        var mockCamera = Substitute.For<ICamera>();
+        var mockPhysicsSystem = Substitute.For<IPhysicsSystem>();
 
         // Entity starts at Y=62.5 (SubmersionDepth = 1.5m)
         var transform = new Transform { Position = new Vector3(0, 62.5f, 0) };
-        var entity = new PhysicsEntity(transform, mockPhysicsSystem.Object);
-        var mockInput = new Mock<IInputProvider>();
-        mockInput.Setup(i => i.GetMovementIntent(It.IsAny<Vector3>(), It.IsAny<Vector3>()))
+        var entity = new PhysicsEntity(transform, mockPhysicsSystem);
+        var mockInput = Substitute.For<IInputProvider>();
+        mockInput.GetMovementIntent(Arg.Any<Vector3>(), Arg.Any<Vector3>())
             .Returns(new MovementIntent(Vector3.Zero, true, false, false));
 
-        var controller = new LocalPlayerController(entity, mockCamera.Object, world, mockInput.Object);
+        var controller = new LocalPlayerController(entity, mockCamera, world, mockInput);
 
-        mockPhysicsSystem.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
-            .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
+        mockPhysicsSystem.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
+            .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
 
         // Run updates, tracking the highest point reached while holding jump.
         var maxObservedY = 62.5f;
@@ -146,7 +146,7 @@ public class LocalPlayerControllerTests
     public void Update_WhenJumpingNextToLedge_ShouldClimbAboveSurface()
     {
         // Setup: water at Y=63, with a solid block at the waterline the player can climb onto.
-        var world = new World(Mock.Of<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Mock.Of<IBlockRegistry>());
+        var world = new World(Substitute.For<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Substitute.For<IBlockRegistry>());
         for (var x = -5; x <= 5; x++)
         {
             for (var z = -5; z <= 5; z++)
@@ -159,20 +159,20 @@ public class LocalPlayerControllerTests
         // open air above it) — something to climb out onto.
         world.SetBlock(1, 63, 0, BlockType.Stone);
 
-        var mockCamera = new Mock<ICamera>();
-        var mockPhysicsSystem = new Mock<IPhysicsSystem>();
+        var mockCamera = Substitute.For<ICamera>();
+        var mockPhysicsSystem = Substitute.For<IPhysicsSystem>();
 
         // Entity starts at Y=62.5 (submerged) next to the ledge.
         var transform = new Transform { Position = new Vector3(0, 62.5f, 0) };
-        var entity = new PhysicsEntity(transform, mockPhysicsSystem.Object);
-        var mockInput = new Mock<IInputProvider>();
-        mockInput.Setup(i => i.GetMovementIntent(It.IsAny<Vector3>(), It.IsAny<Vector3>()))
+        var entity = new PhysicsEntity(transform, mockPhysicsSystem);
+        var mockInput = Substitute.For<IInputProvider>();
+        mockInput.GetMovementIntent(Arg.Any<Vector3>(), Arg.Any<Vector3>())
             .Returns(new MovementIntent(Vector3.Zero, true, false, false));
 
-        var controller = new LocalPlayerController(entity, mockCamera.Object, world, mockInput.Object);
+        var controller = new LocalPlayerController(entity, mockCamera, world, mockInput);
 
-        mockPhysicsSystem.Setup(p => p.MoveAndResolve(It.IsAny<Vector3>(), It.IsAny<Vector3>(), It.IsAny<Vector3>()))
-            .Returns((Vector3 pos, Vector3 move, Vector3 size) => pos + move);
+        mockPhysicsSystem.MoveAndResolve(Arg.Any<Vector3>(), Arg.Any<Vector3>(), Arg.Any<Vector3>())
+            .Returns(ci => (Vector3)ci[0] + (Vector3)ci[1]);
 
         // Run updates until we reach peak height or timeout.
         var maxObservedY = 62.5f;
@@ -191,11 +191,11 @@ public class LocalPlayerControllerTests
     public void Properties_WhenAccessedBeforeSense_ShouldNotThrow()
     {
         // Setup
-        var world = new World(Mock.Of<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Mock.Of<IBlockRegistry>());
-        var mockCamera = new Mock<ICamera>();
-        var mockPhysicsSystem = new Mock<IPhysicsSystem>();
-        var entity = new PhysicsEntity(new Transform(), mockPhysicsSystem.Object);
-        var controller = new LocalPlayerController(entity, mockCamera.Object, world,_inputProvider);
+        var world = new World(Substitute.For<SharpCraft.Sdk.Universe.IWorldGenerator>(), 0, Substitute.For<IBlockRegistry>());
+        var mockCamera = Substitute.For<ICamera>();
+        var mockPhysicsSystem = Substitute.For<IPhysicsSystem>();
+        var entity = new PhysicsEntity(new Transform(), mockPhysicsSystem);
+        var controller = new LocalPlayerController(entity, mockCamera, world,_inputProvider);
 
         // Access properties that use _sensor.LastSense
         var act = () =>

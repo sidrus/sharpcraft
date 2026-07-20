@@ -115,7 +115,6 @@ public sealed class TerrainRenderer : IDisposable
 
         // Clustered forward+ light culling (research §2). Buffers are bound by the pipeline; here we
         // just hand the shader the grid parameters so it can find each fragment's cluster.
-        _shader.SetUniform("useClustered", context.UseClusteredLighting ? 1 : 0);
         _shader.SetUniform("clusterGridSize", new Vector3(ClusteredLighting.GridX, ClusteredLighting.GridY, ClusteredLighting.GridZ));
         _shader.SetUniform("clusterScreenSize", new Vector2(context.ScreenWidth, context.ScreenHeight));
         _shader.SetUniform("clusterZNear", ClusteredLighting.ZNear);

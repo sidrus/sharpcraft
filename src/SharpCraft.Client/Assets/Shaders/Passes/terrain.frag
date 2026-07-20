@@ -81,7 +81,6 @@ layout(std430, binding = 1) readonly buffer Lights          { Light lights[]; };
 layout(std430, binding = 2) readonly buffer LightGrid       { uvec2 lightGrid[]; };
 layout(std430, binding = 3) readonly buffer GlobalIndexList { uint globalLightIndex[]; };
 
-uniform bool useClustered;
 uniform vec3 clusterGridSize;
 uniform vec2 clusterScreenSize;
 uniform float clusterZNear;
@@ -177,10 +176,9 @@ void main() {
         Lo += (1.0 - shadow) * contact * CalcPBRLighting(L, V, norm, F0, albedo, metallic, roughness, dirLight.color.xyz);
     }
 
-    // Punctual lights. Clustered forward+ (research §2): look up this fragment's cluster and shade
-    // only the lights the compute cull pass assigned to it. Falls back to the 4-light UBO loop if
-    // clustering is disabled.
-    if (useClustered) {
+    // Punctual lights via clustered forward+ (research §2): look up this fragment's cluster and
+    // shade only the lights the compute cull pass assigned to it.
+    {
         float viewZ = (View * vec4(FragPos, 1.0)).z;
         uint cluster = clusterIndex(gl_FragCoord.xy, viewZ, clusterScreenSize,
                                     uvec3(clusterGridSize), clusterZNear, clusterZFar);
@@ -194,16 +192,6 @@ void main() {
             float att = 1.0 / (light.atten.x + light.atten.y * dist + light.atten.z * dist * dist);
             vec3 radiance = light.color.rgb * light.color.w * att;
             Lo += CalcPBRLighting(normalize(d), V, norm, F0, albedo, metallic, roughness, radiance);
-        }
-    } else {
-        for (int i = 0; i < 4; i++) {
-            if (pointLights[i].intensity > 0.0) {
-                vec3 d = pointLights[i].position.xyz - FragPos;
-                float dist = length(d);
-                float att = 1.0 / (pointLights[i].constant + pointLights[i].linear * dist + pointLights[i].quadratic * dist * dist);
-                vec3 radiance = pointLights[i].color.xyz * pointLights[i].intensity * att;
-                Lo += CalcPBRLighting(normalize(d), V, norm, F0, albedo, metallic, roughness, radiance);
-            }
         }
     }
 

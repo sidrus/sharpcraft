@@ -2,7 +2,7 @@ using System.Numerics;
 using SharpCraft.Engine.Physics;
 using SharpCraft.Sdk.Physics;
 using AwesomeAssertions;
-using Moq;
+using NSubstitute;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Physics.Sensors.Spatial;
 
@@ -10,21 +10,21 @@ namespace SharpCraft.Engine.Tests.Physics;
 
 public class SpatialSensorTests
 {
-    private readonly Mock<IPhysicsSystem> _physicsMock = new();
-    private readonly Mock<ICollisionProvider> _collisionProviderMock = new();
+    private readonly IPhysicsSystem _physicsMock = Substitute.For<IPhysicsSystem>();
+    private readonly ICollisionProvider _collisionProviderMock = Substitute.For<ICollisionProvider>();
 
     [Fact]
     public void Sense_ShouldPopulateBasicData()
     {
         // Arrange
         var sensor = new GeospatialSensor();
-        var entity = new PhysicsEntity(new Transform { Position = new Vector3(0.5f, 1.0f, 0.5f) }, _physicsMock.Object);
+        var entity = new PhysicsEntity(new Transform { Position = new Vector3(0.5f, 1.0f, 0.5f) }, _physicsMock);
 
-        _collisionProviderMock.Setup(w => w.GetBlock(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+        _collisionProviderMock.GetBlock(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>())
             .Returns(new Block { Type = BlockType.Air });
 
         // Act
-        var result = sensor.Sense(_collisionProviderMock.Object, entity);
+        var result = sensor.Sense(_collisionProviderMock, entity);
 
         // Assert
         result.Should().NotBeNull();
@@ -41,13 +41,13 @@ public class SpatialSensorTests
             Position = new Vector3(0.5f, 1.0f, 0.5f),
             Rotation = Quaternion.CreateFromYawPitchRoll(1.0f, 0.5f, 0.0f)
         };
-        var entity = new PhysicsEntity(transform, _physicsMock.Object);
+        var entity = new PhysicsEntity(transform, _physicsMock);
 
-        _collisionProviderMock.Setup(w => w.GetBlock(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+        _collisionProviderMock.GetBlock(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>())
             .Returns(new Block { Type = BlockType.Air });
 
         // Act
-        var result = sensor.Sense(_collisionProviderMock.Object, entity);
+        var result = sensor.Sense(_collisionProviderMock, entity);
 
         // Assert
         result.Heading.Should().BeApproximately(1.0f * 180f / MathF.PI, 0.01f);

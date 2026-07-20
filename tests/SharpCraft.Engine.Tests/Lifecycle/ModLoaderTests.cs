@@ -2,7 +2,7 @@
 using System.Text.Json;
 using AwesomeAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
+using NSubstitute;
 using SharpCraft.Engine.Lifecycle;
 using SharpCraft.Sdk;
 using SharpCraft.Sdk.Lifecycle;
@@ -55,8 +55,8 @@ public class ModLoaderTests
         
         File.WriteAllText(Path.Combine(modDir, "mod.json"), JsonSerializer.Serialize(manifest));
 
-        var sdkMock = new Mock<ISharpCraftSdk>();
-        var loader = new ModLoader(NullLogger<ModLoader>.Instance, sdkMock.Object);
+        var sdkMock = Substitute.For<ISharpCraftSdk>();
+        var loader = new ModLoader(NullLogger<ModLoader>.Instance, sdkMock);
 
         try
         {

@@ -12,19 +12,16 @@ namespace SharpCraft.Engine.Rendering;
 /// </summary>
 public class DefaultRenderPipeline(
     GL gl,
-    IWorld world,
     ChunkRenderCache cache,
     ChunkMeshManager meshManager,
     TerrainRenderer terrainRenderer,
     WaterRenderer waterRenderer,
     TorchRenderer torchRenderer,
     PostProcessingRenderer postProcessingRenderer)
-    : IRenderPipeline
+    : IDisposable
 {
     public ChunkMeshManager MeshManager { get; } = meshManager;
 
-    private IWorld? _world = world;
-    private RenderContext? _context;
     private Framebuffer? _framebuffer;
     private CascadedShadowMap? _csm;
     private ShadowMapRenderer? _shadowMapRenderer;
@@ -54,18 +51,6 @@ public class DefaultRenderPipeline(
     private const float ShadowDistance = 220.0f;
 
     private ShadowCascades.Result _cascades;
-
-    public void OnRender(double deltaTime)
-    {
-        if (_world == null || !_context.HasValue) return;
-        Execute(_world, _context.Value);
-    }
-
-    public void SetContext(IWorld world, RenderContext context)
-    {
-        _world = world;
-        _context = context;
-    }
 
     public void Execute(IWorld world, RenderContext context)
     {
@@ -133,7 +118,6 @@ public class DefaultRenderPipeline(
         _clustered ??= new ClusteredLighting(gl);
         _clustered.Update(context.View, context.Projection, context.ScreenWidth, context.ScreenHeight,
             context.PointLights ?? []);
-        context = context with { UseClusteredLighting = true };
 
         var width = (uint)context.ScreenWidth;
         var height = (uint)context.ScreenHeight;

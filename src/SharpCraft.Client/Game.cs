@@ -45,7 +45,7 @@ public partial class Game : IDisposable
     private readonly LifecycleManager _lifecycleManager;
     private WorldTime? _worldTime;
     private Sun? _sun;
-    private IRenderPipeline? _renderPipeline;
+    private DefaultRenderPipeline? _renderPipeline;
     private PostProcessingRenderer? _postProcessingRenderer;
     private ShaderProgram? _mainShader;
     private ICamera? _camera;
@@ -200,9 +200,7 @@ public partial class Game : IDisposable
         
         var alpha = (float)(_accumulator / FixedDeltaTime);
 
-        var lights = _lightSystem.GetActivePointLights()
-            .Select(l => new PointLightData(l.Position, l.Color, l.Intensity, l.Constant, l.Linear, l.Quadratic))
-            .ToArray();
+        var lights = _lightSystem.GetActivePointLights().ToArray();
 
         var cameraPosition = (_camera as FirstPersonCamera)?.GetInterpolatedPosition(alpha) ?? _camera.Position;
         var block = _world.GetBlock((int)Math.Floor(cameraPosition.X), (int)Math.Floor(cameraPosition.Y), (int)Math.Floor(cameraPosition.Z));
@@ -380,7 +378,7 @@ public partial class Game : IDisposable
         _torchRenderer = new TorchRenderer(_gl);
         _postProcessingRenderer = new PostProcessingRenderer(_gl);
 
-        _renderPipeline = new DefaultRenderPipeline(_gl, _world, cache, meshManager, terrainRenderer, waterRenderer, _torchRenderer, _postProcessingRenderer);
+        _renderPipeline = new DefaultRenderPipeline(_gl, cache, meshManager, terrainRenderer, waterRenderer, _torchRenderer, _postProcessingRenderer);
 
         _worldTime = new WorldTime { DayDurationInMinutes = 5f };
         _lightSystem.WorldTime = _worldTime;
@@ -513,15 +511,13 @@ public partial class Game : IDisposable
 
         _torchRenderer.AddTorch(basePos);
 
-        _lightSystem.AddPointLight(new PointLight
-        {
-            Position = basePos + new Vector3(0f, 0.55f, 0f), // at the flame
-            Color = new Vector3(1.0f, 0.55f, 0.2f),
-            Intensity = 3.0f,
-            Constant = 1.0f,
-            Linear = 0.18f,
-            Quadratic = 0.10f
-        });
+        _lightSystem.AddPointLight(new PointLightData(
+            Position: basePos + new Vector3(0f, 0.55f, 0f), // at the flame
+            Color: new Vector3(1.0f, 0.55f, 0.2f),
+            Intensity: 3.0f,
+            Constant: 1.0f,
+            Linear: 0.18f,
+            Quadratic: 0.10f));
 
         LogTorchPlaced(basePos.X, basePos.Y, basePos.Z, _torchRenderer.Count);
     }
