@@ -1,4 +1,5 @@
 ﻿using AwesomeAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using SharpCraft.Engine.Messaging;
 
 namespace SharpCraft.Engine.Tests.Messaging;
@@ -8,7 +9,7 @@ public class ChannelManagerTests
     [Fact]
     public void Messaging_ShouldPublishAndSubscribe()
     {
-        var manager = new ChannelManager();
+        var manager = new ChannelManager(NullLoggerFactory.Instance);
         var channel = manager.GetChannel("test");
         var received = false;
 

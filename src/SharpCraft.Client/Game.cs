@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Collections.Concurrent;
+using System.Numerics;
 using Microsoft.Extensions.Logging;
 using SharpCraft.Client.Controllers;
 using SharpCraft.Client.Input;
@@ -91,7 +92,7 @@ public partial class Game : IDisposable
         {
             LogCreatingOpenglContext();
             _gl = _window.CreateOpenGL();
-            _logger.LogInformation("OpenGL context created.");
+            LogOpenglContextCreated();
 
             // Reversed-Z foundation (research §1, §12.2): flip the NDC depth range to [0,1] and
             // keep GL's native bottom-left origin. The reversed-Z projection + GL_GREATER depth
@@ -114,7 +115,7 @@ public partial class Game : IDisposable
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to load game");
+            LogGameLoadFailed(e);
             Exit();
         }
     }
@@ -305,16 +306,22 @@ public partial class Game : IDisposable
             ? System.Runtime.InteropServices.Marshal.PtrToStringAnsi(message, length)
             : System.Runtime.InteropServices.Marshal.PtrToStringAnsi(message);
 
+        if (type == GLEnum.DebugTypePerformance)
+        {
+            LogGlInfo(source, type, id, text);
+            return;
+        }
+
         switch (severity)
         {
             case GLEnum.DebugSeverityHigh:
-                _logger.LogError("GL [{Source}/{Type}] id={Id}: {Message}", source, type, id, text);
+                LogGlError(source, type, id, text);
                 break;
             case GLEnum.DebugSeverityMedium:
-                _logger.LogWarning("GL [{Source}/{Type}] id={Id}: {Message}", source, type, id, text);
+                LogGlWarning(source, type, id, text);
                 break;
             default:
-                _logger.LogInformation("GL [{Source}/{Type}] id={Id}: {Message}", source, type, id, text);
+                LogGlInfo(source, type, id, text);
                 break;
         }
     }
@@ -364,7 +371,7 @@ public partial class Game : IDisposable
         _atlas = new TextureAtlas(_gl, _sdk.Assets);
         _atlas.Build();
 
-        var meshManager = new ChunkMeshManager(_world, ResolveUvs);
+        var meshManager = new ChunkMeshManager(_world, ResolveUvs, _loggerFactory.CreateLogger<ChunkMeshManager>());
         var physics = new PhysicsSystem(_world);
         var entity = new PhysicsEntity(new Transform { Position = new Vector3(1, 65, -6) }, physics);
 
@@ -392,7 +399,7 @@ public partial class Game : IDisposable
         _lifecycleManager.Start();
     }
 
-    private readonly Dictionary<BlockType, BlockDefinition> _typeToDef = new();
+    private readonly ConcurrentDictionary<BlockType, BlockDefinition> _typeToDef = new();
 
     private void ResolveUvs(BlockType type, Direction dir, Span<float> uvs)
     {
@@ -549,9 +556,9 @@ public partial class Game : IDisposable
                     {
                         _window.MakeCurrent();
                     }
-                    catch
+                    catch (Exception e)
                     {
-                        // Ignore errors during MakeCurrent in disposal
+                        LogMakeCurrentFailed(e);
                     }
                 }
 
@@ -569,25 +576,4 @@ public partial class Game : IDisposable
     }
 
     private bool _disposed;
-
-    [LoggerMessage(LogLevel.Information, "Creating OpenGL context...")]
-    partial void LogCreatingOpenglContext();
-
-    [LoggerMessage(LogLevel.Information, "Normal mapping toggled: {state}")]
-    partial void LogNormalMappingToggledState(bool state);
-
-    [LoggerMessage(LogLevel.Information, "Metallic mapping toggled: {state}")]
-    partial void LogMetallicMappingToggledState(bool state);
-
-    [LoggerMessage(LogLevel.Information, "Roughness mapping toggled: {state}")]
-    partial void LogRoughnessMappingToggledState(bool state);
-
-    [LoggerMessage(LogLevel.Information, "AO mapping toggled: {state}")]
-    partial void LogAoMappingToggledState(bool state);
-
-    [LoggerMessage(LogLevel.Error, "World update task failed")]
-    partial void LogWorldUpdateTaskFailed(Exception ex);
-
-    [LoggerMessage(LogLevel.Information, "Placed torch at ({x}, {y}, {z}); {count} torch(es) total")]
-    partial void LogTorchPlaced(float x, float y, float z, int count);
 }

@@ -9,7 +9,7 @@ namespace SharpCraft.Engine.Lifecycle;
 /// <summary>
 /// Loads and manages mods.
 /// </summary>
-public class ModLoader(ILogger<ModLoader> logger, ISharpCraftSdk sdk)
+public partial class ModLoader(ILogger<ModLoader> logger, ISharpCraftSdk sdk)
 {
     private readonly List<IMod> _mods = [];
 
@@ -26,7 +26,7 @@ public class ModLoader(ILogger<ModLoader> logger, ISharpCraftSdk sdk)
     {
         if (!Directory.Exists(modsDirectory))
         {
-            logger.LogWarning("Mods directory {Directory} does not exist", modsDirectory);
+            LogModsDirectoryMissing(modsDirectory);
             return;
         }
 
@@ -46,7 +46,7 @@ public class ModLoader(ILogger<ModLoader> logger, ISharpCraftSdk sdk)
 
                     if (manifest != null)
                     {
-                        logger.LogInformation("Found mod: {ModName} ({ModId}) v{Version}", manifest.Name, manifest.Id, manifest.Version);
+                        LogModFound(manifest.Name, manifest.Id, manifest.Version);
                         
                         foreach (var entrypoint in manifest.Entrypoints)
                         {
@@ -69,12 +69,12 @@ public class ModLoader(ILogger<ModLoader> logger, ISharpCraftSdk sdk)
                                     }
                                     catch (Exception ex)
                                     {
-                                        logger.LogError(ex, "Failed to load assembly {Path} for mod {ModId}", assemblyPath, manifest.Id);
+                                        LogAssemblyLoadFailed(ex, assemblyPath, manifest.Id);
                                     }
                                 }
                                 else
                                 {
-                                    logger.LogError("Assembly {Path} not found for mod {ModId}", assemblyPath, manifest.Id);
+                                    LogAssemblyNotFound(assemblyPath, manifest.Id);
                                 }
                             }
                             // TODO: Implement Tier 2 (scripts)
@@ -83,7 +83,7 @@ public class ModLoader(ILogger<ModLoader> logger, ISharpCraftSdk sdk)
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Failed to load mod manifest from {Path}", manifestPath);
+                    LogManifestLoadFailed(ex, manifestPath);
                 }
             }
         }
@@ -95,7 +95,7 @@ public class ModLoader(ILogger<ModLoader> logger, ISharpCraftSdk sdk)
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to sort mods by dependencies");
+            LogDependencySortFailed(ex);
         }
     }
 
@@ -109,11 +109,11 @@ public class ModLoader(ILogger<ModLoader> logger, ISharpCraftSdk sdk)
             try
             {
                 mod.OnEnable();
-                logger.LogInformation("Enabled mod: {ModId}", mod.Manifest.Id);
+                LogModEnabled(mod.Manifest.Id);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to enable mod: {ModId}", mod.Manifest.Id);
+                LogModEnableFailed(ex, mod.Manifest.Id);
             }
         }
     }

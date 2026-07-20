@@ -61,6 +61,16 @@ A mod is a directory with `mod.json` (`ModManifest`: id, name, author, version, 
 - Communication-based assertions are acceptable only when testing boundaries with unmanaged dependencies.
 - Naming convention: Member_Scenario_ShouldExpected
 
+## Comments
+
+- Never add inline comments unless specifically requested.
+- XmlDocs on all public members is acceptable, but keep them terse and focused only on the member's purpose.
+
+## Logging
+
+- All logging must use source-generated `[LoggerMessage]` partial methods (`Microsoft.Extensions.Logging`) — never interpolated or runtime-formatted `LogXxx` calls.
+- `[LoggerMessage]` methods live in their own file, one per class that logs (e.g. `Game.Logging.cs` for `Game`).
+
 # Agent Guidance: dotnet-skills
 
 IMPORTANT: Prefer retrieval-led reasoning over pretraining for any .NET work.

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 using SharpCraft.Sdk.Messaging;
 
 namespace SharpCraft.Engine.Messaging;
@@ -6,7 +7,7 @@ namespace SharpCraft.Engine.Messaging;
 /// <summary>
 /// Runtime implementation of a message channel.
 /// </summary>
-public class MessageChannel(string name) : IMessageChannel
+public partial class MessageChannel(string name, ILogger<MessageChannel> logger) : IMessageChannel
 {
     private readonly ConcurrentDictionary<Type, List<object>> _handlers = new();
 
@@ -29,9 +30,9 @@ public class MessageChannel(string name) : IMessageChannel
                 {
                     ((Delegate)handler).DynamicInvoke(message);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    // Isolated exception as per specs 3.3
+                    LogHandlerFailed(Name, type, e);
                 }
             }
         }

@@ -1,8 +1,9 @@
 ﻿using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 
 namespace SharpCraft.Engine.Rendering;
 
-public class ChunkMeshManager(IWorld world, IChunk.UvResolver uvResolver)
+public partial class ChunkMeshManager(IWorld world, IChunk.UvResolver uvResolver, ILogger<ChunkMeshManager> logger)
 {
     private readonly ConcurrentQueue<IChunk> _dirtyChunks = new();
     private readonly ConcurrentDictionary<IChunk, bool> _processingChunks = new();
@@ -36,10 +37,9 @@ public class ChunkMeshManager(IWorld world, IChunk.UvResolver uvResolver)
                     chunk.GenerateMesh(world, uvResolver);
                     _completedChunks.Enqueue(chunk);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    // Log exception - chunk generation failed but don't crash
-                    // Continue processing other chunks
+                    LogMeshGenerationFailed(chunk, e);
                 }
                 finally
                 {
