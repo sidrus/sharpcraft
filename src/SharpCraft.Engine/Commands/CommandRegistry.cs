@@ -24,11 +24,17 @@ public class CommandRegistry : ICommandRegistry
 
     public bool ExecuteCommand(string input, IPlayer? player = null)
     {
-        if (string.IsNullOrWhiteSpace(input)) return false;
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return false;
+        }
 
         input = input.TrimStart('/');
         var parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length == 0) return false;
+        if (parts.Length == 0)
+        {
+            return false;
+        }
 
         var commandName = parts[0].ToLower();
         var args = parts.Skip(1).ToArray();

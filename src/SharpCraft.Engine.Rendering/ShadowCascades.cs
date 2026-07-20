@@ -80,11 +80,18 @@ public static class ShadowCascades
 
             // Bounding sphere of the slice → rotation-invariant, stable cascade extent.
             var center = Vector3.Zero;
-            for (int i = 0; i < 8; i++) center += corners[i];
+            for (int i = 0; i < 8; i++)
+            {
+                center += corners[i];
+            }
+
             center /= 8.0f;
 
             float radius = 0.0f;
-            for (int i = 0; i < 8; i++) radius = MathF.Max(radius, (corners[i] - center).Length());
+            for (int i = 0; i < 8; i++)
+            {
+                radius = MathF.Max(radius, (corners[i] - center).Length());
+            }
             // Quantise the radius so the cascade size doesn't wobble frame to frame.
             radius = MathF.Ceiling(radius * 16.0f) / 16.0f;
 

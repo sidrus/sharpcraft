@@ -57,7 +57,10 @@ public class DefaultRenderPipeline(
 
     public void Execute(IWorld world, RenderContext context)
     {
-        if (context.ScreenWidth <= 0 || context.ScreenHeight <= 0) return;
+        if (context.ScreenWidth <= 0 || context.ScreenHeight <= 0)
+        {
+            return;
+        }
 
         _targets.Reset();
 
@@ -353,10 +356,25 @@ public class DefaultRenderPipeline(
 
         if (context.PointLights != null)
         {
-            if (context.PointLights.Length > 0) lightingData.PointLight0 = MapLight(context.PointLights[0]);
-            if (context.PointLights.Length > 1) lightingData.PointLight1 = MapLight(context.PointLights[1]);
-            if (context.PointLights.Length > 2) lightingData.PointLight2 = MapLight(context.PointLights[2]);
-            if (context.PointLights.Length > 3) lightingData.PointLight3 = MapLight(context.PointLights[3]);
+            if (context.PointLights.Length > 0)
+            {
+                lightingData.PointLight0 = MapLight(context.PointLights[0]);
+            }
+
+            if (context.PointLights.Length > 1)
+            {
+                lightingData.PointLight1 = MapLight(context.PointLights[1]);
+            }
+
+            if (context.PointLights.Length > 2)
+            {
+                lightingData.PointLight2 = MapLight(context.PointLights[2]);
+            }
+
+            if (context.PointLights.Length > 3)
+            {
+                lightingData.PointLight3 = MapLight(context.PointLights[3]);
+            }
         }
 
         _lightingUbo.Update(lightingData);
@@ -386,7 +404,11 @@ public class DefaultRenderPipeline(
 
     protected virtual void Dispose(bool disposing)
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         if (disposing)
         {
             _sceneUbo.Dispose();

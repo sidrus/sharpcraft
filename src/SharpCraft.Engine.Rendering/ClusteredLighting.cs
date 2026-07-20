@@ -152,7 +152,11 @@ public sealed class ClusteredLighting : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _buildAabb.Dispose();
         _cullLights.Dispose();
         _clusters.Dispose();

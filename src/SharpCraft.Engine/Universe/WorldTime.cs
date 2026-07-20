@@ -17,7 +17,10 @@ public class WorldTime : IWorldTime, ILifecycle
         set => _time = value;
     }
 
-    public bool IsPaused { get; set; }
+    public bool IsPaused
+    {
+        get; set;
+    }
 
     public float DayDurationInMinutes
     {
@@ -48,7 +51,11 @@ public class WorldTime : IWorldTime, ILifecycle
             var timeScale = (MathF.PI * 2f) / (DayDurationInMinutes * 60f);
             var angle = Time * timeScale;
             var normalizedAngle = angle % (MathF.PI * 2);
-            if (normalizedAngle < 0) normalizedAngle += MathF.PI * 2;
+            if (normalizedAngle < 0)
+            {
+                normalizedAngle += MathF.PI * 2;
+            }
+
             return normalizedAngle;
         }
     }
@@ -62,7 +69,10 @@ public class WorldTime : IWorldTime, ILifecycle
             var minutes = (int)((displayHours - hours) * 60);
             var amPm = hours >= 12 ? "PM" : "AM";
             var hours12 = hours % 12;
-            if (hours12 == 0) hours12 = 12;
+            if (hours12 == 0)
+            {
+                hours12 = 12;
+            }
 
             return $"{hours12:D2}:{minutes:D2} {amPm}";
         }
@@ -74,7 +84,11 @@ public class WorldTime : IWorldTime, ILifecycle
         {
             var angle = SunAngle;
             var timeShift = (angle - MathF.PI);
-            if (timeShift < 0) timeShift += MathF.PI * 2;
+            if (timeShift < 0)
+            {
+                timeShift += MathF.PI * 2;
+            }
+
             return timeShift / (MathF.PI * 2);
         }
     }

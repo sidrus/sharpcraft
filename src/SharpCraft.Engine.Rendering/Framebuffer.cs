@@ -10,8 +10,14 @@ public class Framebuffer : IDisposable
     public uint Handle => _handle;
     public uint TextureHandle => _textureHandle;
     public uint DepthTextureHandle => _depthTextureHandle;
-    public int Width { get; }
-    public int Height { get; }
+    public int Width
+    {
+        get;
+    }
+    public int Height
+    {
+        get;
+    }
 
     public Framebuffer(GL gl, int width, int height, bool hdr = false)
     {

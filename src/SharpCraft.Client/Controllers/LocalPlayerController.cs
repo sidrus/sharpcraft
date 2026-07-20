@@ -30,7 +30,10 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     public bool IsOnWaterSurface => _sensor.LastSense?.IsOnFluidSurface ?? false;
     public float SubmersionDepth => _sensor.LastSense?.SubmersionDepth ?? 0f;
 
-    public bool IsFlying { get; set; }
+    public bool IsFlying
+    {
+        get; set;
+    }
     public bool UseDevSpeedBoost { get; set; } = true;
 
     public bool IsGrounded => _sensor.LastSense?.IsGrounded ?? false;
@@ -102,7 +105,10 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
 
     private void HandleLook(LookDelta lookDelta)
     {
-        if (lookDelta == default) return;
+        if (lookDelta == default)
+        {
+            return;
+        }
 
         // Yaw: 0 = North (-Z), 90 = East (+X)
         // Mouse X-offset positive (moving right) should increase yaw (turning East)

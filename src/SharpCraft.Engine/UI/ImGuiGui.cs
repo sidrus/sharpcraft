@@ -12,9 +12,13 @@ public class ImGuiGui : IGui
     public void Text(string text, Vector4? color = null)
     {
         if (color.HasValue)
+        {
             ImGui.TextColored(color.Value, text);
+        }
         else
+        {
             ImGui.Text(text);
+        }
     }
 
     public void Property(string label, string value, Vector4? color = null)
@@ -22,9 +26,13 @@ public class ImGuiGui : IGui
         ImGui.Text($"{label}: ");
         ImGui.SameLine();
         if (color.HasValue)
+        {
             ImGui.TextColored(color.Value, value);
+        }
         else
+        {
             ImGui.Text(value);
+        }
     }
 
     public void Checkbox(string label, ref bool value)

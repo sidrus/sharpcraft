@@ -16,35 +16,56 @@ public interface ISharpCraftSdk
     /// <summary>
     /// Gets the asset registry.
     /// </summary>
-    IRegistry<TextureData> Assets { get; }
+    IRegistry<TextureData> Assets
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the block registry.
     /// </summary>
-    IBlockRegistry Blocks { get; }
+    IBlockRegistry Blocks
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the channel manager for pub/sub communication.
     /// </summary>
-    IChannelManager Channels { get; }
+    IChannelManager Channels
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the command registry.
     /// </summary>
-    ICommandRegistry Commands { get; }
+    ICommandRegistry Commands
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the world and terrain generation registry.
     /// </summary>
-    IRegistry<IWorldGenerator> World { get; }
+    IRegistry<IWorldGenerator> World
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the HUD registry.
     /// </summary>
-    IHudRegistry Huds { get; }
+    IHudRegistry Huds
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the lighting system.
     /// </summary>
-    ILightingSystem Lighting { get; }
+    ILightingSystem Lighting
+    {
+        get;
+    }
 }

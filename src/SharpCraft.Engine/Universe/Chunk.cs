@@ -150,7 +150,10 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
     /// <param name="uvResolver">The UV resolver.</param>
     public void GenerateMesh(IWorld world, UvResolver uvResolver)
     {
-        if (!IsDirty) return;
+        if (!IsDirty)
+        {
+            return;
+        }
 
         // Create snapshot of block data with read lock
         Block[,,] blockSnapshot = new Block[Size, Height, Size];
@@ -180,7 +183,10 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
                 for (var z = 0; z < Size; z++)
                 {
                     var block = blockSnapshot[x, y, z];
-                    if (block.IsAir) continue;
+                    if (block.IsAir)
+                    {
+                        continue;
+                    }
 
                     var isTransparent = block.IsTransparent;
                     var vList = isTransparent ? transparentVerts : opaqueVerts;
@@ -188,29 +194,44 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
                     ref var offset = ref isTransparent ? ref transparentIndexOffset : ref opaqueIndexOffset;
 
                     if (ShouldRenderFace(blockSnapshot, world, x, y, z - 1, isTransparent)) // North (-Z)
+                    {
                         AddFace(vList, iList, ref offset, x, y, z, Direction.North, block.Id, uvResolver);
+                    }
 
                     if (ShouldRenderFace(blockSnapshot, world, x, y, z + 1, isTransparent)) // South (+Z)
+                    {
                         AddFace(vList, iList, ref offset, x, y, z, Direction.South, block.Id, uvResolver);
+                    }
 
                     if (ShouldRenderFace(blockSnapshot, world, x + 1, y, z, isTransparent)) // East (+X)
+                    {
                         AddFace(vList, iList, ref offset, x, y, z, Direction.East, block.Id, uvResolver);
+                    }
 
                     if (ShouldRenderFace(blockSnapshot, world, x - 1, y, z, isTransparent)) // West (-X)
+                    {
                         AddFace(vList, iList, ref offset, x, y, z, Direction.West, block.Id, uvResolver);
+                    }
 
                     if (ShouldRenderFace(blockSnapshot, world, x, y + 1, z, isTransparent)) // Up (+Y)
+                    {
                         AddFace(vList, iList, ref offset, x, y, z, Direction.Up, block.Id, uvResolver);
+                    }
 
                     if (ShouldRenderFace(blockSnapshot, world, x, y - 1, z, isTransparent)) // Down (-Y)
+                    {
                         AddFace(vList, iList, ref offset, x, y, z, Direction.Down, block.Id, uvResolver);
+                    }
                 }
             }
         }
 
         var newOpaqueMesh = new ChunkMesh { Vertices = opaqueVerts.ToArray(), Indices = opaqueIndices.ToArray() };
         var newTransparentMesh = new ChunkMesh
-        { Vertices = transparentVerts.ToArray(), Indices = transparentIndices.ToArray() };
+        {
+            Vertices = transparentVerts.ToArray(),
+            Indices = transparentIndices.ToArray()
+        };
 
         lock (_meshLock)
         {
@@ -226,13 +247,19 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
         if (x is >= 0 and < Size && y is >= 0 and < Height && z is >= 0 and < Size)
         {
             var neighbor = blocks[x, y, z];
-            if (neighbor.IsAir) return true;
+            if (neighbor.IsAir)
+            {
+                return true;
+            }
 
             // Water only renders faces exposed to air (top + shoreline edges). It does NOT render an
             // underside against the solid bed — that dark downward face is what showed through clear
             // water. The bed renders its own top face instead (below), and since the water underside
             // is gone there's no coplanar pair to z-fight.
-            if (currentIsTransparent) return false;
+            if (currentIsTransparent)
+            {
+                return false;
+            }
 
             // Solids render faces against air or ANY transparent neighbour (incl. water), so the
             // lake bed keeps a proper lit top face under clear water.
@@ -243,11 +270,22 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
         var worldX = (int)WorldPosition.X + x;
         var worldZ = (int)WorldPosition.Z + z;
 
-        if (y is < 0 or >= Height) return true;
+        if (y is < 0 or >= Height)
+        {
+            return true;
+        }
 
         var neighborBlock = world.GetBlock(worldX, y, worldZ);
-        if (neighborBlock.IsAir) return true;
-        if (currentIsTransparent) return false;
+        if (neighborBlock.IsAir)
+        {
+            return true;
+        }
+
+        if (currentIsTransparent)
+        {
+            return false;
+        }
+
         return neighborBlock.IsTransparent;
     }
 
@@ -271,40 +309,88 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
         switch (dir)
         {
             case Direction.Up:
-                faceVerts[0] = fx; faceVerts[1] = fy + 1; faceVerts[2] = fz;
-                faceVerts[3] = fx; faceVerts[4] = fy + 1; faceVerts[5] = fz + 1;
-                faceVerts[6] = fx + 1; faceVerts[7] = fy + 1; faceVerts[8] = fz + 1;
-                faceVerts[9] = fx + 1; faceVerts[10] = fy + 1; faceVerts[11] = fz;
+                faceVerts[0] = fx;
+                faceVerts[1] = fy + 1;
+                faceVerts[2] = fz;
+                faceVerts[3] = fx;
+                faceVerts[4] = fy + 1;
+                faceVerts[5] = fz + 1;
+                faceVerts[6] = fx + 1;
+                faceVerts[7] = fy + 1;
+                faceVerts[8] = fz + 1;
+                faceVerts[9] = fx + 1;
+                faceVerts[10] = fy + 1;
+                faceVerts[11] = fz;
                 break;
             case Direction.Down:
-                faceVerts[0] = fx; faceVerts[1] = fy; faceVerts[2] = fz;
-                faceVerts[3] = fx + 1; faceVerts[4] = fy; faceVerts[5] = fz;
-                faceVerts[6] = fx + 1; faceVerts[7] = fy; faceVerts[8] = fz + 1;
-                faceVerts[9] = fx; faceVerts[10] = fy; faceVerts[11] = fz + 1;
+                faceVerts[0] = fx;
+                faceVerts[1] = fy;
+                faceVerts[2] = fz;
+                faceVerts[3] = fx + 1;
+                faceVerts[4] = fy;
+                faceVerts[5] = fz;
+                faceVerts[6] = fx + 1;
+                faceVerts[7] = fy;
+                faceVerts[8] = fz + 1;
+                faceVerts[9] = fx;
+                faceVerts[10] = fy;
+                faceVerts[11] = fz + 1;
                 break;
             case Direction.North:
-                faceVerts[0] = fx + 1; faceVerts[1] = fy; faceVerts[2] = fz;
-                faceVerts[3] = fx; faceVerts[4] = fy; faceVerts[5] = fz;
-                faceVerts[6] = fx; faceVerts[7] = fy + 1; faceVerts[8] = fz;
-                faceVerts[9] = fx + 1; faceVerts[10] = fy + 1; faceVerts[11] = fz;
+                faceVerts[0] = fx + 1;
+                faceVerts[1] = fy;
+                faceVerts[2] = fz;
+                faceVerts[3] = fx;
+                faceVerts[4] = fy;
+                faceVerts[5] = fz;
+                faceVerts[6] = fx;
+                faceVerts[7] = fy + 1;
+                faceVerts[8] = fz;
+                faceVerts[9] = fx + 1;
+                faceVerts[10] = fy + 1;
+                faceVerts[11] = fz;
                 break;
             case Direction.South:
-                faceVerts[0] = fx; faceVerts[1] = fy; faceVerts[2] = fz + 1;
-                faceVerts[3] = fx + 1; faceVerts[4] = fy; faceVerts[5] = fz + 1;
-                faceVerts[6] = fx + 1; faceVerts[7] = fy + 1; faceVerts[8] = fz + 1;
-                faceVerts[9] = fx; faceVerts[10] = fy + 1; faceVerts[11] = fz + 1;
+                faceVerts[0] = fx;
+                faceVerts[1] = fy;
+                faceVerts[2] = fz + 1;
+                faceVerts[3] = fx + 1;
+                faceVerts[4] = fy;
+                faceVerts[5] = fz + 1;
+                faceVerts[6] = fx + 1;
+                faceVerts[7] = fy + 1;
+                faceVerts[8] = fz + 1;
+                faceVerts[9] = fx;
+                faceVerts[10] = fy + 1;
+                faceVerts[11] = fz + 1;
                 break;
             case Direction.East:
-                faceVerts[0] = fx + 1; faceVerts[1] = fy; faceVerts[2] = fz + 1;
-                faceVerts[3] = fx + 1; faceVerts[4] = fy; faceVerts[5] = fz;
-                faceVerts[6] = fx + 1; faceVerts[7] = fy + 1; faceVerts[8] = fz;
-                faceVerts[9] = fx + 1; faceVerts[10] = fy + 1; faceVerts[11] = fz + 1;
+                faceVerts[0] = fx + 1;
+                faceVerts[1] = fy;
+                faceVerts[2] = fz + 1;
+                faceVerts[3] = fx + 1;
+                faceVerts[4] = fy;
+                faceVerts[5] = fz;
+                faceVerts[6] = fx + 1;
+                faceVerts[7] = fy + 1;
+                faceVerts[8] = fz;
+                faceVerts[9] = fx + 1;
+                faceVerts[10] = fy + 1;
+                faceVerts[11] = fz + 1;
                 break;
             case Direction.West:
-                faceVerts[0] = fx; faceVerts[1] = fy; faceVerts[2] = fz;
-                faceVerts[3] = fx; faceVerts[4] = fy; faceVerts[5] = fz + 1;
-                faceVerts[6] = fx; faceVerts[7] = fy + 1; faceVerts[8] = fz + 1;
-                faceVerts[9] = fx; faceVerts[10] = fy + 1; faceVerts[11] = fz;
+                faceVerts[0] = fx;
+                faceVerts[1] = fy;
+                faceVerts[2] = fz;
+                faceVerts[3] = fx;
+                faceVerts[4] = fy;
+                faceVerts[5] = fz + 1;
+                faceVerts[6] = fx;
+                faceVerts[7] = fy + 1;
+                faceVerts[8] = fz + 1;
+                faceVerts[9] = fx;
+                faceVerts[10] = fy + 1;
+                faceVerts[11] = fz;
                 break;
         }
 
@@ -316,12 +402,24 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
         float nx = 0, ny = 0, nz = 0;
         switch (dir)
         {
-            case Direction.Up: ny = 1f; break;
-            case Direction.Down: ny = -1f; break;
-            case Direction.North: nz = -1f; break;
-            case Direction.South: nz = 1f; break;
-            case Direction.East: nx = 1f; break;
-            case Direction.West: nx = -1f; break;
+            case Direction.Up:
+                ny = 1f;
+                break;
+            case Direction.Down:
+                ny = -1f;
+                break;
+            case Direction.North:
+                nz = -1f;
+                break;
+            case Direction.South:
+                nz = 1f;
+                break;
+            case Direction.East:
+                nx = 1f;
+                break;
+            case Direction.West:
+                nx = -1f;
+                break;
         }
 
         for (var i = 0; i < 4; i++)

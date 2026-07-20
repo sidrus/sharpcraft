@@ -33,7 +33,10 @@ public sealed class PhysicsEntity(Transform transform, IPhysicsSystem physics) :
     /// <inheritdoc />
     public void SetPosition(Vector3 position)
     {
-        _transform = _transform with { Position = position };
+        _transform = _transform with
+        {
+            Position = position
+        };
         _prevPosition = position;
         Velocity = Vector3.Zero;
     }
@@ -45,7 +48,10 @@ public sealed class PhysicsEntity(Transform transform, IPhysicsSystem physics) :
     public Quaternion PreviousRotation => _prevRotation;
 
     /// <inheritdoc />
-    public bool IsGrounded { get; private set; }
+    public bool IsGrounded
+    {
+        get; private set;
+    }
 
     /// <inheritdoc />
     public Vector3 Forward => Vector3.Normalize(Vector3.Transform(-Vector3.UnitZ, Rotation));
@@ -62,14 +68,29 @@ public sealed class PhysicsEntity(Transform transform, IPhysicsSystem physics) :
         var oldPos = _transform.Position;
         var movement = Velocity * deltaTime;
 
-        _transform = _transform with { Position = physics.MoveAndResolve(oldPos, movement, Size) };
+        _transform = _transform with
+        {
+            Position = physics.MoveAndResolve(oldPos, movement, Size)
+        };
 
         // Reset velocity for axes that were blocked by a wall/floor
         var actualMovement = _transform.Position - oldPos;
         var newVelocity = Velocity;
-        if (MathF.Abs(actualMovement.X - movement.X) > PhysicsConstants.Epsilon) newVelocity.X = 0;
-        if (MathF.Abs(actualMovement.Y - movement.Y) > PhysicsConstants.Epsilon) newVelocity.Y = 0;
-        if (MathF.Abs(actualMovement.Z - movement.Z) > PhysicsConstants.Epsilon) newVelocity.Z = 0;
+        if (MathF.Abs(actualMovement.X - movement.X) > PhysicsConstants.Epsilon)
+        {
+            newVelocity.X = 0;
+        }
+
+        if (MathF.Abs(actualMovement.Y - movement.Y) > PhysicsConstants.Epsilon)
+        {
+            newVelocity.Y = 0;
+        }
+
+        if (MathF.Abs(actualMovement.Z - movement.Z) > PhysicsConstants.Epsilon)
+        {
+            newVelocity.Z = 0;
+        }
+
         Velocity = newVelocity;
 
         IsGrounded = actualMovement.Y > movement.Y + (PhysicsConstants.Epsilon * 0.1f) && movement.Y <= 0;

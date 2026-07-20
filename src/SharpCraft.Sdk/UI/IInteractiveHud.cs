@@ -8,7 +8,10 @@ public interface IInteractiveHud : IHud
     /// <summary>
     /// Gets or sets whether the HUD is currently visible and interacting with the user.
     /// </summary>
-    bool IsVisible { get; set; }
+    bool IsVisible
+    {
+        get; set;
+    }
 
     /// <summary>
     /// Occurs when the visibility of the HUD changes.

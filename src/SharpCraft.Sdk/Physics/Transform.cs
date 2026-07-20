@@ -25,5 +25,7 @@ public readonly record struct Transform
     /// <summary>
     /// Initializes a new instance of the <see cref="Transform"/> struct with default values.
     /// </summary>
-    public Transform() { }
+    public Transform()
+    {
+    }
 }

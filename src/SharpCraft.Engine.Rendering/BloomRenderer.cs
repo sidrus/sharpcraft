@@ -43,7 +43,10 @@ public sealed class BloomRenderer : IDisposable
         unsafe
         {
             fixed (float* p = quad)
+            {
                 gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(quad.Length * sizeof(float)), p, BufferUsageARB.StaticDraw);
+            }
+
             gl.EnableVertexAttribArray(0);
             gl.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), (void*)0);
             gl.EnableVertexAttribArray(1);
@@ -58,7 +61,10 @@ public sealed class BloomRenderer : IDisposable
     public uint Render(uint srcHdr, int width, int height, float threshold)
     {
         EnsureMips(width, height);
-        if (_mips.Count == 0) return srcHdr;
+        if (_mips.Count == 0)
+        {
+            return srcHdr;
+        }
 
         _gl.Disable(EnableCap.DepthTest);
         _gl.Disable(EnableCap.Blend);
@@ -110,7 +116,11 @@ public sealed class BloomRenderer : IDisposable
 
     private void EnsureMips(int width, int height)
     {
-        if (_mips.Count > 0 && _srcWidth == width && _srcHeight == height) return;
+        if (_mips.Count > 0 && _srcWidth == width && _srcHeight == height)
+        {
+            return;
+        }
+
         DeleteMips();
         _srcWidth = width;
         _srcHeight = height;
@@ -118,8 +128,12 @@ public sealed class BloomRenderer : IDisposable
         int w = width, h = height;
         for (int i = 0; i < MaxMips; i++)
         {
-            w /= 2; h /= 2;
-            if (w < 4 || h < 4) break;
+            w /= 2;
+            h /= 2;
+            if (w < 4 || h < 4)
+            {
+                break;
+            }
 
             var tex = _gl.CreateTexture(TextureTarget.Texture2D);
             _gl.TextureStorage2D(tex, 1, SizedInternalFormat.Rgba16f, (uint)w, (uint)h);
@@ -133,13 +147,21 @@ public sealed class BloomRenderer : IDisposable
 
     private void DeleteMips()
     {
-        foreach (var (tex, _, _) in _mips) _gl.DeleteTexture(tex);
+        foreach (var (tex, _, _) in _mips)
+        {
+            _gl.DeleteTexture(tex);
+        }
+
         _mips.Clear();
     }
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _down.Dispose();
         _up.Dispose();
         DeleteMips();

@@ -43,9 +43,13 @@ public static class MathUtils
         var sinp = 2 * (q.W * q.X - q.Z * q.Y);
         float pitch;
         if (MathF.Abs(sinp) >= 1)
+        {
             pitch = MathF.CopySign(MathF.PI / 2, sinp); // use 90 degrees if out of range
+        }
         else
+        {
             pitch = MathF.Asin(sinp);
+        }
 
         // roll (z-axis rotation)
         var sinrCosp = 2 * (q.W * q.Z + q.X * q.Y);

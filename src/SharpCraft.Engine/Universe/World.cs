@@ -18,7 +18,10 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
     /// <summary>
     /// Gets the current size of the world (render distance).
     /// </summary>
-    public int Size { get; private set; }
+    public int Size
+    {
+        get; private set;
+    }
 
     /// <summary>
     /// Gets the horizontal size of a chunk.
@@ -211,10 +214,23 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
         // If the edited block sits on a chunk edge, the adjacent chunk's boundary faces depend on it
         // (ShouldRenderFace's cross-chunk path), so re-mesh that neighbour too. A corner edit touches
         // two edges and dirties both.
-        if (localX == 0) MarkDirtyIfLoaded(new Vector2<int>(chunkX - 1, chunkZ));
-        else if (localX == 15) MarkDirtyIfLoaded(new Vector2<int>(chunkX + 1, chunkZ));
-        if (localZ == 0) MarkDirtyIfLoaded(new Vector2<int>(chunkX, chunkZ - 1));
-        else if (localZ == 15) MarkDirtyIfLoaded(new Vector2<int>(chunkX, chunkZ + 1));
+        if (localX == 0)
+        {
+            MarkDirtyIfLoaded(new Vector2<int>(chunkX - 1, chunkZ));
+        }
+        else if (localX == 15)
+        {
+            MarkDirtyIfLoaded(new Vector2<int>(chunkX + 1, chunkZ));
+        }
+
+        if (localZ == 0)
+        {
+            MarkDirtyIfLoaded(new Vector2<int>(chunkX, chunkZ - 1));
+        }
+        else if (localZ == 15)
+        {
+            MarkDirtyIfLoaded(new Vector2<int>(chunkX, chunkZ + 1));
+        }
     }
 
     private void MarkDirtyIfLoaded(Vector2<int> coord)

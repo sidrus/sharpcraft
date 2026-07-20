@@ -26,7 +26,10 @@ public sealed class WalkingMotor : PlayerMotorBase
 
         var velocity = entity.Velocity;
         if (intent.IsJumping && canJump)
+        {
             velocity.Y = JumpVelocity;
+        }
+
         entity.Velocity = velocity;
 
         ApplyHorizontalMovement(entity, intent, speed, deltaTime);
@@ -34,7 +37,10 @@ public sealed class WalkingMotor : PlayerMotorBase
         velocity = entity.Velocity;
         velocity.Y += gravity * deltaTime;
         if (velocity.Y < terminalVelocity)
+        {
             velocity.Y = terminalVelocity;
+        }
+
         entity.Velocity = velocity;
     }
 }

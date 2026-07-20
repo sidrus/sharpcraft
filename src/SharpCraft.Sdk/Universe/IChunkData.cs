@@ -10,12 +10,18 @@ public interface IChunkData
     /// <summary>
     /// Gets the chunk's X coordinate (in chunk units).
     /// </summary>
-    int X { get; }
+    int X
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the chunk's Z coordinate (in chunk units).
     /// </summary>
-    int Z { get; }
+    int Z
+    {
+        get;
+    }
 
     /// <summary>
     /// Sets a block at the specified local coordinates.

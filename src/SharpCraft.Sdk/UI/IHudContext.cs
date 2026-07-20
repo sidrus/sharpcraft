@@ -12,25 +12,40 @@ public interface IHudContext
     /// <summary>
     /// Gets the SDK instance.
     /// </summary>
-    ISharpCraftSdk Sdk { get; }
+    ISharpCraftSdk Sdk
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the list of loaded mods.
     /// </summary>
-    IEnumerable<IMod> LoadedMods { get; }
+    IEnumerable<IMod> LoadedMods
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the user avatar provider.
     /// </summary>
-    IAvatarProvider? Avatar { get; }
+    IAvatarProvider? Avatar
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the diagnostic metrics provider.
     /// </summary>
-    IDiagnosticsProvider? Diagnostics { get; }
+    IDiagnosticsProvider? Diagnostics
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the local player.
     /// </summary>
-    IPlayer? Player { get; }
+    IPlayer? Player
+    {
+        get;
+    }
 }

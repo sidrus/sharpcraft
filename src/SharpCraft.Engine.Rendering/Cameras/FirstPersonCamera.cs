@@ -5,7 +5,10 @@ namespace SharpCraft.Engine.Rendering.Cameras;
 
 public class FirstPersonCamera(IPhysicsEntity parent, Vector3 offset) : ICamera
 {
-    public float Pitch { get; set; }
+    public float Pitch
+    {
+        get; set;
+    }
     public float Zoom { get; set; } = 60f;
     public Vector3 Position => parent.Position + offset;
     public Vector3 GetInterpolatedPosition(float alpha) => Vector3.Lerp(parent.PreviousPosition, parent.Position, alpha) + offset;

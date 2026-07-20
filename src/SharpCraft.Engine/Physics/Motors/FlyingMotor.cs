@@ -19,11 +19,18 @@ public sealed class FlyingMotor : PlayerMotorBase
 
         var velocity = entity.Velocity;
         if (intent.IsJumping)
+        {
             velocity.Y = float.Lerp(velocity.Y, speed, deltaTime * VerticalResponse);
+        }
         else if (intent.IsDescending)
+        {
             velocity.Y = float.Lerp(velocity.Y, -speed, deltaTime * VerticalResponse);
+        }
         else
+        {
             velocity.Y = float.Lerp(velocity.Y, 0, deltaTime * VerticalResponse);
+        }
+
         entity.Velocity = velocity;
 
         ApplyHorizontalMovement(entity, intent, speed, deltaTime);

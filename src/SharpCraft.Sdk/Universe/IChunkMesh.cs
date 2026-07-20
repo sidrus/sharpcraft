@@ -8,10 +8,16 @@ public interface IChunkMesh
     /// <summary>
     /// Gets the vertex data.
     /// </summary>
-    float[] Vertices { get; }
+    float[] Vertices
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the index data.
     /// </summary>
-    uint[] Indices { get; }
+    uint[] Indices
+    {
+        get;
+    }
 }

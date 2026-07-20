@@ -8,19 +8,55 @@ public class LifecycleManagerTests
 {
     private class FakeLifecycle : ILifecycle
     {
-        public int AwakeCount { get; private set; }
-        public int StartCount { get; private set; }
-        public int UpdateCount { get; private set; }
-        public int FixedUpdateCount { get; private set; }
-        public int RenderCount { get; private set; }
-        public int DestroyCount { get; private set; }
+        public int AwakeCount
+        {
+            get; private set;
+        }
+        public int StartCount
+        {
+            get; private set;
+        }
+        public int UpdateCount
+        {
+            get; private set;
+        }
+        public int FixedUpdateCount
+        {
+            get; private set;
+        }
+        public int RenderCount
+        {
+            get; private set;
+        }
+        public int DestroyCount
+        {
+            get; private set;
+        }
 
-        public Action<LifecycleManager>? OnAwakeAction { get; set; }
-        public Action<LifecycleManager>? OnStartAction { get; set; }
-        public Action<LifecycleManager>? OnUpdateAction { get; set; }
-        public Action<LifecycleManager>? OnFixedUpdateAction { get; set; }
-        public Action<LifecycleManager>? OnRenderAction { get; set; }
-        public Action<LifecycleManager>? OnDestroyAction { get; set; }
+        public Action<LifecycleManager>? OnAwakeAction
+        {
+            get; set;
+        }
+        public Action<LifecycleManager>? OnStartAction
+        {
+            get; set;
+        }
+        public Action<LifecycleManager>? OnUpdateAction
+        {
+            get; set;
+        }
+        public Action<LifecycleManager>? OnFixedUpdateAction
+        {
+            get; set;
+        }
+        public Action<LifecycleManager>? OnRenderAction
+        {
+            get; set;
+        }
+        public Action<LifecycleManager>? OnDestroyAction
+        {
+            get; set;
+        }
 
         public void OnAwake()
         {

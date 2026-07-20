@@ -26,16 +26,28 @@ public class MainHud : IHud
 
         // Vertical line
         gui.DrawLine(
-            position with { Y = position.Y - size },
-            position with { Y = position.Y + size },
+            position with
+            {
+                Y = position.Y - size
+            },
+            position with
+            {
+                Y = position.Y + size
+            },
             color,
             thickness
         );
 
         // Horizontal line
         gui.DrawLine(
-            position with { X = position.X - size },
-            position with { X = position.X + size },
+            position with
+            {
+                X = position.X - size
+            },
+            position with
+            {
+                X = position.X + size
+            },
             color,
             thickness
         );
@@ -44,7 +56,10 @@ public class MainHud : IHud
     private static void DrawSteamInfo(IGui gui, IHudContext context)
     {
         var avatar = context.Avatar;
-        if (avatar == null || !avatar.IsValid) return;
+        if (avatar == null || !avatar.IsValid)
+        {
+            return;
+        }
 
         var viewportSize = gui.GetMainViewportSize();
         var padding = 10f;
@@ -66,6 +81,10 @@ public class MainHud : IHud
         }
     }
 
-    public void OnAwake() { }
-    public void OnUpdate(double deltaTime) { }
+    public void OnAwake()
+    {
+    }
+    public void OnUpdate(double deltaTime)
+    {
+    }
 }

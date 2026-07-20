@@ -64,10 +64,16 @@ public static class PhysicsConstants
         var absGravity = MathF.Abs(gravity);
 
         // Prevent division by zero or negative results
-        if (absGravity < 1e-6f) return 100f;
+        if (absGravity < 1e-6f)
+        {
+            return 100f;
+        }
 
         var denominator = density * dragCoefficient * area;
-        if (denominator < 1e-6f) return 100f;
+        if (denominator < 1e-6f)
+        {
+            return 100f;
+        }
 
         return MathF.Sqrt((2.0f * mass * absGravity) / denominator);
     }

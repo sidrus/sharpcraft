@@ -5,7 +5,9 @@ namespace SharpCraft.Sdk.Tests;
 
 public class RegistryTests
 {
-    private class TestResource { }
+    private class TestResource
+    {
+    }
 
     [Fact]
     public void Register_WithValidNamespacedId_ShouldSucceed()

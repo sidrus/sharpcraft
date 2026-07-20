@@ -6,7 +6,10 @@ namespace SharpCraft.Client.Integrations.Steam;
 
 public class AvatarLoader(GL gl) : IDisposable, IAvatarProvider
 {
-    public uint? AvatarTexture { get; private set; }
+    public uint? AvatarTexture
+    {
+        get; private set;
+    }
 
     public string Name => SteamClient.IsValid ? SteamClient.Name : "Unknown";
     public IntPtr? AvatarTextureId => AvatarTexture.HasValue ? (IntPtr)AvatarTexture.Value : null;
@@ -14,7 +17,10 @@ public class AvatarLoader(GL gl) : IDisposable, IAvatarProvider
 
     public async Task LoadSteamAvatar()
     {
-        if (!SteamClient.IsValid) return;
+        if (!SteamClient.IsValid)
+        {
+            return;
+        }
 
         // Fetch the Medium avatar (64x64). Large (124x124) is also available.
         var image = await SteamFriends.GetMediumAvatarAsync(SteamClient.SteamId);

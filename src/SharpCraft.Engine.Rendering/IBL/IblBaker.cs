@@ -41,7 +41,10 @@ public sealed class IblBaker : IDisposable
     public uint IrradianceMap => _irradianceCube;
     public uint PrefilterMap => _prefilterCube;
     public uint BrdfLut => _brdfLut;
-    public bool IsReady { get; private set; }
+    public bool IsReady
+    {
+        get; private set;
+    }
 
     public IblBaker(GL gl)
     {
@@ -79,7 +82,11 @@ public sealed class IblBaker : IDisposable
         }
 
         var toSun = Vector3.Normalize(sunDirection);
-        if (IsReady && Vector3.Dot(toSun, _lastSunDir) > 0.99985f) return; // ~1° of sun movement
+        if (IsReady && Vector3.Dot(toSun, _lastSunDir) > 0.99985f)
+        {
+            return; // ~1° of sun movement
+        }
+
         _lastSunDir = toSun;
 
         // Bake state: full-screen passes, no depth/cull/blend.
@@ -231,7 +238,10 @@ public sealed class IblBaker : IDisposable
         unsafe
         {
             fixed (float* p = v)
+            {
                 _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(v.Length * sizeof(float)), p, BufferUsageARB.StaticDraw);
+            }
+
             _gl.EnableVertexAttribArray(0);
             _gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), (void*)0);
         }
@@ -256,7 +266,10 @@ public sealed class IblBaker : IDisposable
         unsafe
         {
             fixed (float* p = v)
+            {
                 _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(v.Length * sizeof(float)), p, BufferUsageARB.StaticDraw);
+            }
+
             _gl.EnableVertexAttribArray(0);
             _gl.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), (void*)0);
             _gl.EnableVertexAttribArray(1);
@@ -269,7 +282,11 @@ public sealed class IblBaker : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _skyCapture.Dispose();
         _irradiance.Dispose();
         _prefilter.Dispose();

@@ -24,7 +24,11 @@ public class ChatHud : IInteractiveHud
         get => _isTyping;
         set
         {
-            if (_isTyping == value) return;
+            if (_isTyping == value)
+            {
+                return;
+            }
+
             _isTyping = value;
             if (_isTyping)
             {
@@ -137,6 +141,10 @@ public class ChatHud : IInteractiveHud
         IsTyping = false;
     }
 
-    public void OnAwake() { }
-    public void OnUpdate(double deltaTime) { }
+    public void OnAwake()
+    {
+    }
+    public void OnUpdate(double deltaTime)
+    {
+    }
 }

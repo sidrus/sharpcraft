@@ -148,7 +148,10 @@ public class LocalPlayerControllerTests
         {
             controller.OnUpdate(0.016f);
             controller.OnFixedUpdate(0.016f);
-            if (entity.Position.Y > maxObservedY) maxObservedY = entity.Position.Y;
+            if (entity.Position.Y > maxObservedY)
+            {
+                maxObservedY = entity.Position.Y;
+            }
         }
 
         // The player should swim up toward the surface...
@@ -195,7 +198,10 @@ public class LocalPlayerControllerTests
         {
             controller.OnUpdate(0.016f);
             controller.OnFixedUpdate(0.016f);
-            if (entity.Position.Y > maxObservedY) maxObservedY = entity.Position.Y;
+            if (entity.Position.Y > maxObservedY)
+            {
+                maxObservedY = entity.Position.Y;
+            }
         }
 
         // With a ledge to climb onto, the jump should carry the player above the surface.

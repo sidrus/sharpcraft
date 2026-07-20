@@ -159,7 +159,10 @@ public partial class Game : IDisposable
 
     private void UpdateWorldChunks()
     {
-        if (_playerController == null || _hudManager?.Settings == null) return;
+        if (_playerController == null || _hudManager?.Settings == null)
+        {
+            return;
+        }
 
         var playerPos = _playerController.Entity.Position;
         var currentChunkX = (int)Math.Floor(playerPos.X / World.ChunkSize);
@@ -272,7 +275,11 @@ public partial class Game : IDisposable
 
     private void InitializeGraphicsState()
     {
-        if (_gl == null) return;
+        if (_gl == null)
+        {
+            return;
+        }
+
         _gl.Enable(EnableCap.DepthTest);
         _gl.Enable(EnableCap.CullFace);
         _gl.ClearColor(0.53f, 0.81f, 0.92f, 1.0f);
@@ -290,7 +297,11 @@ public partial class Game : IDisposable
 
     private unsafe void InitializeGlDebugOutput()
     {
-        if (_gl == null) return;
+        if (_gl == null)
+        {
+            return;
+        }
+
         _gl.Enable(EnableCap.DebugOutput);
         _gl.Enable(EnableCap.DebugOutputSynchronous);
         // Keep a field reference so the delegate isn't collected while the driver holds it.
@@ -300,7 +311,10 @@ public partial class Game : IDisposable
 
     private void OnGlDebugMessage(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userParam)
     {
-        if (severity == GLEnum.DebugSeverityNotification) return;
+        if (severity == GLEnum.DebugSeverityNotification)
+        {
+            return;
+        }
 
         var text = length > 0
             ? Marshal.PtrToStringAnsi(message, length)
@@ -329,7 +343,10 @@ public partial class Game : IDisposable
 
     private void InitializeSystems()
     {
-        if (_gl == null || _window == null) return;
+        if (_gl == null || _window == null)
+        {
+            return;
+        }
 
         var inputContext = _window.CreateInput();
         _input = new InputManager(inputContext);
@@ -381,8 +398,16 @@ public partial class Game : IDisposable
         _lightSystem.WorldTime = _worldTime;
         _sun = new Sun(_worldTime, _lightSystem);
 
-        if (_input != null) _lifecycleManager.Register(_input);
-        if (_hudManager != null) _lifecycleManager.Register(_hudManager);
+        if (_input != null)
+        {
+            _lifecycleManager.Register(_input);
+        }
+
+        if (_hudManager != null)
+        {
+            _lifecycleManager.Register(_hudManager);
+        }
+
         _lifecycleManager.Register(_worldTime);
         _lifecycleManager.Register(_sun);
 
@@ -391,7 +416,10 @@ public partial class Game : IDisposable
 
     private void RegisterInputHandlers()
     {
-        if (_input == null) return;
+        if (_input == null)
+        {
+            return;
+        }
 
         _input.Mouse.Cursor.CursorMode = CursorMode.Raw;
         _input.Keyboard.KeyUp += (_, key, _) => HandleGlobalKeys(key);
@@ -399,7 +427,11 @@ public partial class Game : IDisposable
 
     private void HandleGlobalKeys(Key key)
     {
-        if (_input == null) return;
+        if (_input == null)
+        {
+            return;
+        }
+
         if (key == Key.Escape)
         {
             _window?.Close();
@@ -442,7 +474,10 @@ public partial class Game : IDisposable
     /// </summary>
     private void PlaceTorch()
     {
-        if (_torchRenderer == null || _playerController == null) return;
+        if (_torchRenderer == null || _playerController == null)
+        {
+            return;
+        }
 
         // Only place on a real surface — not mid-jump, and not over air/water/lava.
         if (!_playerController.BlockBelow.IsSolid || _playerController.IsSwimming || _playerController.IsUnderwater)

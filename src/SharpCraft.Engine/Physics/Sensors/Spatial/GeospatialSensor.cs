@@ -13,7 +13,10 @@ public class GeospatialSensor
     /// <summary>
     /// Gets the most recent data captured by the sensor.
     /// </summary>
-    public GeospatialSensorData? LastSense { get; private set; }
+    public GeospatialSensorData? LastSense
+    {
+        get; private set;
+    }
 
     /// <summary>
     /// Performs a sensing operation in the specified world for the given entity.

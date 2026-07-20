@@ -8,30 +8,48 @@ public interface IWorldTime
     /// <summary>
     /// Gets or sets the current game time in seconds.
     /// </summary>
-    float Time { get; set; }
+    float Time
+    {
+        get; set;
+    }
 
     /// <summary>
     /// Gets or sets the duration of one full day in minutes.
     /// </summary>
-    float DayDurationInMinutes { get; set; }
+    float DayDurationInMinutes
+    {
+        get; set;
+    }
 
     /// <summary>
     /// Gets or sets whether time is paused.
     /// </summary>
-    bool IsPaused { get; set; }
+    bool IsPaused
+    {
+        get; set;
+    }
 
     /// <summary>
     /// Gets the current sun angle in radians [0, 2PI].
     /// </summary>
-    float SunAngle { get; }
+    float SunAngle
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the formatted game time string (e.g., "08:30 AM").
     /// </summary>
-    string FormattedTime { get; }
+    string FormattedTime
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the normalized time of day [0, 1], where 0 is 6 AM.
     /// </summary>
-    float NormalizedTime { get; }
+    float NormalizedTime
+    {
+        get;
+    }
 }

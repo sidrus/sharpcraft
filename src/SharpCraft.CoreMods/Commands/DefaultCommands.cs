@@ -43,7 +43,10 @@ internal static class DefaultCommands
 
     private static void HandleTeleport(ISharpCraftSdk sdk, CommandContext ctx)
     {
-        if (ctx.Player == null) return;
+        if (ctx.Player == null)
+        {
+            return;
+        }
 
         if (ctx.Args.Count != 3)
         {

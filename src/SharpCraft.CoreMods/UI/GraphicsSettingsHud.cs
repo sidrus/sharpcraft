@@ -15,94 +15,173 @@ public class GraphicsSettingsHud : IGraphicsSettings
         get;
         set
         {
-            if (field == value) return;
+            if (field == value)
+            {
+                return;
+            }
+
             field = value;
             OnVisibilityChanged?.Invoke();
         }
     }
 
     private bool _useNormalMap = true;
-    public bool UseNormalMap { get => _useNormalMap; set => _useNormalMap = value; }
+    public bool UseNormalMap
+    {
+        get => _useNormalMap; set => _useNormalMap = value;
+    }
 
     private float _normalStrength = 1.0f;
-    public float NormalStrength { get => _normalStrength; set => _normalStrength = value; }
+    public float NormalStrength
+    {
+        get => _normalStrength; set => _normalStrength = value;
+    }
 
     private bool _useAoMap = true;
-    public bool UseAoMap { get => _useAoMap; set => _useAoMap = value; }
+    public bool UseAoMap
+    {
+        get => _useAoMap; set => _useAoMap = value;
+    }
 
     private float _aoMapStrength = 0.8f;
-    public float AoMapStrength { get => _aoMapStrength; set => _aoMapStrength = value; }
+    public float AoMapStrength
+    {
+        get => _aoMapStrength; set => _aoMapStrength = value;
+    }
 
     private bool _useMetallicMap = true;
-    public bool UseMetallicMap { get => _useMetallicMap; set => _useMetallicMap = value; }
+    public bool UseMetallicMap
+    {
+        get => _useMetallicMap; set => _useMetallicMap = value;
+    }
 
     private float _metallicStrength = 1.0f;
-    public float MetallicStrength { get => _metallicStrength; set => _metallicStrength = value; }
+    public float MetallicStrength
+    {
+        get => _metallicStrength; set => _metallicStrength = value;
+    }
 
     private bool _useRoughnessMap = true;
-    public bool UseRoughnessMap { get => _useRoughnessMap; set => _useRoughnessMap = value; }
+    public bool UseRoughnessMap
+    {
+        get => _useRoughnessMap; set => _useRoughnessMap = value;
+    }
 
     private float _roughnessStrength = 1.0f;
-    public float RoughnessStrength { get => _roughnessStrength; set => _roughnessStrength = value; }
+    public float RoughnessStrength
+    {
+        get => _roughnessStrength; set => _roughnessStrength = value;
+    }
 
     // Image-based lighting from the baked procedural sky — the primary ambient
     // light source for the PBR pipeline. Off only as a debugging fallback.
     private bool _useIbl = true;
-    public bool UseIbl { get => _useIbl; set => _useIbl = value; }
+    public bool UseIbl
+    {
+        get => _useIbl; set => _useIbl = value;
+    }
 
     // Screen-space ambient occlusion — adds contact shadows in creases/under ledges.
     private bool _useSsao = true;
-    public bool UseSsao { get => _useSsao; set => _useSsao = value; }
+    public bool UseSsao
+    {
+        get => _useSsao; set => _useSsao = value;
+    }
 
     private float _ssaoRadius = 1.5f;
-    public float SsaoRadius { get => _ssaoRadius; set => _ssaoRadius = value; }
+    public float SsaoRadius
+    {
+        get => _ssaoRadius; set => _ssaoRadius = value;
+    }
 
     private float _ssaoIntensity = 2.5f;
-    public float SsaoIntensity { get => _ssaoIntensity; set => _ssaoIntensity = value; }
+    public float SsaoIntensity
+    {
+        get => _ssaoIntensity; set => _ssaoIntensity = value;
+    }
 
     private bool _useSsr = true;
-    public bool UseSsr { get => _useSsr; set => _useSsr = value; }
+    public bool UseSsr
+    {
+        get => _useSsr; set => _useSsr = value;
+    }
 
     private bool _useContactShadows = true;
-    public bool UseContactShadows { get => _useContactShadows; set => _useContactShadows = value; }
+    public bool UseContactShadows
+    {
+        get => _useContactShadows; set => _useContactShadows = value;
+    }
 
     private bool _vSync;
-    public bool VSync { get => _vSync; set => _vSync = value; }
+    public bool VSync
+    {
+        get => _vSync; set => _vSync = value;
+    }
 
     // Standard sRGB display gamma; the HDR chain is linear until the final pass
     private float _gamma = 2.2f;
-    public float Gamma { get => _gamma; set => _gamma = value; }
+    public float Gamma
+    {
+        get => _gamma; set => _gamma = value;
+    }
 
     private float _exposure = 1.0f;
-    public float Exposure { get => _exposure; set => _exposure = value; }
+    public float Exposure
+    {
+        get => _exposure; set => _exposure = value;
+    }
 
     // Auto-exposure / eye adaptation (research §5.2).
     private float _autoExposureKey = 0.18f;
-    public float AutoExposureKey { get => _autoExposureKey; set => _autoExposureKey = value; }
+    public float AutoExposureKey
+    {
+        get => _autoExposureKey; set => _autoExposureKey = value;
+    }
 
     private float _autoExposureMin = 0.05f;
-    public float AutoExposureMin { get => _autoExposureMin; set => _autoExposureMin = value; }
+    public float AutoExposureMin
+    {
+        get => _autoExposureMin; set => _autoExposureMin = value;
+    }
 
     private float _autoExposureMax = 2.0f;
-    public float AutoExposureMax { get => _autoExposureMax; set => _autoExposureMax = value; }
+    public float AutoExposureMax
+    {
+        get => _autoExposureMax; set => _autoExposureMax = value;
+    }
 
     private float _autoExposureSpeed = 2.5f;
-    public float AutoExposureSpeed { get => _autoExposureSpeed; set => _autoExposureSpeed = value; }
+    public float AutoExposureSpeed
+    {
+        get => _autoExposureSpeed; set => _autoExposureSpeed = value;
+    }
 
     private float _fogNearFactor = 0.3f;
-    public float FogNearFactor { get => _fogNearFactor; set => _fogNearFactor = value; }
+    public float FogNearFactor
+    {
+        get => _fogNearFactor; set => _fogNearFactor = value;
+    }
 
     private float _fogFarFactor = 0.95f;
-    public float FogFarFactor { get => _fogFarFactor; set => _fogFarFactor = value; }
+    public float FogFarFactor
+    {
+        get => _fogFarFactor; set => _fogFarFactor = value;
+    }
 
     private int _renderDistance = 8;
-    public int RenderDistance { get => _renderDistance; set => _renderDistance = value; }
+    public int RenderDistance
+    {
+        get => _renderDistance; set => _renderDistance = value;
+    }
 
     public event Action? OnVisibilityChanged;
 
     public void Draw(double deltaTime, IGui gui, IHudContext context)
     {
-        if (!IsVisible) return;
+        if (!IsVisible)
+        {
+            return;
+        }
 
         var viewportSize = gui.GetMainViewportSize();
         gui.SetNextWindowPos(viewportSize * 0.5f, GuiCond.Appearing, new Vector2(0.5f, 0.5f));
@@ -164,6 +243,10 @@ public class GraphicsSettingsHud : IGraphicsSettings
         }
     }
 
-    public void OnAwake() { }
-    public void OnUpdate(double deltaTime) { }
+    public void OnAwake()
+    {
+    }
+    public void OnUpdate(double deltaTime)
+    {
+    }
 }

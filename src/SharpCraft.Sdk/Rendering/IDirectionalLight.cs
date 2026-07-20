@@ -4,7 +4,16 @@ namespace SharpCraft.Sdk.Rendering;
 
 public interface IDirectionalLight
 {
-    Vector3 Color { get; set; }
-    float Intensity { get; set; }
-    Vector3 Direction { get; set; }
+    Vector3 Color
+    {
+        get; set;
+    }
+    float Intensity
+    {
+        get; set;
+    }
+    Vector3 Direction
+    {
+        get; set;
+    }
 }

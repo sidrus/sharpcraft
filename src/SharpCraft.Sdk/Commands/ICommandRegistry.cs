@@ -10,7 +10,10 @@ public interface ICommandRegistry
     /// <summary>
     /// Gets all registered commands.
     /// </summary>
-    IReadOnlyDictionary<string, Action<CommandContext>> All { get; }
+    IReadOnlyDictionary<string, Action<CommandContext>> All
+    {
+        get;
+    }
 
     /// <summary>
     /// Registers a command.

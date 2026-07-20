@@ -11,32 +11,50 @@ public interface IChunk : IDisposable
     /// <summary>
     /// Gets the chunk's X coordinate (in chunk units).
     /// </summary>
-    int X { get; }
+    int X
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the chunk's Z coordinate (in chunk units).
     /// </summary>
-    int Z { get; }
+    int Z
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the world position of the chunk's origin.
     /// </summary>
-    Vector3 WorldPosition { get; }
+    Vector3 WorldPosition
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets a value indicating whether the chunk needs to be re-meshed.
     /// </summary>
-    bool IsDirty { get; }
+    bool IsDirty
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the mesh for opaque blocks.
     /// </summary>
-    IChunkMesh OpaqueMesh { get; }
+    IChunkMesh OpaqueMesh
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the mesh for transparent blocks.
     /// </summary>
-    IChunkMesh TransparentMesh { get; }
+    IChunkMesh TransparentMesh
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the block at the specified local coordinates.

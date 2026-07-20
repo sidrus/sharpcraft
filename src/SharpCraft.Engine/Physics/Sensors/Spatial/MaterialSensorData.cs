@@ -9,8 +9,14 @@ namespace SharpCraft.Engine.Physics.Sensors.Spatial;
 public record MaterialSensorData
 {
     /// <summary>Gets the friction of the block underfoot.</summary>
-    public float GroundFriction { get; init; }
+    public float GroundFriction
+    {
+        get; init;
+    }
 
     /// <summary>Gets the properties of the fluid the entity is in, or null.</summary>
-    public FluidProperties? Fluid { get; init; }
+    public FluidProperties? Fluid
+    {
+        get; init;
+    }
 }

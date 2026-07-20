@@ -50,13 +50,20 @@ public sealed class SunRenderer : IDisposable
 
     public void Render(RenderContext context)
     {
-        if (context.Sun == null || context.Sun.Value.Intensity <= 0) return;
+        if (context.Sun == null || context.Sun.Value.Intensity <= 0)
+        {
+            return;
+        }
 
         var sunDir = Vector3.Normalize(-context.Sun.Value.Direction); // direction TO the sun
         // Cull once the whole disc is below the horizon (the billboard's angular radius is ~0.02);
         // the fragment shader clips it at the horizon line so it rises/sets as a half-disc. Full
         // brightness by horizon level.
-        if (sunDir.Y < -0.03f) return;
+        if (sunDir.Y < -0.03f)
+        {
+            return;
+        }
+
         var elevationFade = Math.Clamp((sunDir.Y + 0.03f) / 0.03f, 0f, 1f);
 
         _gl.Enable(EnableCap.Blend);

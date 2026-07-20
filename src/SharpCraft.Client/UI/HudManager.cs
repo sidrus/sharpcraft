@@ -71,11 +71,19 @@ public class HudManager : ILifecycle, IDisposable
                 break;
             case Key.F4:
                 var devHud = Huds.OfType<IInteractiveHud>().FirstOrDefault(h => h.Name == "DeveloperHud");
-                if (devHud != null) devHud.IsVisible = !devHud.IsVisible;
+                if (devHud != null)
+                {
+                    devHud.IsVisible = !devHud.IsVisible;
+                }
+
                 break;
             case Key.F5:
                 var atmosHud = Huds.OfType<IInteractiveHud>().FirstOrDefault(h => h.Name == "AtmosphereControl");
-                if (atmosHud != null) atmosHud.IsVisible = !atmosHud.IsVisible;
+                if (atmosHud != null)
+                {
+                    atmosHud.IsVisible = !atmosHud.IsVisible;
+                }
+
                 break;
         }
 
@@ -182,7 +190,10 @@ public class HudManager : ILifecycle, IDisposable
 
     public void OnRender(double deltaTime)
     {
-        if (_world == null || _sdk == null || _mods == null) return;
+        if (_world == null || _sdk == null || _mods == null)
+        {
+            return;
+        }
 
         _controller.Update((float)deltaTime);
 
@@ -233,13 +244,25 @@ public class HudManager : ILifecycle, IDisposable
     private sealed class DefaultGraphicsSettings : IGraphicsSettings
     {
         public string Name => "DefaultGraphicsSettings";
-        public void Draw(double deltaTime, IGui gui, IHudContext context) { }
-        public void OnAwake() { }
-        public void OnUpdate(double deltaTime) { }
+        public void Draw(double deltaTime, IGui gui, IHudContext context)
+        {
+        }
+        public void OnAwake()
+        {
+        }
+        public void OnUpdate(double deltaTime)
+        {
+        }
 
-        public bool IsVisible { get; set; }
+        public bool IsVisible
+        {
+            get; set;
+        }
         public event Action? OnVisibilityChanged { add { } remove { } }
-        public bool VSync { get; set; }
+        public bool VSync
+        {
+            get; set;
+        }
 
         // Display Settings (Photoreal Defaults)
         public float Gamma { get; set; } = 2.2f;          // Standard sRGB display gamma

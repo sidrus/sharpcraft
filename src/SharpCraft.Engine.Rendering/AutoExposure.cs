@@ -86,7 +86,11 @@ public sealed class AutoExposure : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _build.Dispose();
         _average.Dispose();
         _exposure.Dispose();

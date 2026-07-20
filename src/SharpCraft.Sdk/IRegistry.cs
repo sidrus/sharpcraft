@@ -11,7 +11,10 @@ public interface IRegistry<T>
     /// <summary>
     /// Gets the total number of registered objects in the registry.
     /// </summary>
-    int Count { get; }
+    int Count
+    {
+        get;
+    }
 
     /// <summary>
     /// Registers an object with the given unique identifier.
@@ -38,5 +41,8 @@ public interface IRegistry<T>
     /// <summary>
     /// Gets all registered items.
     /// </summary>
-    IEnumerable<KeyValuePair<ResourceLocation, T>> All { get; }
+    IEnumerable<KeyValuePair<ResourceLocation, T>> All
+    {
+        get;
+    }
 }

@@ -45,7 +45,10 @@ public sealed class VolumetricRenderer : IDisposable
         unsafe
         {
             fixed (float* p = quad)
+            {
                 gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(quad.Length * sizeof(float)), p, BufferUsageARB.StaticDraw);
+            }
+
             gl.EnableVertexAttribArray(0);
             gl.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), (void*)0);
             gl.EnableVertexAttribArray(1);
@@ -132,7 +135,11 @@ public sealed class VolumetricRenderer : IDisposable
     {
         int w = Math.Max(1, fullWidth / 2);
         int h = Math.Max(1, fullHeight / 2);
-        if (_fbo != 0 && _width == w && _height == h) return;
+        if (_fbo != 0 && _width == w && _height == h)
+        {
+            return;
+        }
+
         if (_fbo != 0)
         {
             _gl.DeleteFramebuffer(_fbo);
@@ -156,7 +163,11 @@ public sealed class VolumetricRenderer : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _march.Dispose();
         _composite.Dispose();
         _gl.DeleteVertexArray(_quadVao);

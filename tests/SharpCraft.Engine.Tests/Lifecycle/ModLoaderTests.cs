@@ -28,8 +28,12 @@ public class ModLoaderTests
 
         public string BaseDirectory { get; set; } = string.Empty;
 
-        public void OnEnable() { }
-        public void OnDisable() { }
+        public void OnEnable()
+        {
+        }
+        public void OnDisable()
+        {
+        }
     }
 
     [Fact]

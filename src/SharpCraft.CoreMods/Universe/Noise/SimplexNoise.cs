@@ -45,8 +45,16 @@ public class SimplexNoise : INoiseGenerator
         var y0 = y - Y0;
 
         int i1, j1;
-        if (x0 > y0) { i1 = 1; j1 = 0; }
-        else { i1 = 0; j1 = 1; }
+        if (x0 > y0)
+        {
+            i1 = 1;
+            j1 = 0;
+        }
+        else
+        {
+            i1 = 0;
+            j1 = 1;
+        }
 
         var x1 = x0 - i1 + g2;
         var y1 = y0 - j1 + g2;

@@ -14,7 +14,10 @@ public sealed unsafe class ShaderStorageBuffer : IDisposable
     private nuint _capacity;
     private bool _disposed;
 
-    public uint Binding { get; }
+    public uint Binding
+    {
+        get;
+    }
     public uint Handle => _handle;
 
     public ShaderStorageBuffer(GL gl, uint binding)
@@ -68,7 +71,11 @@ public sealed unsafe class ShaderStorageBuffer : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _gl.DeleteBuffer(_handle);
         _disposed = true;
     }

@@ -8,12 +8,18 @@ public interface IMod
     /// <summary>
     /// Gets the mod manifest.
     /// </summary>
-    ModManifest Manifest { get; }
+    ModManifest Manifest
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the base directory of the mod.
     /// </summary>
-    string BaseDirectory { get; set; }
+    string BaseDirectory
+    {
+        get; set;
+    }
 
     /// <summary>
     /// Called when the mod is enabled.

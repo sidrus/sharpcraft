@@ -14,8 +14,10 @@ public class RenderableChunk(GL gl, IChunk chunk) : IDisposable
     {
         if (!_isInitialized)
         {
-            _opaqueVbo = gl.GenBuffer(); _opaqueEbo = gl.GenBuffer();
-            _transparentVbo = gl.GenBuffer(); _transparentEbo = gl.GenBuffer();
+            _opaqueVbo = gl.GenBuffer();
+            _opaqueEbo = gl.GenBuffer();
+            _transparentVbo = gl.GenBuffer();
+            _transparentEbo = gl.GenBuffer();
             _isInitialized = true;
         }
 
@@ -35,18 +37,25 @@ public class RenderableChunk(GL gl, IChunk chunk) : IDisposable
     private unsafe void UpdateBuffer(uint vbo, uint ebo, IChunkMesh mesh, out int count)
     {
         count = mesh.Indices.Length;
-        if (count == 0) return;
+        if (count == 0)
+        {
+            return;
+        }
 
         var vertices = mesh.Vertices;
         var indices = mesh.Indices;
 
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
         fixed (float* v = vertices)
+        {
             gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertices.Length * sizeof(float)), v, BufferUsageARB.StaticDraw);
+        }
 
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
         fixed (uint* i = indices)
+        {
             gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(indices.Length * sizeof(uint)), i, BufferUsageARB.StaticDraw);
+        }
     }
 
     public void BindAndDrawOpaque() => Draw(_opaqueVbo, _opaqueEbo, _opaqueIndexCount);
@@ -55,7 +64,10 @@ public class RenderableChunk(GL gl, IChunk chunk) : IDisposable
 
     private unsafe void Draw(uint vbo, uint ebo, int count)
     {
-        if (!_isInitialized || count == 0) return;
+        if (!_isInitialized || count == 0)
+        {
+            return;
+        }
 
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);

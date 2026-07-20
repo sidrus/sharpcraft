@@ -10,47 +10,74 @@ public interface IPhysicsEntity
     /// <summary>
     /// Gets or sets the rotation of the entity.
     /// </summary>
-    public Quaternion Rotation { get; set; }
+    public Quaternion Rotation
+    {
+        get; set;
+    }
 
     /// <summary>
     /// The current velocity of the entity.
     /// </summary>
-    public Vector3 Velocity { get; set; }
+    public Vector3 Velocity
+    {
+        get; set;
+    }
 
     /// <summary>
     /// The size of the entity's bounding box.
     /// </summary>
-    public Vector3 Size { get; }
+    public Vector3 Size
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the current position of the entity.
     /// </summary>
-    public Vector3 Position { get; }
+    public Vector3 Position
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the position from the previous update.
     /// </summary>
-    public Vector3 PreviousPosition { get; }
+    public Vector3 PreviousPosition
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the rotation from the previous update.
     /// </summary>
-    public Quaternion PreviousRotation { get; }
+    public Quaternion PreviousRotation
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets a value indicating whether the entity is currently on the ground.
     /// </summary>
-    public bool IsGrounded { get; }
+    public bool IsGrounded
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the forward direction vector based on the entity's rotation.
     /// </summary>
-    public Vector3 Forward { get; }
+    public Vector3 Forward
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the right direction vector based on the entity's rotation.
     /// </summary>
-    public Vector3 Right { get; }
+    public Vector3 Right
+    {
+        get;
+    }
 
     /// <summary>
     /// Sets the position of the entity.

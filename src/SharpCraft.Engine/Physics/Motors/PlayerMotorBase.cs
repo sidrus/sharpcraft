@@ -21,12 +21,18 @@ public abstract class PlayerMotorBase : IMotor
     /// <summary>
     /// Gets or sets the sensor data describing the entity's surroundings.
     /// </summary>
-    public GeospatialSensorData? SensorData { get; set; }
+    public GeospatialSensorData? SensorData
+    {
+        get; set;
+    }
 
     /// <summary>
     /// Gets or sets the material properties (ground friction, current fluid) of those surroundings.
     /// </summary>
-    public MaterialSensorData? Material { get; set; }
+    public MaterialSensorData? Material
+    {
+        get; set;
+    }
 
     /// <summary>
     /// Gets the friction coefficient the motor applied on its last pass.
@@ -44,7 +50,10 @@ public abstract class PlayerMotorBase : IMotor
     {
         var speed = intent.IsSprinting ? SprintSpeed : WalkSpeed;
         if (intent.UseDevSpeedBoost)
+        {
             speed *= 5;
+        }
+
         return speed;
     }
 
@@ -60,7 +69,9 @@ public abstract class PlayerMotorBase : IMotor
         var moveDir = intent.Direction;
         moveDir.Y = 0;
         if (moveDir.LengthSquared() > 0)
+        {
             moveDir = Vector3.Normalize(moveDir);
+        }
 
         velocity.X = float.Lerp(velocity.X, moveDir.X * speed, deltaFriction);
         velocity.Z = float.Lerp(velocity.Z, moveDir.Z * speed, deltaFriction);

@@ -10,57 +10,90 @@ public interface IPlayer
     /// <summary>
     /// Gets the physics entity associated with the player.
     /// </summary>
-    IPhysicsEntity Entity { get; }
+    IPhysicsEntity Entity
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the player's heading (compass direction).
     /// </summary>
-    string Heading { get; }
+    string Heading
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the player's yaw.
     /// </summary>
-    float Yaw { get; }
+    float Yaw
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the normalized yaw (0-360).
     /// </summary>
-    float NormalizedYaw { get; }
+    float NormalizedYaw
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the player's pitch.
     /// </summary>
-    float Pitch { get; }
+    float Pitch
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets whether the player is on the ground.
     /// </summary>
-    bool IsGrounded { get; }
+    bool IsGrounded
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets or sets whether the player is in fly mode.
     /// </summary>
-    bool IsFlying { get; set; }
+    bool IsFlying
+    {
+        get; set;
+    }
 
     /// <summary>
     /// Gets whether the player is swimming.
     /// </summary>
-    bool IsSwimming { get; }
+    bool IsSwimming
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets whether the player is underwater.
     /// </summary>
-    bool IsUnderwater { get; }
+    bool IsUnderwater
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the current friction acting on the player.
     /// </summary>
-    float Friction { get; }
+    float Friction
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets or sets whether the player should use dev speed boost.
     /// </summary>
-    bool UseDevSpeedBoost { get; set; }
+    bool UseDevSpeedBoost
+    {
+        get; set;
+    }
 
     // For DebugHud's "Standing on"
     // We might need a way to get block info in SDK

@@ -25,12 +25,18 @@ public class DefaultPlayerMotor : IMotor
     /// <summary>
     /// Gets or sets the sensor data used to choose and drive the active motor.
     /// </summary>
-    public GeospatialSensorData? SensorData { get; set; }
+    public GeospatialSensorData? SensorData
+    {
+        get; set;
+    }
 
     /// <summary>
     /// Gets or sets the material data (ground friction, current fluid) for the active motor.
     /// </summary>
-    public MaterialSensorData? Material { get; set; }
+    public MaterialSensorData? Material
+    {
+        get; set;
+    }
 
     /// <summary>
     /// Gets the friction coefficient applied by the active motor on its last pass.
@@ -49,7 +55,9 @@ public class DefaultPlayerMotor : IMotor
     private PlayerMotorBase SelectMotor(MovementIntent intent)
     {
         if (intent.IsFlying)
+        {
             return _flying;
+        }
 
         var inFluid = (SensorData?.IsSwimming ?? false) || (SensorData?.IsOnFluidSurface ?? false);
         return inFluid ? _fluid : _walking;

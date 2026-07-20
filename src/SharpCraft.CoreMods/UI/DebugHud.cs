@@ -20,7 +20,10 @@ public class DebugHud : IHud
     public void Draw(double deltaTime, IGui gui, IHudContext context)
     {
         var diagnostics = context.Diagnostics;
-        if (diagnostics == null) return;
+        if (diagnostics == null)
+        {
+            return;
+        }
 
         gui.SetNextWindowPos(new Vector2(10, 10), GuiCond.FirstUseEver);
         gui.SetNextWindowSize(new Vector2(400, 600), GuiCond.FirstUseEver);
@@ -99,7 +102,10 @@ public class DebugHud : IHud
 
     private static void DrawPlayerTab(IGui gui, IPlayer? player)
     {
-        if (player == null) return;
+        if (player == null)
+        {
+            return;
+        }
 
         gui.Panel("Player", () =>
         {
@@ -127,7 +133,10 @@ public class DebugHud : IHud
 
     private static void DrawEnvironmentTab(IGui gui, IPlayer? player)
     {
-        if (player == null) return;
+        if (player == null)
+        {
+            return;
+        }
 
         gui.Panel("Environment", () =>
         {
@@ -179,6 +188,10 @@ public class DebugHud : IHud
         }
     }
 
-    public void OnAwake() { }
-    public void OnUpdate(double deltaTime) { }
+    public void OnAwake()
+    {
+    }
+    public void OnUpdate(double deltaTime)
+    {
+    }
 }

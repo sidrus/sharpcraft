@@ -71,7 +71,11 @@ public sealed class ComputeProgram : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _gl.DeleteProgram(_handle);
         _disposed = true;
     }

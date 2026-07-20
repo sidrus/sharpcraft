@@ -10,11 +10,20 @@ public class InputManager : ILifecycle, IDisposable
 
     private bool _disposed;
 
-    public IKeyboard Keyboard { get; }
+    public IKeyboard Keyboard
+    {
+        get;
+    }
 
-    public IMouse Mouse { get; }
+    public IMouse Mouse
+    {
+        get;
+    }
 
-    public Vector2 MouseDelta { get; private set; }
+    public Vector2 MouseDelta
+    {
+        get; private set;
+    }
 
     private Vector2 _lastMousePos;
 

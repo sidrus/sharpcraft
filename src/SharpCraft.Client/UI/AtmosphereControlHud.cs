@@ -25,19 +25,33 @@ public class AtmosphereControlHud : IInteractiveHud
 
     public event Action? OnVisibilityChanged;
 
-    public void OnAwake() { }
+    public void OnAwake()
+    {
+    }
 
-    public void OnUpdate(double deltaTime) { }
+    public void OnUpdate(double deltaTime)
+    {
+    }
 
     public void Draw(double deltaTime, IGui gui, IHudContext context)
     {
-        if (!_isVisible) return;
-        if (context is not HudContext clientContext) return;
+        if (!_isVisible)
+        {
+            return;
+        }
+
+        if (context is not HudContext clientContext)
+        {
+            return;
+        }
 
         var post = clientContext.PostProcessing;
         var worldTime = clientContext.Lighting?.WorldTime;
 
-        if (worldTime == null || post == null) return;
+        if (worldTime == null || post == null)
+        {
+            return;
+        }
 
         gui.SetNextWindowSize(new Vector2(420, 600), GuiCond.FirstUseEver);
         var open = _isVisible;
@@ -68,9 +82,16 @@ public class AtmosphereControlHud : IInteractiveHud
                 gui.Checkbox("Pause Time", ref isPaused);
                 worldTime.IsPaused = isPaused;
 
-                if (gui.Button("Sync to 10m Day")) duration = 10f;
+                if (gui.Button("Sync to 10m Day"))
+                {
+                    duration = 10f;
+                }
+
                 gui.SameLine();
-                if (gui.Button("Sync to 1h Day")) duration = 60f;
+                if (gui.Button("Sync to 1h Day"))
+                {
+                    duration = 60f;
+                }
 
                 gui.SliderFloat("Day Duration (min)", ref duration, 1f, 120f);
                 if (Math.Abs(duration - worldTime.DayDurationInMinutes) > 0.01f)
@@ -89,21 +110,51 @@ public class AtmosphereControlHud : IInteractiveHud
 
                 // Quick time presets
                 gui.Text("Quick Presets:");
-                if (gui.Button("Dawn")) SetTimeToHour(worldTime, 5.5f);
-                gui.SameLine();
-                if (gui.Button("Sunrise")) SetTimeToHour(worldTime, 6.0f);
-                gui.SameLine();
-                if (gui.Button("Morning")) SetTimeToHour(worldTime, 9.0f);
-                gui.SameLine();
-                if (gui.Button("Noon")) SetTimeToHour(worldTime, 12.0f);
+                if (gui.Button("Dawn"))
+                {
+                    SetTimeToHour(worldTime, 5.5f);
+                }
 
-                if (gui.Button("Afternoon")) SetTimeToHour(worldTime, 15.0f);
                 gui.SameLine();
-                if (gui.Button("Sunset")) SetTimeToHour(worldTime, 18.0f);
+                if (gui.Button("Sunrise"))
+                {
+                    SetTimeToHour(worldTime, 6.0f);
+                }
+
                 gui.SameLine();
-                if (gui.Button("Dusk")) SetTimeToHour(worldTime, 19.0f);
+                if (gui.Button("Morning"))
+                {
+                    SetTimeToHour(worldTime, 9.0f);
+                }
+
                 gui.SameLine();
-                if (gui.Button("Night")) SetTimeToHour(worldTime, 22.0f);
+                if (gui.Button("Noon"))
+                {
+                    SetTimeToHour(worldTime, 12.0f);
+                }
+
+                if (gui.Button("Afternoon"))
+                {
+                    SetTimeToHour(worldTime, 15.0f);
+                }
+
+                gui.SameLine();
+                if (gui.Button("Sunset"))
+                {
+                    SetTimeToHour(worldTime, 18.0f);
+                }
+
+                gui.SameLine();
+                if (gui.Button("Dusk"))
+                {
+                    SetTimeToHour(worldTime, 19.0f);
+                }
+
+                gui.SameLine();
+                if (gui.Button("Night"))
+                {
+                    SetTimeToHour(worldTime, 22.0f);
+                }
             }
 
             gui.Spacing();
@@ -206,11 +257,22 @@ public class AtmosphereControlHud : IInteractiveHud
 
                 gui.Text($"Current: {GetToneMapName(toneMapMode)}");
 
-                if (gui.Button("ACES Filmic")) toneMapMode = 0;
+                if (gui.Button("ACES Filmic"))
+                {
+                    toneMapMode = 0;
+                }
+
                 gui.SameLine();
-                if (gui.Button("Cinematic")) toneMapMode = 1;
+                if (gui.Button("Cinematic"))
+                {
+                    toneMapMode = 1;
+                }
+
                 gui.SameLine();
-                if (gui.Button("Reinhard")) toneMapMode = 2;
+                if (gui.Button("Reinhard"))
+                {
+                    toneMapMode = 2;
+                }
 
                 post.ToneMapMode = toneMapMode;
             }
@@ -260,7 +322,10 @@ public class AtmosphereControlHud : IInteractiveHud
         // NormalizedTime maps: 6 AM → 0, 12 PM → 0.25, 6 PM → 0.5, 12 AM → 0.75
         var normalizedTime = ((hour - 6f + 24f) % 24f) / 24f;
         var angle = normalizedTime * MathF.PI * 2f + MathF.PI;
-        if (angle >= MathF.PI * 2f) angle -= MathF.PI * 2f;
+        if (angle >= MathF.PI * 2f)
+        {
+            angle -= MathF.PI * 2f;
+        }
 
         var timeScale = (MathF.PI * 2f) / (worldTime.DayDurationInMinutes * 60f);
         worldTime.Time = angle / timeScale;
@@ -268,10 +333,26 @@ public class AtmosphereControlHud : IInteractiveHud
 
     private static string GetTwilightPhase(float sunElevation)
     {
-        if (sunElevation > 0.0f) return "Day";
-        if (sunElevation > -0.105f) return "Civil Twilight";
-        if (sunElevation > -0.208f) return "Nautical Twilight";
-        if (sunElevation > -0.309f) return "Astronomical Twilight";
+        if (sunElevation > 0.0f)
+        {
+            return "Day";
+        }
+
+        if (sunElevation > -0.105f)
+        {
+            return "Civil Twilight";
+        }
+
+        if (sunElevation > -0.208f)
+        {
+            return "Nautical Twilight";
+        }
+
+        if (sunElevation > -0.309f)
+        {
+            return "Astronomical Twilight";
+        }
+
         return "Night";
     }
 

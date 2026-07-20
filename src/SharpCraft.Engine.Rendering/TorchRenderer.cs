@@ -75,7 +75,13 @@ public sealed class TorchRenderer : IDisposable
 
     public int Count
     {
-        get { lock (_lock) { return _torches.Count; } }
+        get
+        {
+            lock (_lock)
+            {
+                return _torches.Count;
+            }
+        }
     }
 
     public void Render(RenderContext context)
@@ -83,7 +89,11 @@ public sealed class TorchRenderer : IDisposable
         Vector3[] snapshot;
         lock (_lock)
         {
-            if (_torches.Count == 0) return;
+            if (_torches.Count == 0)
+            {
+                return;
+            }
+
             snapshot = _torches.ToArray();
         }
 
@@ -163,9 +173,14 @@ public sealed class TorchRenderer : IDisposable
 
     private static void AddVertex(List<float> verts, Vector3 pos, float u, float v, Vector3 normal)
     {
-        verts.Add(pos.X); verts.Add(pos.Y); verts.Add(pos.Z);
-        verts.Add(u); verts.Add(v);
-        verts.Add(normal.X); verts.Add(normal.Y); verts.Add(normal.Z);
+        verts.Add(pos.X);
+        verts.Add(pos.Y);
+        verts.Add(pos.Z);
+        verts.Add(u);
+        verts.Add(v);
+        verts.Add(normal.X);
+        verts.Add(normal.Y);
+        verts.Add(normal.Z);
     }
 
     // === Procedural texture =====================================================================

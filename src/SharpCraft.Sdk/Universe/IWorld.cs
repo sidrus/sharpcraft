@@ -10,7 +10,10 @@ public interface IWorld
     /// <summary>
     /// Gets the current size of the world (render distance).
     /// </summary>
-    int Size { get; }
+    int Size
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the block at the specified world coordinates.

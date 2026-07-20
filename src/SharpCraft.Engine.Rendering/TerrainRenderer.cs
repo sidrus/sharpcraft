@@ -120,10 +120,15 @@ public sealed class TerrainRenderer : IDisposable
         {
             var chunkPos = chunk.WorldPosition;
             if (!_frustum.IsBoxInFrustum(chunkPos, chunkPos + new Vector3(16, 256, 16)))
+            {
                 continue;
+            }
 
             var renderChunk = _cache.Get(chunk);
-            if (chunk.IsDirty) { _meshManager.Enqueue(chunk); }
+            if (chunk.IsDirty)
+            {
+                _meshManager.Enqueue(chunk);
+            }
 
             var model = Matrix4x4.CreateTranslation(chunkPos);
             _shader.SetUniform("model", model);

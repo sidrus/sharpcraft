@@ -44,7 +44,10 @@ public class DefaultWorldGenerator : IWorldGenerator
 
     private void InitializeNoise(long seed)
     {
-        if (_currentSeed == seed && _continentNoise != null) return;
+        if (_currentSeed == seed && _continentNoise != null)
+        {
+            return;
+        }
 
         var s = (int)seed;
         _continentNoise = new SimplexNoise(s);

@@ -8,15 +8,24 @@ public interface IAvatarProvider
     /// <summary>
     /// Gets the name of the user.
     /// </summary>
-    string Name { get; }
+    string Name
+    {
+        get;
+    }
 
     /// <summary>
     /// Gets the texture ID of the user's avatar.
     /// </summary>
-    IntPtr? AvatarTextureId { get; }
+    IntPtr? AvatarTextureId
+    {
+        get;
+    }
 
     /// <summary>
     /// Whether the avatar is valid and loaded.
     /// </summary>
-    bool IsValid { get; }
+    bool IsValid
+    {
+        get;
+    }
 }

@@ -10,7 +10,10 @@ public interface IPhysicsSystem
     /// <summary>
     /// Gets or sets the gravity acceleration.
     /// </summary>
-    public float Gravity { get; set; }
+    public float Gravity
+    {
+        get; set;
+    }
 
     /// <summary>
     /// Moves an entity and resolves any collisions that occur along the way.

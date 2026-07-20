@@ -50,7 +50,10 @@ public sealed class TemporalAa : IDisposable
         unsafe
         {
             fixed (float* p = quad)
+            {
                 gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(quad.Length * sizeof(float)), p, BufferUsageARB.StaticDraw);
+            }
+
             gl.EnableVertexAttribArray(0);
             gl.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), (void*)0);
             gl.EnableVertexAttribArray(1);
@@ -128,7 +131,11 @@ public sealed class TemporalAa : IDisposable
 
     private void EnsureTargets(int width, int height)
     {
-        if (_historyA != null && _width == width && _height == height) return;
+        if (_historyA != null && _width == width && _height == height)
+        {
+            return;
+        }
+
         _historyA?.Dispose();
         _historyB?.Dispose();
         _historyA = new Framebuffer(_gl, width, height, hdr: true);

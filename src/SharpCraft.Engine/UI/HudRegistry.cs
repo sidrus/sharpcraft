@@ -36,8 +36,12 @@ public class HudRegistry : IHudRegistry
             drawAction(deltaTime);
         }
 
-        public void OnAwake() { }
+        public void OnAwake()
+        {
+        }
 
-        public void OnUpdate(double deltaTime) { }
+        public void OnUpdate(double deltaTime)
+        {
+        }
     }
 }

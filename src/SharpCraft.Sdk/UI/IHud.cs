@@ -10,7 +10,10 @@ public interface IHud : ILifecycle
     /// <summary>
     /// Gets the unique name of the HUD element.
     /// </summary>
-    string Name { get; }
+    string Name
+    {
+        get;
+    }
 
     /// <summary>
     /// Draws the HUD element.

@@ -2,11 +2,26 @@
 
 public readonly record struct Material
 {
-    public string AlbedoPath { get; }
-    public string? NormalPath { get; init; }
-    public string? AmbientOcclusionPath { get; init; }
-    public string? MetallicPath { get; init; }
-    public string? RoughnessPath { get; init; }
+    public string AlbedoPath
+    {
+        get;
+    }
+    public string? NormalPath
+    {
+        get; init;
+    }
+    public string? AmbientOcclusionPath
+    {
+        get; init;
+    }
+    public string? MetallicPath
+    {
+        get; init;
+    }
+    public string? RoughnessPath
+    {
+        get; init;
+    }
 
     public Material(string albedoPath)
     {

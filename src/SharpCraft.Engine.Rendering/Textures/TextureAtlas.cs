@@ -16,7 +16,10 @@ public class TextureAtlas(GL gl, IRegistry<TextureData> assets) : IDisposable, I
     public void Build()
     {
         var textures = assets.All.ToList();
-        if (textures.Count == 0) return;
+        if (textures.Count == 0)
+        {
+            return;
+        }
 
         var maxTileW = textures.Max(t => t.Value.Width);
         var maxTileH = textures.Max(t => t.Value.Height);
@@ -45,29 +48,49 @@ public class TextureAtlas(GL gl, IRegistry<TextureData> assets) : IDisposable, I
             CopyLayer(data.Data, diffuseData, xOffset, yOffset, atlasWidth, data.Width, data.Height);
 
             if (data.NormalData != null)
+            {
                 CopyLayer(data.NormalData, normalData, xOffset, yOffset, atlasWidth, data.Width, data.Height);
+            }
             else
+            {
                 FillLayer(normalData, xOffset, yOffset, atlasWidth, data.Width, data.Height, 128, 128, 255, 255); // Default flat normal
+            }
 
             if (data.AoData != null)
+            {
                 CopyLayer(data.AoData, aoData, xOffset, yOffset, atlasWidth, data.Width, data.Height);
+            }
             else
+            {
                 FillLayer(aoData, xOffset, yOffset, atlasWidth, data.Width, data.Height, 255, 255, 255, 255); // Default white AO
+            }
 
             if (data.SpecularData != null)
+            {
                 CopyLayer(data.SpecularData, specularData, xOffset, yOffset, atlasWidth, data.Width, data.Height);
+            }
             else
+            {
                 FillLayer(specularData, xOffset, yOffset, atlasWidth, data.Width, data.Height, 0, 0, 0, 255); // Default no specular
+            }
 
             if (data.MetallicData != null)
+            {
                 CopyLayer(data.MetallicData, metallicData, xOffset, yOffset, atlasWidth, data.Width, data.Height);
+            }
             else
+            {
                 FillLayer(metallicData, xOffset, yOffset, atlasWidth, data.Width, data.Height, 0, 0, 0, 255); // Default to black (non-metallic)
+            }
 
             if (data.RoughnessData != null)
+            {
                 CopyLayer(data.RoughnessData, roughnessData, xOffset, yOffset, atlasWidth, data.Width, data.Height);
+            }
             else
+            {
                 FillLayer(roughnessData, xOffset, yOffset, atlasWidth, data.Width, data.Height, 255, 255, 255, 255); // Default full roughness
+            }
 
             _uvs[location] = (
                 (float)xOffset / atlasWidth,

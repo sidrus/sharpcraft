@@ -71,13 +71,30 @@ public class KeyboardMouseInputProvider : IInputProvider
         var keyboard = _input.Keyboards[0];
         var moveDir = Vector3.Zero;
 
-        if (keyboard.IsKeyPressed(Key.W)) moveDir += forward;
-        if (keyboard.IsKeyPressed(Key.S)) moveDir -= forward;
-        if (keyboard.IsKeyPressed(Key.A)) moveDir -= right;
-        if (keyboard.IsKeyPressed(Key.D)) moveDir += right;
+        if (keyboard.IsKeyPressed(Key.W))
+        {
+            moveDir += forward;
+        }
+
+        if (keyboard.IsKeyPressed(Key.S))
+        {
+            moveDir -= forward;
+        }
+
+        if (keyboard.IsKeyPressed(Key.A))
+        {
+            moveDir -= right;
+        }
+
+        if (keyboard.IsKeyPressed(Key.D))
+        {
+            moveDir += right;
+        }
 
         if (moveDir.LengthSquared() > 0)
+        {
             moveDir = Vector3.Normalize(moveDir);
+        }
 
         return new MovementIntent(
             moveDir,

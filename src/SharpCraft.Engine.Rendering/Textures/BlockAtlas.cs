@@ -28,10 +28,14 @@ public sealed class BlockAtlas(IAtlasUvs atlas, IBlockRegistry blocks)
 
         if (loc is { } location && atlas.TryGetUvs(location, out var uvRect))
         {
-            uvs[0] = uvRect.U; uvs[1] = uvRect.V + uvRect.Height;
-            uvs[2] = uvRect.U + uvRect.Width; uvs[3] = uvRect.V + uvRect.Height;
-            uvs[4] = uvRect.U + uvRect.Width; uvs[5] = uvRect.V;
-            uvs[6] = uvRect.U; uvs[7] = uvRect.V;
+            uvs[0] = uvRect.U;
+            uvs[1] = uvRect.V + uvRect.Height;
+            uvs[2] = uvRect.U + uvRect.Width;
+            uvs[3] = uvRect.V + uvRect.Height;
+            uvs[4] = uvRect.U + uvRect.Width;
+            uvs[5] = uvRect.V;
+            uvs[6] = uvRect.U;
+            uvs[7] = uvRect.V;
         }
         else
         {

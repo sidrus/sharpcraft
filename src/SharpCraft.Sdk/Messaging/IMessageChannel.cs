@@ -8,7 +8,10 @@ public interface IMessageChannel
     /// <summary>
     /// Gets the name of the channel.
     /// </summary>
-    string Name { get; }
+    string Name
+    {
+        get;
+    }
 
     /// <summary>
     /// Publishes a message to the channel.

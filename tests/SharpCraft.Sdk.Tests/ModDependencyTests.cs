@@ -10,8 +10,12 @@ public class ModDependencyTests
     {
         public ModManifest Manifest { get; } = new(id, id, "Author", "1.0.0", deps, [], []);
         public string BaseDirectory { get; set; } = string.Empty;
-        public void OnEnable() { }
-        public void OnDisable() { }
+        public void OnEnable()
+        {
+        }
+        public void OnDisable()
+        {
+        }
     }
 
     [Fact]

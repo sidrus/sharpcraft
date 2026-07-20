@@ -135,7 +135,11 @@ public partial class ModLoader(ILogger<ModLoader> logger, ISharpCraftSdk sdk)
 
         void Visit(IMod mod)
         {
-            if (visited.Contains(mod.Manifest.Id)) return;
+            if (visited.Contains(mod.Manifest.Id))
+            {
+                return;
+            }
+
             if (visiting.Contains(mod.Manifest.Id))
             {
                 throw new CircularReferenceException($"Detected circular dependency involving mod '{mod.Manifest.Id}'.");

@@ -12,7 +12,11 @@ public class DeveloperHud : IInteractiveHud
         get;
         set
         {
-            if (field == value) return;
+            if (field == value)
+            {
+                return;
+            }
+
             field = value;
             OnVisibilityChanged?.Invoke();
         }
@@ -22,7 +26,10 @@ public class DeveloperHud : IInteractiveHud
 
     public void Draw(double deltaTime, IGui gui, IHudContext context)
     {
-        if (!IsVisible) return;
+        if (!IsVisible)
+        {
+            return;
+        }
 
         var player = context.Player;
 
@@ -59,6 +66,10 @@ public class DeveloperHud : IInteractiveHud
         }
     }
 
-    public void OnAwake() { }
-    public void OnUpdate(double deltaTime) { }
+    public void OnAwake()
+    {
+    }
+    public void OnUpdate(double deltaTime)
+    {
+    }
 }
