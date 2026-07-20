@@ -1,15 +1,11 @@
-﻿namespace SharpCraft.Sdk.Blocks;
+namespace SharpCraft.Sdk.Blocks;
 
 /// <summary>
 /// Represents a single block in the world.
 /// </summary>
-public struct Block
+/// <param name="Type">The type of the block.</param>
+public readonly record struct Block(BlockType Type)
 {
-    /// <summary>
-    /// Gets or sets the type of the block.
-    /// </summary>
-    public BlockType Type { get; set; }
-
     /// <summary>
     /// Gets a value indicating whether the block is solid (collidable).
     /// </summary>

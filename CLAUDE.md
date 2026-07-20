@@ -50,6 +50,16 @@ A mod is a directory with `mod.json` (`ModManifest`: id, name, author, version, 
 
 - **Never use the null-forgiving operator `!`.** Use locals, pattern matching, or explicit null checks instead.
 - Prefer primary constructors and records (used pervasively); match the surrounding file's style.
+- One type per file.
+- Allman braces on every block, including single-line bodies.
+
+## Testing
+
+- **Always** use test driven development.
+- All tests must conform strictly to Detroit-style/classicist conventions.
+- Only assert on observable behavior/state.
+- Communication-based assertions are acceptable only when testing boundaries with unmanaged dependencies.
+- Naming convention: Member_Scenario_ShouldExpected
 
 # Agent Guidance: dotnet-skills
 

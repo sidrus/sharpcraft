@@ -168,7 +168,7 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
     {
         if (worldY is < 0 or >= Chunk.Height)
         {
-            return new Block { Type = BlockType.Air };
+            return new Block(BlockType.Air);
         }
 
         var chunkX = worldX >> 4;
@@ -182,7 +182,7 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
             return chunk.GetBlock(localX, worldY, localZ);
         }
 
-        return new Block { Type = BlockType.Air };
+        return new Block(BlockType.Air);
     }
 
     /// <summary>

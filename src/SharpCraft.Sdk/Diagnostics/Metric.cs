@@ -1,4 +1,4 @@
-﻿namespace SharpCraft.Sdk.Diagnostics;
+namespace SharpCraft.Sdk.Diagnostics;
 
 /// <summary>
 /// Represents a metric that collects samples over time.
@@ -14,7 +14,10 @@ public class Metric(string name, int maxSamples)
     {
         _samples[_head] = value;
         _head = (_head + 1) % maxSamples;
-        if (_count < maxSamples) _count++;
+        if (_count < maxSamples)
+        {
+            _count++;
+        }
     }
 
     public float[] GetSamples()
@@ -26,9 +29,68 @@ public class Metric(string name, int maxSamples)
         }
         return result;
     }
-    
+
     public float Latest => _count > 0 ? _samples[(_head - 1 + maxSamples) % maxSamples] : 0;
-    public float Average => _count > 0 ? GetSamples().Average() : 0;
-    public float Max => _count > 0 ? GetSamples().Max() : 0;
-    public float Min => _count > 0 ? GetSamples().Min() : 0;
+
+    // Sum/min/max are order-independent, and the live samples always occupy slots
+    // [0, _count), so these iterate the backing array directly without allocating.
+    public float Average
+    {
+        get
+        {
+            if (_count == 0)
+            {
+                return 0;
+            }
+
+            var sum = 0f;
+            for (var i = 0; i < _count; i++)
+            {
+                sum += _samples[i];
+            }
+            return sum / _count;
+        }
+    }
+
+    public float Max
+    {
+        get
+        {
+            if (_count == 0)
+            {
+                return 0;
+            }
+
+            var max = _samples[0];
+            for (var i = 1; i < _count; i++)
+            {
+                if (_samples[i] > max)
+                {
+                    max = _samples[i];
+                }
+            }
+            return max;
+        }
+    }
+
+    public float Min
+    {
+        get
+        {
+            if (_count == 0)
+            {
+                return 0;
+            }
+
+            var min = _samples[0];
+            for (var i = 1; i < _count; i++)
+            {
+                if (_samples[i] < min)
+                {
+                    min = _samples[i];
+                }
+            }
+            return min;
+        }
+    }
 }

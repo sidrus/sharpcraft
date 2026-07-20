@@ -1,7 +1,8 @@
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Numerics;
+using SharpCraft.Sdk.Physics;
 
-namespace SharpCraft.Sdk.Physics.Sensors.Spatial;
+namespace SharpCraft.Engine.Physics.Sensors.Spatial;
 
 /// <summary>
 /// Detects spatial information about an entity's surroundings (blocks above/below, fluid

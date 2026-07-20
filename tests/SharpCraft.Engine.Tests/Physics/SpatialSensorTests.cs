@@ -4,7 +4,7 @@ using SharpCraft.Sdk.Physics;
 using AwesomeAssertions;
 using NSubstitute;
 using SharpCraft.Sdk.Blocks;
-using SharpCraft.Sdk.Physics.Sensors.Spatial;
+using SharpCraft.Engine.Physics.Sensors.Spatial;
 
 namespace SharpCraft.Engine.Tests.Physics;
 
@@ -21,7 +21,7 @@ public class SpatialSensorTests
         var entity = new PhysicsEntity(new Transform { Position = new Vector3(0.5f, 1.0f, 0.5f) }, _physicsMock);
 
         _collisionProviderMock.GetBlock(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>())
-            .Returns(new Block { Type = BlockType.Air });
+            .Returns(new Block(BlockType.Air));
 
         // Act
         var result = sensor.Sense(_collisionProviderMock, entity);
@@ -44,7 +44,7 @@ public class SpatialSensorTests
         var entity = new PhysicsEntity(transform, _physicsMock);
 
         _collisionProviderMock.GetBlock(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>())
-            .Returns(new Block { Type = BlockType.Air });
+            .Returns(new Block(BlockType.Air));
 
         // Act
         var result = sensor.Sense(_collisionProviderMock, entity);

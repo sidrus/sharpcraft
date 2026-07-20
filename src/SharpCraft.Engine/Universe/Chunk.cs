@@ -87,7 +87,7 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
     {
         if (x < 0 || x >= Size || y < 0 || y >= Height || z < 0 || z >= Size)
         {
-            return new Block { Type = BlockType.Air };
+            return new Block(BlockType.Air);
         }
 
         _blockLock.EnterReadLock();
@@ -118,7 +118,7 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
         _blockLock.EnterWriteLock();
         try
         {
-            _blocks[x, y, z].Type = type;
+            _blocks[x, y, z] = new Block(type);
             Volatile.Write(ref _isDirtyBacking, 1);
         }
         finally

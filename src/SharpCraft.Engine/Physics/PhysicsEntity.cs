@@ -18,7 +18,7 @@ public sealed class PhysicsEntity(Transform transform, IPhysicsSystem physics) :
     public Quaternion Rotation
     {
         get => _transform.Rotation;
-        set => _transform.Rotation = value;
+        set => _transform = _transform with { Rotation = value };
     }
 
     /// <inheritdoc />
@@ -33,7 +33,7 @@ public sealed class PhysicsEntity(Transform transform, IPhysicsSystem physics) :
     /// <inheritdoc />
     public void SetPosition(Vector3 position)
     {
-        _transform.Position = position;
+        _transform = _transform with { Position = position };
         _prevPosition = position;
         Velocity = Vector3.Zero;
     }
@@ -62,7 +62,7 @@ public sealed class PhysicsEntity(Transform transform, IPhysicsSystem physics) :
         var oldPos = _transform.Position;
         var movement = Velocity * deltaTime;
 
-        _transform.Position = physics.MoveAndResolve(oldPos, movement, Size);
+        _transform = _transform with { Position = physics.MoveAndResolve(oldPos, movement, Size) };
 
         // Reset velocity for axes that were blocked by a wall/floor
         var actualMovement = _transform.Position - oldPos;

@@ -37,8 +37,6 @@ public static class CoreBlocks
             "sharpcraft:water",
             "Water",
             Type: BlockType.Water,
-            IsSolid: false,
-            IsTransparent: true,
             TextureSides: new ResourceLocation(CoreMod.Namespace, "water")
         ),
         new(

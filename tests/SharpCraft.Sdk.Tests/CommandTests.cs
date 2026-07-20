@@ -10,7 +10,7 @@ public class CommandTests
     {
         var registry = new CommandRegistry();
         var executed = false;
-        string[] receivedArgs = null!;
+        IReadOnlyList<string> receivedArgs = [];
 
         registry.RegisterCommand("test", ctx =>
         {

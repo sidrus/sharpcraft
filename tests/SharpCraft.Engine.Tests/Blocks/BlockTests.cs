@@ -16,7 +16,7 @@ public class BlockTests
     [InlineData(BlockType.Bedrock, true)]
     public void IsSolid_ShouldReturnExpectedValue(BlockType type, bool expected)
     {
-        var block = new Block { Type = type };
+        var block = new Block(type);
 
         block.IsSolid.Should().Be(expected);
     }
@@ -28,7 +28,7 @@ public class BlockTests
     [InlineData(BlockType.Grass, false)]
     public void IsTransparent_ShouldReturnExpectedValue(BlockType type, bool expected)
     {
-        var block = new Block { Type = type };
+        var block = new Block(type);
 
         block.IsTransparent.Should().Be(expected);
     }
@@ -42,7 +42,7 @@ public class BlockTests
     [InlineData(BlockType.Bedrock, 0.8f)]
     public void Friction_ShouldReturnExpectedValue(BlockType type, float expected)
     {
-        var block = new Block { Type = type };
+        var block = new Block(type);
 
         block.Friction.Should().Be(expected);
     }

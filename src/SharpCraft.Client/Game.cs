@@ -427,7 +427,7 @@ public partial class Game : IDisposable
             _ => def.TextureSides
         };
 
-        if (loc != null && _atlas.TryGetUvs(loc, out var uvRect))
+        if (loc is { } location && _atlas.TryGetUvs(location, out var uvRect))
         {
             uvs[0] = uvRect.U; uvs[1] = uvRect.V + uvRect.Height;
             uvs[2] = uvRect.U + uvRect.Width; uvs[3] = uvRect.V + uvRect.Height;

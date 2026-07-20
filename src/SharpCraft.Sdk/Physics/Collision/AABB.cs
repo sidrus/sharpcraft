@@ -1,24 +1,14 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 namespace SharpCraft.Sdk.Physics.Collision;
 
 /// <summary>
 /// Represents an Axis-Aligned Bounding Box (AABB) for collision detection.
 /// </summary>
-/// <param name="min">The minimum corner of the bounding box.</param>
-/// <param name="max">The maximum corner of the bounding box.</param>
-public record struct AABB(Vector3 min, Vector3 max)
+/// <param name="Min">The minimum corner of the bounding box.</param>
+/// <param name="Max">The maximum corner of the bounding box.</param>
+public record struct AABB(Vector3 Min, Vector3 Max)
 {
-    /// <summary>
-    /// Gets the minimum corner of the bounding box.
-    /// </summary>
-    public Vector3 Min => min;
-
-    /// <summary>
-    /// Gets the maximum corner of the bounding box.
-    /// </summary>
-    public Vector3 Max => max;
-
     /// <summary>
     /// Gets the center of the bounding box.
     /// </summary>

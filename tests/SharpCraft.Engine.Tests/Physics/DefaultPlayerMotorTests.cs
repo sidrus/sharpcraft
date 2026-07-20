@@ -5,7 +5,7 @@ using SharpCraft.Sdk.Physics;
 using AwesomeAssertions;
 using NSubstitute;
 using SharpCraft.Sdk.Blocks;
-using SharpCraft.Sdk.Physics.Sensors.Spatial;
+using SharpCraft.Engine.Physics.Sensors.Spatial;
 
 namespace SharpCraft.Engine.Tests.Physics;
 

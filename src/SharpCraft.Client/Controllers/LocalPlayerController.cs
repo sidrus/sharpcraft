@@ -8,7 +8,7 @@ using SharpCraft.Sdk;
 using SharpCraft.Sdk.Blocks;
 using SharpCraft.Sdk.Input;
 using SharpCraft.Sdk.Physics;
-using SharpCraft.Sdk.Physics.Sensors.Spatial;
+using SharpCraft.Engine.Physics.Sensors.Spatial;
 using SharpCraft.Sdk.Universe;
 
 namespace SharpCraft.Client.Controllers;

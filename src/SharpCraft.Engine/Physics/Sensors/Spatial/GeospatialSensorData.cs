@@ -1,6 +1,6 @@
 using SharpCraft.Sdk.Blocks;
 
-namespace SharpCraft.Sdk.Physics.Sensors.Spatial;
+namespace SharpCraft.Engine.Physics.Sensors.Spatial;
 
 /// <summary>
 /// Data captured by a geospatial sensor: the surrounding environment plus the entity's

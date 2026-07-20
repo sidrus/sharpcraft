@@ -18,13 +18,13 @@ internal static class DefaultCommands
 
     private static void HandleSun(ISharpCraftSdk sdk, CommandContext ctx)
     {
-        if (ctx.Args.Length < 1)
+        if (ctx.Args.Count < 1)
         {
             SendChat(sdk, "Usage: /sun <intensity> or /sun color <r> <g> <b>", new Vector4(1, 0.3f, 0.3f, 1));
             return;
         }
 
-        if (ctx.Args[0] == "color" && ctx.Args.Length == 4)
+        if (ctx.Args[0] == "color" && ctx.Args.Count == 4)
         {
             if (float.TryParse(ctx.Args[1], out var r) &&
                 float.TryParse(ctx.Args[2], out var g) &&
@@ -45,7 +45,7 @@ internal static class DefaultCommands
     {
         if (ctx.Player == null) return;
 
-        if (ctx.Args.Length != 3)
+        if (ctx.Args.Count != 3)
         {
             SendChat(sdk, "Usage: /teleport <x> <y> <z>", new Vector4(1, 0.3f, 0.3f, 1));
             return;

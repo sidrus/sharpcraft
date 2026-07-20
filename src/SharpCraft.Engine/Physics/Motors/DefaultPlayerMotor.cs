@@ -1,6 +1,6 @@
 using SharpCraft.Sdk.Physics;
 using SharpCraft.Sdk.Physics.Motors;
-using SharpCraft.Sdk.Physics.Sensors.Spatial;
+using SharpCraft.Engine.Physics.Sensors.Spatial;
 
 namespace SharpCraft.Engine.Physics.Motors;
 
