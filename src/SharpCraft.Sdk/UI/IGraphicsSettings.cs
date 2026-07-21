@@ -23,7 +23,7 @@ public interface IGraphicsSettings
     float AutoExposureKey
     {
         get; set;
-    }      // target middle-grey (~0.18)
+    }      // target middle-gray (~0.18)
     float AutoExposureMin
     {
         get; set;

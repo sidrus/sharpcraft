@@ -68,9 +68,9 @@ public class Chunk(Vector2<int> coord, IBlockRegistry blockRegistry) : IChunkDat
     public bool IsDirty => Volatile.Read(ref _isDirtyBacking) == 1;
 
     /// <summary>
-    /// Flags the chunk for re-meshing. Needed when a neighbouring chunk is loaded or unloaded: this
-    /// chunk's boundary faces depend on the neighbour's blocks (see ShouldRenderFace's cross-chunk
-    /// path), so a neighbour appearing/disappearing must trigger a re-mesh or the border faces go
+    /// Flags the chunk for re-meshing. Needed when a neighboring chunk is loaded or unloaded: this
+    /// chunk's boundary faces depend on the neighbor's blocks (see ShouldRenderFace's cross-chunk
+    /// path), so a neighbor appearing/disappearing must trigger a re-mesh or the border faces go
     /// stale (culled against blocks that no longer exist → see-through holes, or vice-versa).
     /// </summary>
     public void MarkDirty() => Volatile.Write(ref _isDirtyBacking, 1);

@@ -62,7 +62,7 @@ public static class MathUtils
     /// <summary>
     /// Converts a yaw angle in degrees to a cardinal or intercardinal direction.
     /// </summary>
-    /// <param name="yaw">The yaw angle in degrees (0 = North, negative = clockwise towards East, positive = counter-clockwise towards West).</param>
+    /// <param name="yaw">The yaw angle in degrees (0 = North, negative = clockwise toward East, positive = counter-clockwise toward West).</param>
     /// <returns>A string representing the heading.</returns>
     public static string GetHeading(float yaw)
     {

@@ -17,7 +17,7 @@ public static class ChunkMesher
     /// </summary>
     /// <param name="blocks">The chunk's block data, sized [Size, Height, Size].</param>
     /// <param name="worldPosition">The chunk origin in world space, for cross-chunk neighbor lookups.</param>
-    /// <param name="world">The world context, queried for blocks in neighbouring chunks.</param>
+    /// <param name="world">The world context, queried for blocks in neighboring chunks.</param>
     /// <param name="uvResolver">Resolves UV coordinates for a block id and face direction.</param>
     public static (ChunkMesh Opaque, ChunkMesh Transparent) Generate(
         Block[,,] blocks, Vector3 worldPosition, IWorld world, Chunk.UvResolver uvResolver)
@@ -111,7 +111,7 @@ public static class ChunkMesher
                 return false;
             }
 
-            // Solids render faces against air or ANY transparent neighbour (incl. water), so the
+            // Solids render faces against air or ANY transparent neighbor (incl. water), so the
             // lake bed keeps a proper lit top face under clear water.
             return neighbor.IsTransparent;
         }

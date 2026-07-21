@@ -60,7 +60,7 @@ void main() {
 
     vec3 history = texture(historyColor, prevUV).rgb;
 
-    // Neighborhood variance clipping (YCoCg): clamp history to the local colour AABB to reject
+    // Neighborhood variance clipping (YCoCg): clamp history to the local color AABB to reject
     // ghosting where the scene changed.
     vec3 cMin = vec3(1e9);
     vec3 cMax = vec3(-1e9);

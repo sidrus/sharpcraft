@@ -17,7 +17,7 @@ public static class TorchPlacement
     }
 
     /// <summary>
-    /// Gets the torch base position, centred on the supporting block's column and resting on its top face.
+    /// Gets the torch base position, centered on the supporting block's column and resting on its top face.
     /// </summary>
     public static Vector3 BasePosition(Vector3 playerPosition)
     {

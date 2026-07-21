@@ -75,7 +75,7 @@ public class GraphicsSettingsHud(IGraphicsSettings settings) : InteractiveHud
 
             gui.Panel("Auto-Exposure (Eye Adaptation)", () =>
             {
-                gui.SliderFloat("Key (target grey)", ref autoExposureKey, 0.02f, 0.6f);
+                gui.SliderFloat("Key (target gray)", ref autoExposureKey, 0.02f, 0.6f);
                 gui.SliderFloat("Min Exposure", ref autoExposureMin, 0.01f, 1.0f);
                 gui.SliderFloat("Max Exposure (dark cap)", ref autoExposureMax, 0.2f, 16.0f);
                 gui.SliderFloat("Adaptation Speed", ref autoExposureSpeed, 0.1f, 10.0f);

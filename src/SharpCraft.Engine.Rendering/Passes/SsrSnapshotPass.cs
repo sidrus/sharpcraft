@@ -1,7 +1,7 @@
 namespace SharpCraft.Engine.Rendering.Passes;
 
 /// <summary>
-/// Snapshots the opaque HDR scene into a private colour buffer so the transparent water pass can
+/// Snapshots the opaque HDR scene into a private color buffer so the transparent water pass can
 /// sample it for screen-space reflections (a surface can't read the attachment it draws into). Runs
 /// only when SSR is enabled and the scene depth is available.
 /// </summary>

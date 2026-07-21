@@ -21,7 +21,7 @@ void main() {
     // Soft edge for the sun
     float alpha = smoothstep(0.5, 0.49, dist) * elevationFade * horizon;
 
-    // Warm/red at the horizon, sun-coloured higher up — a colour shift only, NOT a brightness crush
+    // Warm/red at the horizon, sun-colored higher up — a color shift only, NOT a brightness crush
     // (heavy extinction made the disc's outer ring darker than the bright horizon glow → "black
     // edges"). The disc stays well above the sky so it always reads as the sun.
     vec3 tint = mix(vec3(1.0, 0.5, 0.25), sunColor, smoothstep(0.0, 0.25, sunElevation));

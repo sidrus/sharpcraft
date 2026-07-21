@@ -5,9 +5,9 @@
 // shader's output rgb = inscatter and alpha = transmittance.
 //
 // Depth-aware (bilateral) upsample: a plain bilinear upsample bleeds the sky's heavy in-scatter
-// across terrain silhouettes (the half-res sky texel = long march, the neighbouring terrain texel =
+// across terrain silhouettes (the half-res sky texel = long march, the neighboring terrain texel =
 // short march), drawing a bright fringe on terrain edges. We instead weight the 2x2 half-res
-// neighbourhood by depth similarity to the full-res pixel, so samples belonging to the wrong surface
+// neighborhood by depth similarity to the full-res pixel, so samples belonging to the wrong surface
 // (the sky, across an edge) are rejected and the halo disappears.
 
 out vec4 FragColor;
@@ -29,7 +29,7 @@ void main() {
     vec2 hres = vec2(textureSize(scatterTexture, 0));
     vec2 halfTexel = 1.0 / hres;
 
-    // 2x2 half-res neighbourhood (bilinear footprint) around this full-res pixel.
+    // 2x2 half-res neighborhood (bilinear footprint) around this full-res pixel.
     vec2 coord = TexCoords * hres - 0.5;
     vec2 base = floor(coord);
     vec2 f = coord - base;

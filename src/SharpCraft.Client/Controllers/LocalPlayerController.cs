@@ -42,7 +42,11 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     /// <summary>
     /// Gets the current yaw angle in degrees (0 = North, 90 = East).
     /// </summary>
-    public float Yaw => _yaw;
+    public float Yaw
+    {
+        get;
+        private set;
+    }
 
     /// <summary>
     /// Gets the current pitch angle in degrees.
@@ -52,20 +56,21 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
     /// <summary>
     /// Gets the yaw angle normalized to [0, 360) degrees.
     /// </summary>
-    public float NormalizedYaw => (_yaw % 360 + 360) % 360;
+    public float NormalizedYaw => (Yaw % 360 + 360) % 360;
 
     /// <summary>
     /// Gets the compass heading based on the current yaw.
     /// </summary>
-    public string Heading => MathUtils.GetHeading(_yaw);
-
-    private float _yaw;
-    private MovementIntent _pendingIntent;
+    public string Heading => MathUtils.GetHeading(Yaw);
 
     /// <summary>
     /// Gets the last movement intent processed by the controller.
     /// </summary>
-    public MovementIntent LastIntent => _pendingIntent;
+    public MovementIntent LastIntent
+    {
+        get;
+        private set;
+    }
 
     public void OnUpdate(double deltaTime)
     {
@@ -74,8 +79,8 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
         // Gather input and handle look immediately for responsiveness
         HandleLook(inputProvider.GetLookDelta());
 
-        _pendingIntent = inputProvider.GetMovementIntent(camera.Forward, camera.Right);
-        _pendingIntent = _pendingIntent with
+        LastIntent = inputProvider.GetMovementIntent(camera.Forward, camera.Right);
+        LastIntent = LastIntent with
         {
             IsFlying = IsFlying,
             UseDevSpeedBoost = UseDevSpeedBoost,
@@ -88,7 +93,7 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
 
         _motor.SensorData = _sensor.LastSense;
         _motor.Material = _sensor.LastSense is { } sense ? _material.Sense(sense) : null;
-        _motor.ApplyForces(entity, _pendingIntent, deltaTime);
+        _motor.ApplyForces(entity, LastIntent, deltaTime);
 
         entity.Update(deltaTime);
     }
@@ -100,7 +105,7 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
         // Sync _yaw from entity rotation if it's the first time or if external change occurred
         // Rotation is applied as -_yaw, so Heading from sensor (rotation angle) is -_yaw
         var rotationHeading = _sensor.LastSense?.Heading ?? 0f;
-        _yaw = -rotationHeading;
+        Yaw = -rotationHeading;
     }
 
     private void HandleLook(LookDelta lookDelta)
@@ -112,13 +117,13 @@ public class LocalPlayerController(PhysicsEntity entity, ICamera camera, World w
 
         // Yaw: 0 = North (-Z), 90 = East (+X)
         // Mouse X-offset positive (moving right) should increase yaw (turning East)
-        _yaw += lookDelta.Yaw;
+        Yaw += lookDelta.Yaw;
 
         // Apply rotation. 
-        // In a right-handed system, a positive rotation around Y moves +Z towards +X.
-        // Since Forward is -Z, a positive rotation around Y moves -Z towards -X (West).
+        // In a right-handed system, a positive rotation around Y moves +Z toward +X.
+        // Since Forward is -Z, a positive rotation around Y moves -Z toward -X (West).
         // To make a positive yaw (turning East) work, we need a negative rotation around Y.
-        entity.Rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, -_yaw * MathF.PI / 180f);
+        entity.Rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, -Yaw * MathF.PI / 180f);
 
         if (camera is FirstPersonCamera fpc)
         {

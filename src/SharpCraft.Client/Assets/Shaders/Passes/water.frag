@@ -82,7 +82,7 @@ float fresnelWater(float cosTheta) {
 }
 
 // Animated water normal from a sum-of-sines height field. The tangent-space normal is
-// (-dH/dx, -dH/dz, 1): independent x/z derivatives with each wave travelling a different direction,
+// (-dH/dx, -dH/dz, 1): independent x/z derivatives with each wave traveling a different direction,
 // so the normal is zero-mean with NO preferred tilt. (The previous version tied the x and z
 // perturbations together — both = cos(wave) — which biased every normal along the x=z diagonal and
 // skewed every reflection that same way.)
@@ -106,7 +106,7 @@ vec3 getWaterNormal(vec2 worldPos, float t) {
 }
 
 // World-space SSR march with geometrically growing steps (precise near the surface, long reach for
-// distant banks) and a binary refine on hit. Returns reflected colour in .rgb, screen-edge
+// distant banks) and a binary refine on hit. Returns reflected color in .rgb, screen-edge
 // confidence in .a (0 = miss). Camera distance is compared rather than raw depth to stay
 // reversed-Z agnostic.
 float ssrSceneDist(vec2 uv, vec3 viewPos) {
@@ -304,7 +304,7 @@ void main() {
 
     // === COMBINE ===
     // Water is mostly transparent with some tint, plus reflections. Deep water darkens toward the
-    // deep colour as the bed is absorbed out.
+    // deep color as the bed is absorbed out.
     vec3 diffuse = baseWaterColor * (lightColor + moonLightColor + vec3(0.02)) * 0.3;
     diffuse = mix(diffuse, deepColor * (lightColor + 0.05), depthOpacity * 0.6);
     vec3 reflection = skyReflection * fresnel;

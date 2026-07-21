@@ -286,7 +286,7 @@ vec3 computeSkyColor(
 // ============================================================================
 // Clean sky radiance — single entry point for the visible sky AND the IBL capture, so reflections
 // match the sky. Just the physical single-scattering, scaled by one sane illuminance constant and
-// tinted by the sun colour. No magic horizon boosts / twilight-phase hacks: the long atmospheric
+// tinted by the sun color. No magic horizon boosts / twilight-phase hacks: the long atmospheric
 // path at low sun reddens the horizon and ozone gives the blue hour for free. Day→twilight→night
 // dimming is intrinsic (sun transmittance drops as the sun sets).
 // ============================================================================

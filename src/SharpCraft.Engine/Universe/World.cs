@@ -94,8 +94,8 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
             if (_chunks.TryRemove(coord, out var chunk))
             {
                 chunk.Dispose();
-                // The removed chunk's neighbours culled their boundary faces against it; with it gone
-                // those faces are now exposed, so the neighbours must re-mesh or they leave see-through
+                // The removed chunk's neighbors culled their boundary faces against it; with it gone
+                // those faces are now exposed, so the neighbors must re-mesh or they leave see-through
                 // holes at the unload boundary.
                 MarkNeighborsDirty(coord);
             }
@@ -103,7 +103,7 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
     }
 
     /// <summary>
-    /// Flags the four horizontal neighbours of a chunk coordinate for re-meshing, so their
+    /// Flags the four horizontal neighbors of a chunk coordinate for re-meshing, so their
     /// cross-chunk boundary faces are recomputed when this chunk is loaded or unloaded.
     /// </summary>
     private void MarkNeighborsDirty(Vector2<int> coord)
@@ -159,7 +159,7 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
 
         if (created)
         {
-            // A newly loaded chunk changes its neighbours' boundary faces (previously exposed to the
+            // A newly loaded chunk changes its neighbors' boundary faces (previously exposed to the
             // void, now culled against this chunk's blocks — or the reverse), so re-mesh them.
             MarkNeighborsDirty(coord);
         }
@@ -212,7 +212,7 @@ public class World(IWorldGenerator generator, long seed, IBlockRegistry blockReg
         chunk.SetBlock(localX, worldY, localZ, blockId);
 
         // If the edited block sits on a chunk edge, the adjacent chunk's boundary faces depend on it
-        // (ShouldRenderFace's cross-chunk path), so re-mesh that neighbour too. A corner edit touches
+        // (ShouldRenderFace's cross-chunk path), so re-mesh that neighbor too. A corner edit touches
         // two edges and dirties both.
         if (localX == 0)
         {

@@ -23,7 +23,7 @@ public sealed class RenderTargets
     /// <summary>IBL BRDF integration LUT.</summary>
     public uint BrdfLut;
 
-    /// <summary>Opaque HDR scene colour, snapshotted for SSR.</summary>
+    /// <summary>Opaque HDR scene color, snapshotted for SSR.</summary>
     public uint OpaqueColorTexture;
 
     /// <summary>Opaque scene depth from the pre-pass (GTAO / SSR / contact shadows).</summary>
@@ -47,7 +47,7 @@ public sealed class RenderTargets
     /// <summary>Reversed-Z depth texture of the main HDR scene (forward-pass depth).</summary>
     public uint HdrSceneDepth;
 
-    /// <summary>Resolved HDR scene colour after the forward pass (and TAA), input to the post chain.</summary>
+    /// <summary>Resolved HDR scene color after the forward pass (and TAA), input to the post chain.</summary>
     public uint ResolvedScene;
 
     /// <summary>Bloom pyramid result, composited by the output transform (0 when bloom is off).</summary>

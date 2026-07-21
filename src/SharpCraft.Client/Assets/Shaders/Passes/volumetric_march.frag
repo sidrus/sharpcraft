@@ -23,7 +23,7 @@ layout (std140, binding = 2) uniform CsmData {
 uniform mat4 invViewProj;   // inverse of the jittered main view-projection
 uniform vec3 cameraPos;
 uniform vec3 sunDirection;   // normalized, points TOWARD the sun
-uniform vec3 sunColor;       // sun colour × intensity (≈0 at night → no shafts)
+uniform vec3 sunColor;       // sun color × intensity (≈0 at night → no shafts)
 uniform vec3 fogColor;       // ambient/sky tint for shadowed fog
 uniform float density;       // base scattering/extinction coefficient at the fog floor
 uniform float extinction;    // extra extinction scale (haze that attenuates without scattering)
@@ -33,7 +33,7 @@ uniform float mieG;          // Henyey-Greenstein anisotropy (forward scattering
 uniform float maxDistance;   // cap the march length (sky rays would be unbounded otherwise)
 uniform float frameJitter;   // per-frame [0,1) offset, animates the dither for TAA to clean up
 
-// Height-fog profile. A slab centred near sea level: density thins exponentially with ALTITUDE
+// Height-fog profile. A slab centered near sea level: density thins exponentially with ALTITUDE
 // above the base, and — critically — fades to zero a few blocks BELOW it. The fade-below matters
 // because this is air fog: without it the column under a lake is treated as full-density fog, so
 // the march from an above-water camera down to the submerged bed accumulates huge in-scatter and

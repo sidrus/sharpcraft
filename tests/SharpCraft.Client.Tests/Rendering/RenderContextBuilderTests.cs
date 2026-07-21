@@ -1,7 +1,6 @@
 using AwesomeAssertions;
-using SharpCraft.Engine.Rendering;
-using SharpCraft.Engine.Rendering.Pipeline;
 using SharpCraft.Engine.Rendering.Lighting;
+using SharpCraft.Engine.Rendering.Pipeline;
 using SharpCraft.Sdk.UI;
 using System.Numerics;
 
@@ -15,7 +14,7 @@ public class RenderContextBuilderTests
             Matrix4x4.Identity, Matrix4x4.Identity, Vector3.Zero,
             fogColor: Vector3.One, viewDistance: viewDistance,
             screenWidth: 800, screenHeight: 600,
-            sun: new DirectionalLightData(Vector3.UnitY, Vector3.One, 1f),
+            sun: new DirectionalLightData(Vector3.UnitY, Vector3.One),
             pointLights: [],
             isUnderwater: isUnderwater, time: 0f,
             settings: settings,
@@ -57,7 +56,7 @@ public class RenderContextBuilderTests
             Matrix4x4.Identity, Matrix4x4.Identity, Vector3.Zero,
             fogColor: Vector3.One, viewDistance: 100f,
             screenWidth: 800, screenHeight: 600,
-            sun: new DirectionalLightData(Vector3.UnitY, Vector3.One, 1f),
+            sun: new DirectionalLightData(Vector3.UnitY, Vector3.One),
             pointLights: lights,
             isUnderwater: false, time: 0f,
             settings: settings,
@@ -76,7 +75,7 @@ public class RenderContextBuilderTests
             Matrix4x4.Identity, Matrix4x4.Identity, Vector3.Zero,
             fogColor: Vector3.One, viewDistance: 100f,
             screenWidth: 800, screenHeight: 600,
-            sun: new DirectionalLightData(Vector3.UnitY, Vector3.One, 1f),
+            sun: new DirectionalLightData(Vector3.UnitY, Vector3.One),
             pointLights: lights,
             isUnderwater: false, time: 0f,
             settings: settings,

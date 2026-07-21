@@ -7,7 +7,7 @@ namespace SharpCraft.Engine.Rendering.PostProcessing;
 /// <summary>
 /// Histogram-based auto-exposure / eye adaptation (research §5.2). Each frame: build a 256-bin
 /// log-luminance histogram of the HDR scene in compute, reduce it to a log-average luminance, pick
-/// the exposure that maps the scene's average to middle grey, and adapt toward it over real time.
+/// the exposure that maps the scene's average to middle gray, and adapt toward it over real time.
 /// The resulting exposure lives in an SSBO the output pass reads and multiplies before tonemap.
 /// </summary>
 public sealed class AutoExposure : IDisposable
@@ -45,7 +45,7 @@ public sealed class AutoExposure : IDisposable
     }
 
     /// <summary>
-    /// Run the histogram + adaptation passes against the rendered HDR colour texture. Call after the
+    /// Run the histogram + adaptation passes against the rendered HDR color texture. Call after the
     /// main pass and before the output transform.
     /// </summary>
     public void Update(uint hdrTexture, int width, int height,

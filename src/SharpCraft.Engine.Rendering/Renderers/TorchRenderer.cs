@@ -14,7 +14,7 @@ public sealed class TorchRenderer : IDisposable
 {
     private readonly GL _gl;
     private readonly ShaderProgram _shader;
-    private readonly Texture2d _texture;
+    private readonly Texture2D _texture;
     private readonly uint _vao;
     private readonly uint _vbo;
     private readonly int _vertexCount;
@@ -34,7 +34,7 @@ public sealed class TorchRenderer : IDisposable
         _shader.BindUniformBlock("SceneData", 0);
 
         var (width, height, pixels) = BuildTexture();
-        _texture = new Texture2d(gl, width, height, pixels);
+        _texture = new Texture2D(gl, width, height, pixels);
 
         var vertices = BuildMesh();
         _vertexCount = vertices.Length / 8; // pos(3) + uv(2) + normal(3)
@@ -62,7 +62,7 @@ public sealed class TorchRenderer : IDisposable
     }
 
     /// <summary>
-    /// Registers a torch whose base rests at <paramref name="basePosition"/> (the centre of the
+    /// Registers a torch whose base rests at <paramref name="basePosition"/> (the center of the
     /// supporting block's top face).
     /// </summary>
     public void AddTorch(Vector3 basePosition)
@@ -129,7 +129,7 @@ public sealed class TorchRenderer : IDisposable
         const float h = HalfThickness;
         const float t = Height;
 
-        // The 8 box corners (base on the y=0 plane, centred on x/z).
+        // The 8 box corners (base on the y=0 plane, centered on x/z).
         var c0 = new Vector3(-h, 0, -h);
         var c1 = new Vector3(h, 0, -h);
         var c2 = new Vector3(h, 0, h);
@@ -194,31 +194,31 @@ public sealed class TorchRenderer : IDisposable
         // Only the central 2px column (x=7,8) is sampled by the mesh; the rest stays transparent.
         for (var y = 0; y < size; y++)
         {
-            (byte r, byte g, byte b) colour;
+            (byte r, byte g, byte b) color;
             if (y <= 8)
             {
                 // Wooden handle, with a faint grain alternating per row.
-                colour = (y & 1) == 0 ? ((byte)122, (byte)78, (byte)38) : ((byte)92, (byte)58, (byte)28);
+                color = (y & 1) == 0 ? ((byte)122, (byte)78, (byte)38) : ((byte)92, (byte)58, (byte)28);
             }
             else if (y <= 11)
             {
-                colour = (200, 70, 20); // smouldering ember
+                color = (200, 70, 20); // smoldering ember
             }
             else if (y <= 13)
             {
-                colour = (255, 140, 30); // flame body
+                color = (255, 140, 30); // flame body
             }
             else
             {
-                colour = (255, 220, 90); // bright tip
+                color = (255, 220, 90); // bright tip
             }
 
             for (var x = 7; x <= 8; x++)
             {
                 var i = (y * size + x) * 4;
-                data[i] = colour.r;
-                data[i + 1] = colour.g;
-                data[i + 2] = colour.b;
+                data[i] = color.r;
+                data[i + 1] = color.g;
+                data[i + 2] = color.b;
                 data[i + 3] = 255;
             }
         }

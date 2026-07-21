@@ -7,7 +7,7 @@ namespace SharpCraft.Engine.Physics.Motors;
 
 /// <summary>
 /// Base class for the per-medium player motors (walking, swimming, flying). Each motor
-/// owns the vertical behaviour for its medium; the shared horizontal movement, speed and
+/// owns the vertical behavior for its medium; the shared horizontal movement, speed and
 /// terminal-velocity helpers live here.
 /// </summary>
 public abstract class PlayerMotorBase : IMotor

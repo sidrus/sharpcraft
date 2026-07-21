@@ -1,10 +1,9 @@
 ﻿using SharpCraft.Client.Controllers;
 using SharpCraft.Client.Input;
 using SharpCraft.Client.UI.Chat;
-using SharpCraft.Engine.Rendering;
 using SharpCraft.Engine.Rendering.Chunks;
-using SharpCraft.Engine.Rendering.PostProcessing;
 using SharpCraft.Engine.Rendering.Lighting;
+using SharpCraft.Engine.Rendering.PostProcessing;
 using SharpCraft.Engine.UI;
 using SharpCraft.Engine.Universe;
 using SharpCraft.Sdk;
@@ -26,12 +25,14 @@ public class HudManager : ILifecycle, IDisposable
     private bool _disposed;
     private readonly HudRegistry _registry;
     private readonly IGui _gui;
-    private readonly IGraphicsSettings _settings;
     private readonly Keymap _keymap = new();
 
     private IReadOnlyList<IHud> Huds => _registry.RegisteredHuds;
 
-    public IGraphicsSettings Settings => _settings;
+    public IGraphicsSettings Settings
+    {
+        get;
+    }
 
     public ChatHud? Chat => GetHud<ChatHud>();
 
@@ -40,7 +41,7 @@ public class HudManager : ILifecycle, IDisposable
         _window = window;
         _input = input;
         _registry = registry;
-        _settings = settings;
+        Settings = settings;
         _controller = new ImGuiController(gl, window, input);
         _gui = new ImGuiGui();
         input.Keyboards[0].KeyUp += OnKeyUp;

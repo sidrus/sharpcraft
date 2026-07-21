@@ -1,4 +1,4 @@
-﻿namespace SharpCraft.Engine.Rendering;
+﻿namespace SharpCraft.Engine.Rendering.Chunks;
 
 public class RenderableChunk(GL gl, IChunk chunk) : IDisposable
 {

@@ -40,7 +40,7 @@ void main() {
 
     vec3 P = viewPosFromDepth(TexCoords, depth);
 
-    // Geometric view normal from depth, using the nearer neighbour on each axis to avoid bleeding
+    // Geometric view normal from depth, using the nearer neighbor on each axis to avoid bleeding
     // across silhouette edges.
     vec3 Pr = viewPosFromDepth(TexCoords + vec2(texelSize.x, 0.0), texture(depthTexture, TexCoords + vec2(texelSize.x, 0.0)).r);
     vec3 Pl = viewPosFromDepth(TexCoords - vec2(texelSize.x, 0.0), texture(depthTexture, TexCoords - vec2(texelSize.x, 0.0)).r);

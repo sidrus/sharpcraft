@@ -6,12 +6,12 @@
 public class TextureAtlas(GL gl, IRegistry<TextureData> assets) : IDisposable, IAtlasUvs
 {
     private readonly Dictionary<ResourceLocation, (float U, float V, float Width, float Height)> _uvs = new();
-    private Texture2d? _diffuseAtlas;
-    private Texture2d? _normalAtlas;
-    private Texture2d? _aoAtlas;
-    private Texture2d? _specularAtlas;
-    private Texture2d? _metallicAtlas;
-    private Texture2d? _roughnessAtlas;
+    private Texture2D? _diffuseAtlas;
+    private Texture2D? _normalAtlas;
+    private Texture2D? _aoAtlas;
+    private Texture2D? _specularAtlas;
+    private Texture2D? _metallicAtlas;
+    private Texture2D? _roughnessAtlas;
 
     public void Build()
     {
@@ -107,12 +107,12 @@ public class TextureAtlas(GL gl, IRegistry<TextureData> assets) : IDisposable, I
         _metallicAtlas?.Dispose();
         _roughnessAtlas?.Dispose();
 
-        _diffuseAtlas = new Texture2d(gl, atlasWidth, atlasHeight, diffuseData, InternalFormat.SrgbAlpha);
-        _normalAtlas = new Texture2d(gl, atlasWidth, atlasHeight, normalData);
-        _aoAtlas = new Texture2d(gl, atlasWidth, atlasHeight, aoData);
-        _specularAtlas = new Texture2d(gl, atlasWidth, atlasHeight, specularData);
-        _metallicAtlas = new Texture2d(gl, atlasWidth, atlasHeight, metallicData);
-        _roughnessAtlas = new Texture2d(gl, atlasWidth, atlasHeight, roughnessData);
+        _diffuseAtlas = new Texture2D(gl, atlasWidth, atlasHeight, diffuseData, InternalFormat.SrgbAlpha);
+        _normalAtlas = new Texture2D(gl, atlasWidth, atlasHeight, normalData);
+        _aoAtlas = new Texture2D(gl, atlasWidth, atlasHeight, aoData);
+        _specularAtlas = new Texture2D(gl, atlasWidth, atlasHeight, specularData);
+        _metallicAtlas = new Texture2D(gl, atlasWidth, atlasHeight, metallicData);
+        _roughnessAtlas = new Texture2D(gl, atlasWidth, atlasHeight, roughnessData);
     }
 
     private static void CopyLayer(byte[] src, byte[] dst, int xOffset, int yOffset, int dstWidth, int srcWidth, int srcHeight)

@@ -13,11 +13,26 @@ public abstract class ChunkRendererBase : IDisposable
 {
     private static readonly Vector3 ChunkExtent = new(16, 256, 16);
 
-    protected GL Gl { get; }
-    protected ChunkRenderCache Cache { get; }
-    protected ChunkMeshManager MeshManager { get; }
-    protected TextureAtlas Atlas { get; }
-    protected ShaderProgram Shader { get; }
+    protected GL Gl
+    {
+        get;
+    }
+    protected ChunkRenderCache Cache
+    {
+        get;
+    }
+    protected ChunkMeshManager MeshManager
+    {
+        get;
+    }
+    protected TextureAtlas Atlas
+    {
+        get;
+    }
+    protected ShaderProgram Shader
+    {
+        get;
+    }
 
     private readonly Frustum _frustum = new();
     private readonly uint _vao;

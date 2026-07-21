@@ -21,7 +21,7 @@ void main() {
     // We want the sun to be at "infinity", so we center it around the camera
     // and push it to the far plane by setting z = w in clip space.
 
-    // Create a billboard oriented towards the sun direction
+    // Create a billboard oriented toward the sun direction
     vec3 up = abs(sunDir.y) > 0.99 ? vec3(0, 0, 1) : vec3(0, 1, 0);
     vec3 right = normalize(cross(up, sunDir));
     up = cross(sunDir, right);

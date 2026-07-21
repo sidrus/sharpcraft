@@ -8,13 +8,12 @@ namespace SharpCraft.Engine.Universe;
 /// </summary>
 public class WorldTime : IWorldTime, ILifecycle
 {
-    private float _time;
     private float _dayDurationInMinutes = 10f;
 
     public float Time
     {
-        get => _time;
-        set => _time = value;
+        get;
+        set;
     }
 
     public bool IsPaused
@@ -30,7 +29,7 @@ public class WorldTime : IWorldTime, ILifecycle
             var oldDuration = _dayDurationInMinutes;
             _dayDurationInMinutes = value;
             // Adjust time to maintain the same normalized time/angle
-            _time = _time * (_dayDurationInMinutes / oldDuration);
+            Time = Time * (_dayDurationInMinutes / oldDuration);
         }
     }
 
@@ -41,7 +40,7 @@ public class WorldTime : IWorldTime, ILifecycle
         // PI = _time * ((2PI) / (duration * 60))
         // 1 = _time * (2 / (duration * 60))
         // _time = (duration * 60) / 2
-        _time = (_dayDurationInMinutes * 60f) / 2f;
+        Time = (_dayDurationInMinutes * 60f) / 2f;
     }
 
     public float SunAngle
@@ -97,7 +96,7 @@ public class WorldTime : IWorldTime, ILifecycle
     {
         if (!IsPaused)
         {
-            _time += (float)deltaTime;
+            Time += (float)deltaTime;
         }
     }
 

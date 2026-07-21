@@ -1,4 +1,3 @@
-using SharpCraft.Engine.Rendering.Lighting;
 using SharpCraft.Sdk.UI;
 using System.Numerics;
 

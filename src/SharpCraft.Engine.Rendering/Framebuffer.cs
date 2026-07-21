@@ -3,13 +3,22 @@ namespace SharpCraft.Engine.Rendering;
 public class Framebuffer : IDisposable
 {
     private readonly GL _gl;
-    private readonly uint _handle;
-    private readonly uint _textureHandle;
-    private readonly uint _depthTextureHandle;
 
-    public uint Handle => _handle;
-    public uint TextureHandle => _textureHandle;
-    public uint DepthTextureHandle => _depthTextureHandle;
+    public uint Handle
+    {
+        get;
+    }
+
+    public uint TextureHandle
+    {
+        get;
+    }
+
+    public uint DepthTextureHandle
+    {
+        get;
+    }
+
     public int Width
     {
         get;
@@ -25,28 +34,28 @@ public class Framebuffer : IDisposable
         Width = width;
         Height = height;
 
-        _handle = _gl.CreateFramebuffer();
+        Handle = _gl.CreateFramebuffer();
 
         // Color attachment. HDR keeps radiance in fp16 linear (research §5.1); SDR is 8-bit.
         var colorFormat = hdr ? SizedInternalFormat.Rgba16f : SizedInternalFormat.Rgba8;
-        _textureHandle = _gl.CreateTexture(TextureTarget.Texture2D);
-        _gl.TextureStorage2D(_textureHandle, 1, colorFormat, (uint)width, (uint)height);
-        _gl.TextureParameter(_textureHandle, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        _gl.TextureParameter(_textureHandle, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-        _gl.TextureParameter(_textureHandle, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-        _gl.TextureParameter(_textureHandle, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-        _gl.NamedFramebufferTexture(_handle, FramebufferAttachment.ColorAttachment0, _textureHandle, 0);
+        TextureHandle = _gl.CreateTexture(TextureTarget.Texture2D);
+        _gl.TextureStorage2D(TextureHandle, 1, colorFormat, (uint)width, (uint)height);
+        _gl.TextureParameter(TextureHandle, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+        _gl.TextureParameter(TextureHandle, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+        _gl.TextureParameter(TextureHandle, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+        _gl.TextureParameter(TextureHandle, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+        _gl.NamedFramebufferTexture(Handle, FramebufferAttachment.ColorAttachment0, TextureHandle, 0);
 
         // Depth attachment. Float depth is required for reversed-Z precision (research §12.2).
-        _depthTextureHandle = _gl.CreateTexture(TextureTarget.Texture2D);
-        _gl.TextureStorage2D(_depthTextureHandle, 1, SizedInternalFormat.DepthComponent32f, (uint)width, (uint)height);
-        _gl.TextureParameter(_depthTextureHandle, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-        _gl.TextureParameter(_depthTextureHandle, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-        _gl.TextureParameter(_depthTextureHandle, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-        _gl.TextureParameter(_depthTextureHandle, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-        _gl.NamedFramebufferTexture(_handle, FramebufferAttachment.DepthAttachment, _depthTextureHandle, 0);
+        DepthTextureHandle = _gl.CreateTexture(TextureTarget.Texture2D);
+        _gl.TextureStorage2D(DepthTextureHandle, 1, SizedInternalFormat.DepthComponent32f, (uint)width, (uint)height);
+        _gl.TextureParameter(DepthTextureHandle, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+        _gl.TextureParameter(DepthTextureHandle, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+        _gl.TextureParameter(DepthTextureHandle, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+        _gl.TextureParameter(DepthTextureHandle, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+        _gl.NamedFramebufferTexture(Handle, FramebufferAttachment.DepthAttachment, DepthTextureHandle, 0);
 
-        var status = (FramebufferStatus)_gl.CheckNamedFramebufferStatus(_handle, FramebufferTarget.Framebuffer);
+        var status = (FramebufferStatus)_gl.CheckNamedFramebufferStatus(Handle, FramebufferTarget.Framebuffer);
         if (status != FramebufferStatus.Complete)
         {
             throw new Exception($"Framebuffer is not complete! Status: {status}");
@@ -55,7 +64,7 @@ public class Framebuffer : IDisposable
 
     public void Bind()
     {
-        _gl.BindFramebuffer(FramebufferTarget.Framebuffer, _handle);
+        _gl.BindFramebuffer(FramebufferTarget.Framebuffer, Handle);
     }
 
     public void Unbind()
@@ -65,8 +74,8 @@ public class Framebuffer : IDisposable
 
     public void Dispose()
     {
-        _gl.DeleteFramebuffer(_handle);
-        _gl.DeleteTexture(_textureHandle);
-        _gl.DeleteTexture(_depthTextureHandle);
+        _gl.DeleteFramebuffer(Handle);
+        _gl.DeleteTexture(TextureHandle);
+        _gl.DeleteTexture(DepthTextureHandle);
     }
 }

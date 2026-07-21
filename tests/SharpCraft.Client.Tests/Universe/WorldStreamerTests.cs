@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using SharpCraft.Client.Universe;
-using SharpCraft.Sdk.Numerics;
 using System.Numerics;
 
 namespace SharpCraft.Client.Tests.Universe;
@@ -9,16 +8,20 @@ public class WorldStreamerTests
 {
     private sealed class GenerateSpy
     {
-        public int Calls { get; private set; }
-        public int LastRenderDistance { get; private set; }
-        public Vector3 LastPosition { get; private set; }
-        public Task Result { get; set; } = Task.CompletedTask;
+        public int Calls
+        {
+            get; private set;
+        }
+        public int LastRenderDistance
+        {
+            get; private set;
+        }
+        public Task Result { get; init; } = Task.CompletedTask;
 
         public Task Generate(int renderDistance, Vector3 position)
         {
             Calls++;
             LastRenderDistance = renderDistance;
-            LastPosition = position;
             return Result;
         }
     }

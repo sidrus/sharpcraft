@@ -134,7 +134,7 @@ float a   = perceptualRoughness * perceptualRoughness;   // GGX α  (NOT the per
 float a2  = a * a;                                       // α², as used by D and V in §3.1
 
 // F0 (specular reflectance at normal incidence)
-//   dielectrics: a fixed ~4% grey, optionally artist-controlled via 'reflectance'
+//   dielectrics: a fixed ~4% gray, optionally artist-controlled via 'reflectance'
 //   metals:      tinted by baseColor
 vec3 f0 = mix(vec3(0.16 * reflectance * reflectance), baseColor, metallic); // dielectric default 0.04
 vec3 diffuseColor = (1.0 - metallic) * baseColor;                            // metals have no diffuse

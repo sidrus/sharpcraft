@@ -8,13 +8,22 @@ namespace SharpCraft.Engine.Rendering.Pipeline;
 public interface IRenderPass : IDisposable
 {
     /// <summary>Human-readable pass name, used in ordering-validation diagnostics.</summary>
-    string Name { get; }
+    string Name
+    {
+        get;
+    }
 
     /// <summary>Logical resources this pass samples; each must be produced by an earlier pass.</summary>
-    IReadOnlyList<RenderResource> Reads { get; }
+    IReadOnlyList<RenderResource> Reads
+    {
+        get;
+    }
 
     /// <summary>Logical resources this pass produces.</summary>
-    IReadOnlyList<RenderResource> Writes { get; }
+    IReadOnlyList<RenderResource> Writes
+    {
+        get;
+    }
 
     /// <summary>Whether this pass runs for the given frame; disabled passes are skipped.</summary>
     bool Enabled(RenderContext context);

@@ -10,7 +10,6 @@ namespace SharpCraft.Engine.Rendering.Shaders;
 public sealed unsafe class ShaderStorageBuffer : IDisposable
 {
     private readonly GL _gl;
-    private readonly uint _handle;
     private nuint _capacity;
     private bool _disposed;
 
@@ -18,19 +17,22 @@ public sealed unsafe class ShaderStorageBuffer : IDisposable
     {
         get;
     }
-    public uint Handle => _handle;
+    public uint Handle
+    {
+        get;
+    }
 
     public ShaderStorageBuffer(GL gl, uint binding)
     {
         _gl = gl;
         Binding = binding;
-        _handle = _gl.CreateBuffer();
+        Handle = _gl.CreateBuffer();
     }
 
     /// <summary>Reserve (and zero) <paramref name="sizeBytes"/> of storage.</summary>
     public void Allocate(nuint sizeBytes)
     {
-        _gl.NamedBufferData(_handle, sizeBytes, null, BufferUsageARB.DynamicDraw);
+        _gl.NamedBufferData(Handle, sizeBytes, null, BufferUsageARB.DynamicDraw);
         _capacity = sizeBytes;
     }
 
@@ -42,12 +44,12 @@ public sealed unsafe class ShaderStorageBuffer : IDisposable
         {
             if (bytes > _capacity)
             {
-                _gl.NamedBufferData(_handle, bytes, p, BufferUsageARB.DynamicDraw);
+                _gl.NamedBufferData(Handle, bytes, p, BufferUsageARB.DynamicDraw);
                 _capacity = bytes;
             }
             else if (bytes > 0)
             {
-                _gl.NamedBufferSubData(_handle, 0, bytes, p);
+                _gl.NamedBufferSubData(Handle, 0, bytes, p);
             }
         }
     }
@@ -55,18 +57,18 @@ public sealed unsafe class ShaderStorageBuffer : IDisposable
     /// <summary>Write a single uint at offset 0 (used to reset the global index counter each frame).</summary>
     public void SetUInt(uint value)
     {
-        _gl.NamedBufferSubData(_handle, 0, sizeof(uint), &value);
+        _gl.NamedBufferSubData(Handle, 0, sizeof(uint), &value);
     }
 
     /// <summary>Write a single float at offset 0 (used to seed the persistent exposure value).</summary>
     public void SetFloat(float value)
     {
-        _gl.NamedBufferSubData(_handle, 0, sizeof(float), &value);
+        _gl.NamedBufferSubData(Handle, 0, sizeof(float), &value);
     }
 
     public void BindBase()
     {
-        _gl.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, Binding, _handle);
+        _gl.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, Binding, Handle);
     }
 
     public void Dispose()
@@ -76,7 +78,7 @@ public sealed unsafe class ShaderStorageBuffer : IDisposable
             return;
         }
 
-        _gl.DeleteBuffer(_handle);
+        _gl.DeleteBuffer(Handle);
         _disposed = true;
     }
 }

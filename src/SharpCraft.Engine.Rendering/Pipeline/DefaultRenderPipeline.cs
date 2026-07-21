@@ -1,5 +1,3 @@
-using SharpCraft.Engine.Rendering.IBL;
-using SharpCraft.Engine.Rendering.Lighting;
 using SharpCraft.Engine.Rendering.Shaders;
 using System.Numerics;
 

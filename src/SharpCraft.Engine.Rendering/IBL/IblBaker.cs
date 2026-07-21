@@ -6,8 +6,8 @@ namespace SharpCraft.Engine.Rendering.IBL;
 /// <summary>
 /// Image-based lighting bake (research §4.2/§6). Captures the procedural sky into an environment
 /// cubemap, then convolves it into a diffuse irradiance map and a GGX-prefiltered specular map,
-/// and bakes the scene-independent DFG/BRDF LUT once. The sky capture + convolutions are
-/// re-run only when the sun moves noticeably, so the cost is amortised across many frames.
+/// and bakes the scene-independent DFG/BRDF LUT once. The sky capture and convolutions are
+/// re-run only when the sun moves noticeably, so the cost is amortized across many frames.
 /// </summary>
 public sealed class IblBaker : IDisposable
 {
@@ -24,9 +24,6 @@ public sealed class IblBaker : IDisposable
     private readonly ShaderProgram _brdfLutShader;
 
     private readonly uint _envCube;
-    private readonly uint _irradianceCube;
-    private readonly uint _prefilterCube;
-    private readonly uint _brdfLut;
     private readonly uint _fbo;
     private readonly uint _cubeVao;
     private readonly uint _cubeVbo;
@@ -38,9 +35,21 @@ public sealed class IblBaker : IDisposable
     private Vector3 _lastSunDir = new(float.MaxValue, 0, 0);
     private bool _disposed;
 
-    public uint IrradianceMap => _irradianceCube;
-    public uint PrefilterMap => _prefilterCube;
-    public uint BrdfLut => _brdfLut;
+    public uint IrradianceMap
+    {
+        get;
+    }
+
+    public uint PrefilterMap
+    {
+        get;
+    }
+
+    public uint BrdfLut
+    {
+        get;
+    }
+
     public bool IsReady
     {
         get; private set;
@@ -57,9 +66,9 @@ public sealed class IblBaker : IDisposable
         _brdfLutShader = new ShaderProgram(gl, Shaders.Shaders.UnderwaterVertex, Shaders.Shaders.IblBrdfLutFragment);
 
         _envCube = CreateCubemap(EnvSize, MipCount(EnvSize), mipmapped: true);
-        _irradianceCube = CreateCubemap(IrradianceSize, 1, mipmapped: false);
-        _prefilterCube = CreateCubemap(PrefilterSize, PrefilterMips, mipmapped: true);
-        _brdfLut = CreateBrdfLutTexture();
+        IrradianceMap = CreateCubemap(IrradianceSize, 1, mipmapped: false);
+        PrefilterMap = CreateCubemap(PrefilterSize, PrefilterMips, mipmapped: true);
+        BrdfLut = CreateBrdfLutTexture();
 
         _fbo = _gl.CreateFramebuffer();
 
@@ -121,7 +130,7 @@ public sealed class IblBaker : IDisposable
         _gl.ActiveTexture(TextureUnit.Texture0);
         _gl.BindTexture(TextureTarget.TextureCubeMap, _envCube);
         _irradiance.SetUniform("environmentMap", 0);
-        RenderCubeFaces(_irradiance, _irradianceCube, IrradianceSize, 0);
+        RenderCubeFaces(_irradiance, IrradianceMap, IrradianceSize, 0);
     }
 
     private void Prefilter()
@@ -137,7 +146,7 @@ public sealed class IblBaker : IDisposable
             var mipSize = PrefilterSize >> mip;
             var roughness = (float)mip / (PrefilterMips - 1);
             _prefilter.SetUniform("roughness", roughness);
-            RenderCubeFaces(_prefilter, _prefilterCube, mipSize, mip);
+            RenderCubeFaces(_prefilter, PrefilterMap, mipSize, mip);
         }
     }
 
@@ -164,7 +173,7 @@ public sealed class IblBaker : IDisposable
         _gl.Disable(EnableCap.CullFace);
         _gl.Disable(EnableCap.Blend);
         _gl.BindFramebuffer(FramebufferTarget.Framebuffer, _fbo);
-        _gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, _brdfLut, 0);
+        _gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, BrdfLut, 0);
         _gl.Viewport(0, 0, BrdfLutSize, BrdfLutSize);
 
         _brdfLutShader.Use();
@@ -292,9 +301,9 @@ public sealed class IblBaker : IDisposable
         _prefilter.Dispose();
         _brdfLutShader.Dispose();
         _gl.DeleteTexture(_envCube);
-        _gl.DeleteTexture(_irradianceCube);
-        _gl.DeleteTexture(_prefilterCube);
-        _gl.DeleteTexture(_brdfLut);
+        _gl.DeleteTexture(IrradianceMap);
+        _gl.DeleteTexture(PrefilterMap);
+        _gl.DeleteTexture(BrdfLut);
         _gl.DeleteFramebuffer(_fbo);
         _gl.DeleteVertexArray(_cubeVao);
         _gl.DeleteBuffer(_cubeVbo);

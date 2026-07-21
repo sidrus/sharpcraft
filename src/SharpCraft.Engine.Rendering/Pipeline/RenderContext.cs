@@ -1,4 +1,3 @@
-using SharpCraft.Engine.Rendering.Lighting;
 using System.Numerics;
 
 namespace SharpCraft.Engine.Rendering.Pipeline;
@@ -14,7 +13,7 @@ public readonly record struct CameraData(
     public Matrix4x4 ViewProjection => View * Projection;
 }
 
-/// <summary>Distance fog colour and range for a frame.</summary>
+/// <summary>Distance fog color and range for a frame.</summary>
 public readonly record struct FogData(
     Vector3 FogColor,
     float FogNear,

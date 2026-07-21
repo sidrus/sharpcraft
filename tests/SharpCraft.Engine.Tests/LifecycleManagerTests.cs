@@ -35,7 +35,7 @@ public class LifecycleManagerTests
 
         public Action<LifecycleManager>? OnAwakeAction
         {
-            get; set;
+            get;
         }
         public Action<LifecycleManager>? OnStartAction
         {

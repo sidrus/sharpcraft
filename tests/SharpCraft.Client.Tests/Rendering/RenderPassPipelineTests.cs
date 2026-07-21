@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using NSubstitute;
-using SharpCraft.Engine.Rendering;
 using SharpCraft.Engine.Rendering.Pipeline;
 using SharpCraft.Sdk.Universe;
 
@@ -94,9 +93,18 @@ public class RenderPassPipelineTests
         public IReadOnlyList<RenderResource> Reads => reads;
         public IReadOnlyList<RenderResource> Writes => writes;
         public bool IsEnabled { get; init; } = true;
-        public List<string>? Log { get; init; }
-        public int ExecutedCount { get; private set; }
-        public bool Disposed { get; private set; }
+        public List<string>? Log
+        {
+            get; init;
+        }
+        public int ExecutedCount
+        {
+            get; private set;
+        }
+        public bool Disposed
+        {
+            get; private set;
+        }
 
         public bool Enabled(RenderContext context)
         {

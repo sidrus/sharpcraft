@@ -2,12 +2,12 @@
 
 namespace SharpCraft.Engine.Rendering.Textures;
 
-public class Texture2d : IDisposable
+public sealed class Texture2D : IDisposable
 {
     private readonly GL _gl;
     private readonly uint _handle;
 
-    public unsafe Texture2d(GL gl, string path, InternalFormat format = InternalFormat.Rgba)
+    public unsafe Texture2D(GL gl, string path, InternalFormat format = InternalFormat.Rgba)
     {
         _gl = gl;
         _handle = _gl.GenTexture();
@@ -24,7 +24,7 @@ public class Texture2d : IDisposable
         SetupParameters();
     }
 
-    public unsafe Texture2d(GL gl, int width, int height, byte[] data, InternalFormat format = InternalFormat.Rgba)
+    public unsafe Texture2D(GL gl, int width, int height, byte[] data, InternalFormat format = InternalFormat.Rgba)
     {
         _gl = gl;
         _handle = _gl.GenTexture();
@@ -58,7 +58,7 @@ public class Texture2d : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    protected virtual void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (!_disposed)
         {
@@ -72,7 +72,7 @@ public class Texture2d : IDisposable
         }
     }
 
-    ~Texture2d()
+    ~Texture2D()
     {
         Dispose(false);
     }

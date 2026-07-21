@@ -14,7 +14,7 @@ public static class ShadowCascades
 
     /// <param name="view">Main camera view matrix (reversed-Z agnostic).</param>
     /// <param name="projection">Main camera reversed-Z infinite projection (used to recover fov/aspect/near).</param>
-    /// <param name="lightDir">Normalised direction the sunlight travels (from sun toward scene).</param>
+    /// <param name="lightDir">Normalized direction the sunlight travels (from sun toward scene).</param>
     /// <param name="shadowDistance">Far clip for the shadowed range; cascades cover [near, shadowDistance].</param>
     /// <param name="shadowMapSize">Per-cascade texture size, for texel snapping.</param>
     /// <param name="cascadeCount">Number of cascades (3–4).</param>

@@ -7,7 +7,10 @@ namespace SharpCraft.Sdk.UI;
 /// </summary>
 public sealed class GraphicsSettings : IGraphicsSettings
 {
-    public bool VSync { get; set; }
+    public bool VSync
+    {
+        get; set;
+    }
 
     public float Gamma { get; set; } = 2.2f;
     public float Exposure { get; set; } = 1.0f;

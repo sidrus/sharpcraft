@@ -1,4 +1,3 @@
-using SharpCraft.Engine.Rendering.Lighting;
 using SharpCraft.Engine.Rendering.Shaders;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -29,7 +28,6 @@ public sealed class ClusteredLighting : IDisposable
         public Vector4 Atten;         // constant, linear, quadratic, _
     }
 
-    private readonly GL _gl;
     private readonly ComputeProgram _buildAabb;
     private readonly ComputeProgram _cullLights;
 
@@ -50,7 +48,6 @@ public sealed class ClusteredLighting : IDisposable
 
     public ClusteredLighting(GL gl)
     {
-        _gl = gl;
         _buildAabb = new ComputeProgram(gl, Shaders.Shaders.ClusterBuildAabbCompute);
         _cullLights = new ComputeProgram(gl, Shaders.Shaders.ClusterCullLightsCompute);
 

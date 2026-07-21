@@ -8,7 +8,10 @@ namespace SharpCraft.Sdk.UI;
 public abstract class InteractiveHud : IInteractiveHud
 {
     /// <inheritdoc />
-    public abstract string Name { get; }
+    public abstract string Name
+    {
+        get;
+    }
 
     /// <inheritdoc />
     public bool IsVisible

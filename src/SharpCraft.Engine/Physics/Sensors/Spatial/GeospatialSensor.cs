@@ -80,9 +80,9 @@ public class GeospatialSensor
             submersionDepth = 0;
         }
 
-        // A climbable ledge is a solid horizontal neighbour at foot level with open
+        // A climbable ledge is a solid horizontal neighbor at foot level with open
         // space above it to stand in. This lets the player hop out of the water onto
-        // land, while open water (no such neighbour) still can't be walked on.
+        // land, while open water (no such neighbor) still can't be walked on.
         var isNextToClimbableLedge = false;
         if (isOnFluidSurface)
         {

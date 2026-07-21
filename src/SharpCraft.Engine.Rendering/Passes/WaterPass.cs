@@ -3,7 +3,7 @@ namespace SharpCraft.Engine.Rendering.Passes;
 /// <summary>
 /// Transparent water, forward and blended, drawn after the opaque scene. Tests against the opaque
 /// depth without writing it (the z-fighting fix) and draws double-sided (the water mesh has no bottom
-/// faces). Samples the opaque-colour snapshot for SSR. Sets and restores its own blend/cull/depth state.
+/// faces). Samples the opaque-color snapshot for SSR. Sets and restores its own blend/cull/depth state.
 /// </summary>
 public sealed class WaterPass(GL gl, WaterRenderer water) : IRenderPass
 {
