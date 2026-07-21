@@ -47,19 +47,9 @@ struct DirLight {
     vec4 color;
 };
 
-struct PointLight {
-    vec4 position;
-    vec4 color;
-    float intensity;
-    float constant;
-    float linear;
-    float quadratic;
-};
-
 layout (std140, binding = 1) uniform LightingData {
     mat4 LightSpaceMatrix;
     DirLight dirLight;
-    PointLight pointLights[4];
 };
 
 // Cascaded shadow maps (research §8).

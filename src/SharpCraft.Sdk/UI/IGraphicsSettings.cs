@@ -112,4 +112,10 @@ public interface IGraphicsSettings
     {
         get; set;
     }
+
+    /// <summary>Maximum number of point lights considered by the clustered lighting pass.</summary>
+    int MaxPointLights
+    {
+        get; set;
+    }
 }

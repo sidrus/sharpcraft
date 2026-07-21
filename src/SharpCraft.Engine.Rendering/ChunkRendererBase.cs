@@ -11,8 +11,6 @@ namespace SharpCraft.Engine.Rendering;
 /// </summary>
 public abstract class ChunkRendererBase : IDisposable
 {
-    // Engine.Rendering talks to the world only through IChunk/IWorld and cannot see Chunk.Size/Height,
-    // so the chunk bounding extent is a literal here (kept in one place instead of per-renderer).
     private static readonly Vector3 ChunkExtent = new(16, 256, 16);
 
     protected GL Gl { get; }

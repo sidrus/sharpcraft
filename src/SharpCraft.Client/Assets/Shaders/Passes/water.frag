@@ -36,6 +36,7 @@ layout (std140, binding = 0) uniform SceneData {
     float FogFar;
     float Exposure;
     float Gamma;
+    mat4 View;
 };
 
 struct DirLight {
@@ -43,24 +44,24 @@ struct DirLight {
     vec4 color;
 };
 
-struct PointLight {
-    vec4 position;
-    vec4 color;
-    float intensity;
-    float constant;
-    float linear;
-    float quadratic;
-};
-
 layout (std140, binding = 1) uniform LightingData {
     mat4 LightSpaceMatrix;
     DirLight dirLight;
-    PointLight pointLights[4];
 };
 
 #include "../Common/math.glsl"
 #include "../Common/BRDF.glsl"
 #include "../Common/shadows.glsl"
+#include "../Common/clusters.glsl"
+
+layout(std430, binding = 1) readonly buffer Lights          { Light lights[]; };
+layout(std430, binding = 2) readonly buffer LightGrid       { uvec2 lightGrid[]; };
+layout(std430, binding = 3) readonly buffer GlobalIndexList { uint globalLightIndex[]; };
+
+uniform vec3 clusterGridSize;
+uniform vec2 clusterScreenSize;
+uniform float clusterZNear;
+uniform float clusterZFar;
 
 // Water properties - realistic clear lake water
 const float WATER_IOR = 1.333;
@@ -225,15 +226,20 @@ void main() {
     }
     
     // Point light specular
-    for(int i = 0; i < 4; i++) {
-        if (pointLights[i].intensity > 0.0) {
-            vec3 Lp = normalize(pointLights[i].position.xyz - FragPos);
-            float dist = length(pointLights[i].position.xyz - FragPos);
-            float attenuation = 1.0 / (pointLights[i].constant + 
-                                       pointLights[i].linear * dist + 
-                                       pointLights[i].quadratic * dist * dist);
-            vec3 radiance = pointLights[i].color.xyz * pointLights[i].intensity * attenuation;
-            
+    {
+        float viewZ = (View * vec4(FragPos, 1.0)).z;
+        uint cluster = clusterIndex(gl_FragCoord.xy, viewZ, clusterScreenSize,
+                                    uvec3(clusterGridSize), clusterZNear, clusterZFar);
+        uint offset = lightGrid[cluster].x;
+        uint count = lightGrid[cluster].y;
+        for (uint li = 0u; li < count; li++) {
+            Light light = lights[globalLightIndex[offset + li]];
+            vec3 d = light.positionRange.xyz - FragPos;
+            float dist = length(d);
+            if (dist > light.positionRange.w) continue;
+            float att = 1.0 / (light.atten.x + light.atten.y * dist + light.atten.z * dist * dist);
+            vec3 radiance = light.color.rgb * light.color.w * att;
+            vec3 Lp = normalize(d);
             vec3 Hp = normalize(V + Lp);
             float NoHp = max(dot(N, Hp), 0.0);
             float Dp = DistributionGGX(N, Hp, WATER_ROUGHNESS);

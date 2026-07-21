@@ -20,6 +20,7 @@ layout (std140, binding = 0) uniform SceneData {
     float FogFar;
     float Exposure;
     float Gamma;
+    mat4 View;
 };
 
 uniform mat4 model;

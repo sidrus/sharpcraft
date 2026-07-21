@@ -49,6 +49,7 @@ public class GraphicsSettingsHud(IGraphicsSettings settings) : InteractiveHud
             var renderDistance = settings.RenderDistance;
             var fogNearFactor = settings.FogNearFactor;
             var fogFarFactor = settings.FogFarFactor;
+            var maxPointLights = settings.MaxPointLights;
 
             gui.Panel("Pipeline Features", () =>
             {
@@ -66,6 +67,7 @@ public class GraphicsSettingsHud(IGraphicsSettings settings) : InteractiveHud
                 gui.SliderFloat("SSAO Intensity", ref ssaoIntensity, 0.0f, 8.0f);
                 gui.Checkbox("Enable SSR (Water Reflections)", ref useSsr);
                 gui.Checkbox("Enable Contact Shadows", ref useContactShadows);
+                gui.SliderInt("Max Point Lights", ref maxPointLights, 1, 256);
                 gui.Checkbox("VSync", ref vSync);
                 gui.SliderFloat("Gamma Correction", ref gamma, 0.0f, 4.0f);
                 gui.SliderFloat("Exposure Compensation", ref exposure, 0.0f, 10.0f);
@@ -110,6 +112,7 @@ public class GraphicsSettingsHud(IGraphicsSettings settings) : InteractiveHud
             settings.RenderDistance = renderDistance;
             settings.FogNearFactor = fogNearFactor;
             settings.FogFarFactor = fogFarFactor;
+            settings.MaxPointLights = maxPointLights;
 
             gui.Spacing();
             gui.Separator();

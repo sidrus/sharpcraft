@@ -33,10 +33,14 @@ public static class RenderContextBuilder
         var fogNear = isUnderwater ? 0.0f : viewDistance * settings.FogNearFactor;
         var fogFar = isUnderwater ? 20.0f : viewDistance * settings.FogFarFactor;
 
+        var cappedLights = pointLights.Length > settings.MaxPointLights
+            ? pointLights[..settings.MaxPointLights]
+            : pointLights;
+
         return new RenderContext(
             Camera: new CameraData(view, projection, cameraPosition, screenWidth, screenHeight),
             Fog: new FogData(fogColor, fogNear, fogFar),
-            Lighting: new SceneLighting(sun, pointLights),
+            Lighting: new SceneLighting(sun, cappedLights),
             Pbr: new PbrSettings(
                 settings.UseNormalMap, settings.NormalStrength,
                 settings.UseAoMap, settings.AoMapStrength,

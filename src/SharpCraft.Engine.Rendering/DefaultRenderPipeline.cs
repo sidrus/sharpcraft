@@ -228,6 +228,7 @@ public class DefaultRenderPipeline(
         gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         gl.Disable(EnableCap.CullFace);
         gl.DepthMask(false);
+        _clustered.BindForShading();
         waterRenderer.Render(world, context, _targets);
         gl.DepthMask(true);
         gl.Enable(EnableCap.CullFace);
@@ -347,54 +348,11 @@ public class DefaultRenderPipeline(
             {
                 Direction = new Vector4(lightDirection, 0.0f),
                 Color = new Vector4(lightColor * lightIntensity, 1.0f)
-            },
-            PointLight0 = DefaultPointLight(),
-            PointLight1 = DefaultPointLight(),
-            PointLight2 = DefaultPointLight(),
-            PointLight3 = DefaultPointLight()
+            }
         };
-
-        if (context.Lighting.PointLights != null)
-        {
-            if (context.Lighting.PointLights.Length > 0)
-            {
-                lightingData.PointLight0 = MapLight(context.Lighting.PointLights[0]);
-            }
-
-            if (context.Lighting.PointLights.Length > 1)
-            {
-                lightingData.PointLight1 = MapLight(context.Lighting.PointLights[1]);
-            }
-
-            if (context.Lighting.PointLights.Length > 2)
-            {
-                lightingData.PointLight2 = MapLight(context.Lighting.PointLights[2]);
-            }
-
-            if (context.Lighting.PointLights.Length > 3)
-            {
-                lightingData.PointLight3 = MapLight(context.Lighting.PointLights[3]);
-            }
-        }
 
         _lightingUbo.Update(lightingData);
     }
-
-    private static PointLightDataStd140 DefaultPointLight() => new()
-    {
-        Constant = 1.0f,
-        Intensity = 0.0f
-    };
-
-    private static PointLightDataStd140 MapLight(PointLightData light) => new()
-    {
-        Position = new Vector4(light.Position, 1.0f),
-        Color = new Vector4(light.Color, 1.0f),
-        Intensity = light.Intensity,
-        Constant = light.Constant,
-        Linear = light.Linear,
-        Quadratic = light.Quadratic
-    };
 
     public void Dispose()
     {

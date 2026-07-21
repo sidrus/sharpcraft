@@ -52,10 +52,14 @@ public sealed class WaterRenderer : ChunkRendererBase
             Shader.SetUniform("invScreenSize", new Vector2(1.0f / context.Camera.ScreenWidth, 1.0f / context.Camera.ScreenHeight));
         }
 
+        Shader.SetUniform("clusterGridSize", new Vector3(ClusteredLighting.GridX, ClusteredLighting.GridY, ClusteredLighting.GridZ));
+        Shader.SetUniform("clusterScreenSize", new Vector2(context.Camera.ScreenWidth, context.Camera.ScreenHeight));
+        Shader.SetUniform("clusterZNear", ClusteredLighting.ZNear);
+        Shader.SetUniform("clusterZFar", ClusteredLighting.ZFar);
+
         RenderChunks(world, context, renderChunk => renderChunk.BindAndDrawTransparent());
     }
 
-    // The water shader is created and owned here, so it must be disposed.
     protected override void DisposeShader(bool disposing)
     {
         if (disposing)

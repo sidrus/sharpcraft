@@ -86,7 +86,6 @@ public sealed class TerrainRenderer : ChunkRendererBase
         RenderChunks(world, context, renderChunk => renderChunk.BindAndDrawOpaque());
     }
 
-    // The terrain shader is shared (owned by the pipeline), so it is not disposed here.
     protected override void DisposeShader(bool disposing)
     {
     }
