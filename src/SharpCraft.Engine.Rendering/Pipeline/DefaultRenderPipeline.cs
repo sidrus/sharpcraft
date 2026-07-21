@@ -15,7 +15,7 @@ public class DefaultRenderPipeline(
     ChunkMeshManager meshManager,
     TerrainRenderer terrainRenderer,
     WaterRenderer waterRenderer,
-    TorchRenderer torchRenderer,
+    StaticMeshRenderer staticMeshRenderer,
     PostProcessingRenderer postProcessingRenderer)
     : IDisposable
 {
@@ -44,7 +44,7 @@ public class DefaultRenderPipeline(
     private readonly DepthPrepassPass _depthPrepassPass = new(gl, cache);
     private readonly GtaoPass _gtaoPass = new(gl);
     private readonly ShadowPass _shadowPass = new(gl, cache, ShadowMapSize, CascadeCount);
-    private readonly TerrainPass _terrainPass = new(terrainRenderer, torchRenderer);
+    private readonly TerrainPass _terrainPass = new(terrainRenderer, staticMeshRenderer);
     private readonly SsrSnapshotPass _ssrSnapshotPass = new(gl);
     private readonly WaterPass _waterPass = new(gl, waterRenderer);
 
@@ -139,7 +139,7 @@ public class DefaultRenderPipeline(
         // Sky fills the background (depth test off, no depth write).
         _skyboxPass.Execute(world, context, _targets);
 
-        // Opaque, forward-lit terrain + torch models. Bind the clustered light buffers for shading.
+        // Opaque, forward-lit terrain + placed static meshes. Bind the clustered light buffers for shading.
         _clustered.BindForShading();
         _terrainPass.Execute(world, context, _targets);
 

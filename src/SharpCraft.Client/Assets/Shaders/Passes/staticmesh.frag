@@ -5,12 +5,12 @@ in vec3 FragPos;
 
 out vec4 FragColor;
 
-uniform sampler2D torchTex;
+uniform sampler2D baseColorTex;
 uniform vec3 sunDirection; // direction the sunlight travels
 uniform vec3 sunColor;
 
 void main() {
-    vec4 tex = texture(torchTex, TexCoord);
+    vec4 tex = texture(baseColorTex, TexCoord);
     if (tex.a < 0.5) discard; // transparent margin around the model
 
     vec3 albedo = tex.rgb;

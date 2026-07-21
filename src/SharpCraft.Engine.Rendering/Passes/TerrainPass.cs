@@ -1,11 +1,12 @@
 namespace SharpCraft.Engine.Rendering.Passes;
 
 /// <summary>
-/// Opaque forward-lit geometry: the terrain chunks plus the placed torch models (torches are just a
-/// small emissive box drawn with the opaque geometry — their light comes from the clustered point
-/// lights, not this pass). Shades against the shadow map, GTAO, and IBL produced by earlier passes.
+/// Opaque forward-lit geometry: the terrain chunks plus any placed static meshes. The static meshes
+/// are drawn with the opaque geometry and carry no special meaning here — anything that emits light
+/// does so through the clustered point lights, not this pass. Shades against the shadow map, GTAO,
+/// and IBL produced by earlier passes.
 /// </summary>
-public sealed class TerrainPass(TerrainRenderer terrain, TorchRenderer torches) : IRenderPass
+public sealed class TerrainPass(TerrainRenderer terrain, StaticMeshRenderer staticMeshes) : IRenderPass
 {
     public string Name => "Terrain";
 
@@ -23,12 +24,12 @@ public sealed class TerrainPass(TerrainRenderer terrain, TorchRenderer torches) 
     public void Execute(IWorld world, RenderContext context, RenderTargets targets)
     {
         terrain.Render(world, context, targets);
-        torches.Render(context);
+        staticMeshes.Render(context);
     }
 
     public void Dispose()
     {
         terrain.Dispose();
-        torches.Dispose();
+        staticMeshes.Dispose();
     }
 }

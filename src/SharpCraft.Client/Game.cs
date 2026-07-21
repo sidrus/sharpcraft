@@ -57,7 +57,8 @@ public partial class Game : IDisposable
     private ShaderProgram? _mainShader;
     private ICamera? _camera;
     private LocalPlayerController? _playerController;
-    private TorchRenderer? _torchRenderer;
+    private StaticMeshRenderer? _staticMeshRenderer;
+    private StaticMesh? _torch;
     private TextureAtlas? _atlas;
 
     private const double FixedDeltaTime = 1.0 / 60.0;
@@ -364,10 +365,12 @@ public partial class Game : IDisposable
         _mainShader = new ShaderProgram(_gl, Shaders.DefaultVertex, Shaders.DefaultFragment);
         var terrainRenderer = new TerrainRenderer(_gl, cache, meshManager, _atlas, _mainShader);
         var waterRenderer = new WaterRenderer(_gl, cache, meshManager, _atlas);
-        _torchRenderer = new TorchRenderer(_gl);
+        _staticMeshRenderer = new StaticMeshRenderer(_gl);
+        var (torchTexWidth, torchTexHeight, torchTexPixels) = TorchModel.BuildTexture();
+        _torch = _staticMeshRenderer.Register(TorchModel.BuildMesh(), torchTexWidth, torchTexHeight, torchTexPixels);
         _postProcessingRenderer = new PostProcessingRenderer(_gl);
 
-        _renderPipeline = new DefaultRenderPipeline(_gl, cache, meshManager, terrainRenderer, waterRenderer, _torchRenderer, _postProcessingRenderer);
+        _renderPipeline = new DefaultRenderPipeline(_gl, cache, meshManager, terrainRenderer, waterRenderer, _staticMeshRenderer, _postProcessingRenderer);
 
         _worldTime = new WorldTime { DayDurationInMinutes = 5f };
         _lightSystem.WorldTime = _worldTime;
@@ -424,7 +427,7 @@ public partial class Game : IDisposable
     /// </summary>
     private void PlaceTorch()
     {
-        if (_torchRenderer == null || _playerController == null)
+        if (_torch == null || _playerController == null)
         {
             return;
         }
@@ -437,7 +440,7 @@ public partial class Game : IDisposable
 
         var basePos = TorchPlacement.BasePosition(_playerController.Entity.Position);
 
-        _torchRenderer.AddTorch(basePos);
+        _torch.Place(basePos);
 
         _lightSystem.AddPointLight(new PointLightData(
             Position: basePos + new Vector3(0f, 0.55f, 0f), // at the flame
@@ -447,7 +450,7 @@ public partial class Game : IDisposable
             Linear: 0.18f,
             Quadratic: 0.10f));
 
-        LogTorchPlaced(basePos.X, basePos.Y, basePos.Z, _torchRenderer.Count);
+        LogTorchPlaced(basePos.X, basePos.Y, basePos.Z, _torch.Count);
     }
 
     public void Run()
