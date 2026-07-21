@@ -11,6 +11,9 @@ public sealed class RenderTargets
     /// <summary>Cascaded shadow depth array.</summary>
     public uint ShadowMap;
 
+    /// <summary>Per-cascade light-space matrices the shadow pass renders each cascade with.</summary>
+    public Matrix4x4[] CascadeLightMatrices = [];
+
     /// <summary>IBL diffuse irradiance cubemap (0 when the bake is not ready).</summary>
     public uint IrradianceMap;
 
@@ -32,12 +35,31 @@ public sealed class RenderTargets
     /// <summary>Inverse of the main (jittered) view-projection, for depth reconstruction.</summary>
     public Matrix4x4 InvViewProj;
 
+    /// <summary>Main (TAA-jittered) view-projection used by the forward + depth-prepass passes.</summary>
+    public Matrix4x4 MainViewProj;
+
+    /// <summary>Main (TAA-jittered) projection, for screen-space passes that need it alone (GTAO).</summary>
+    public Matrix4x4 MainProjection;
+
+    /// <summary>Framebuffer handle of the main HDR scene, for passes that draw/composite into it.</summary>
+    public uint HdrSceneFbo;
+
+    /// <summary>Reversed-Z depth texture of the main HDR scene (forward-pass depth).</summary>
+    public uint HdrSceneDepth;
+
+    /// <summary>Resolved HDR scene colour after the forward pass (and TAA), input to the post chain.</summary>
+    public uint ResolvedScene;
+
+    /// <summary>Bloom pyramid result, composited by the output transform (0 when bloom is off).</summary>
+    public uint BloomTexture;
+
     /// <summary>
     /// Clears every produced handle back to its empty state at the start of a frame.
     /// </summary>
     public void Reset()
     {
         ShadowMap = 0;
+        CascadeLightMatrices = [];
         IrradianceMap = 0;
         PrefilterMap = 0;
         BrdfLut = 0;
@@ -45,5 +67,11 @@ public sealed class RenderTargets
         SceneDepthTexture = 0;
         GtaoTexture = 0;
         InvViewProj = default;
+        MainViewProj = default;
+        MainProjection = default;
+        HdrSceneFbo = 0;
+        HdrSceneDepth = 0;
+        ResolvedScene = 0;
+        BloomTexture = 0;
     }
 }

@@ -24,17 +24,9 @@ public class DefaultRenderPipeline(
     public ChunkMeshManager MeshManager { get; } = meshManager;
 
     private Framebuffer? _framebuffer;
-    private CascadedShadowMap? _csm;
-    private ShadowMapRenderer? _shadowMapRenderer;
-    private IblBaker? _iblBaker;
     private ClusteredLighting? _clustered;
     private AutoExposure? _autoExposure;
     private TemporalAa? _taa;
-    private Framebuffer? _depthPrepass;
-    private Framebuffer? _opaqueColor;
-    private GtaoRenderer? _gtao;
-    private BloomRenderer? _bloom;
-    private VolumetricRenderer? _volumetric;
     private Matrix4x4 _mainViewProj;
     private Matrix4x4 _mainProjection;
     private int _lastWidth;
@@ -45,13 +37,25 @@ public class DefaultRenderPipeline(
     private readonly UniformBufferObject<SceneData> _sceneUbo = new(gl, 0);
     private readonly UniformBufferObject<LightingData> _lightingUbo = new(gl, 1);
     private readonly UniformBufferObject<CsmData> _csmUbo = new(gl, 2);
-    private readonly SunRenderer _sunRenderer = new(gl);
-    private readonly SkyboxRenderer _skyboxRenderer = new(gl);
+    private readonly SunPass _sunPass = new(gl);
+    private readonly SkyboxPass _skyboxPass = new(gl);
+    private readonly BloomPass _bloomPass = new(gl, postProcessingRenderer);
+    private readonly OutputPass _outputPass = new(postProcessingRenderer);
+    private readonly VolumetricPass _volumetricPass = new(gl, postProcessingRenderer, ShadowDistance);
+    private readonly IblPass _iblPass = new(gl);
+    private readonly DepthPrepassPass _depthPrepassPass = new(gl, cache);
+    private readonly GtaoPass _gtaoPass = new(gl);
+    private readonly ShadowPass _shadowPass = new(gl, cache, ShadowMapSize, CascadeCount);
+    private readonly TerrainPass _terrainPass = new(terrainRenderer, torchRenderer);
+    private readonly SsrSnapshotPass _ssrSnapshotPass = new(gl);
+    private readonly WaterPass _waterPass = new(gl, waterRenderer);
+
+    private RenderPassPipeline? _pipeline;
 
     // Cascaded shadow map config (research §8).
-    private const int CascadeCount = 4;
+    private const int CascadeCount = 8;
     private const uint ShadowMapSize = 2048;
-    private const float ShadowDistance = 220.0f;
+    private const float ShadowDistance = 300.0f;
 
     private ShadowCascades.Result _cascades;
 
@@ -62,6 +66,7 @@ public class DefaultRenderPipeline(
             return;
         }
 
+        _pipeline ??= BuildPipeline();
         _targets.Reset();
 
         if (_framebuffer == null || _lastWidth != context.Camera.ScreenWidth || _lastHeight != context.Camera.ScreenHeight)
@@ -72,15 +77,8 @@ public class DefaultRenderPipeline(
             _lastHeight = context.Camera.ScreenHeight;
         }
 
-        var csm = _csm;
-        if (csm == null)
-        {
-            csm = new CascadedShadowMap(gl, ShadowMapSize, CascadeCount);
-            _csm = csm;
-            _shadowMapRenderer = new ShadowMapRenderer(gl, cache, new ShaderProgram(gl, Shaders.Shaders.ShadowVertex, Shaders.Shaders.ShadowFragment));
-        }
-
-        _targets.ShadowMap = csm.DepthArray;
+        _targets.HdrSceneFbo = _framebuffer.Handle;
+        _targets.HdrSceneDepth = _framebuffer.DepthTextureHandle;
 
         // Temporal AA (research §9): jitter the main-pass projection sub-pixel each frame. The
         // unjittered View/Projection are still used for shadows, clustering and culling.
@@ -90,6 +88,8 @@ public class DefaultRenderPipeline(
             : context.Camera.Projection;
         _mainProjection = mainProjection;
         _mainViewProj = context.Camera.View * mainProjection;
+        _targets.MainProjection = _mainProjection;
+        _targets.MainViewProj = _mainViewProj;
 
         cache.Update(world.GetLoadedChunks());
         UpdateUbos(context);
@@ -97,20 +97,9 @@ public class DefaultRenderPipeline(
         // Image-based lighting bake (research §4.2/§6): refresh the sky env / irradiance /
         // prefilter when the sun moves, and expose the maps to the forward pass. Throttled
         // internally, so most frames this is a no-op.
-        if (context.Effects.UseIbl)
+        if (_iblPass.Enabled(context))
         {
-            _iblBaker ??= new IblBaker(gl);
-            var lightDir = context.Lighting.Sun?.Direction ?? Vector3.Normalize(new Vector3(0.8f, -0.5f, 0.1f));
-            var toSun = Vector3.Normalize(-lightDir);
-            var sunColor = context.Lighting.Sun?.Color ?? new Vector3(1.0f, 0.95f, 0.8f);
-            _iblBaker.Update(toSun, sunColor, context.Atmosphere.MieG, captureIntensity: 4.0f);
-
-            if (_iblBaker.IsReady)
-            {
-                _targets.IrradianceMap = _iblBaker.IrradianceMap;
-                _targets.PrefilterMap = _iblBaker.PrefilterMap;
-                _targets.BrdfLut = _iblBaker.BrdfLut;
-            }
+            _iblPass.Execute(world, context, _targets);
         }
 
         // Clustered forward+ light culling (research §2): build the froxel grid + cull lights into
@@ -124,55 +113,18 @@ public class DefaultRenderPipeline(
         var height = (uint)context.Camera.ScreenHeight;
 
         // === SHADOW PASS (cascaded, research §8) ===
-        // Conventional (non-reversed) ortho per cascade: clear to 1.0, keep LESS, clamp casters (§12.2).
-        // Render BOTH faces (no culling): the light-facing surface wins the depth test, so shadows
-        // anchor at the caster's near side instead of detaching by the occluder's thickness
-        // (front-face culling on solid 1-block voxels caused ~1-block peter-panning). Normal-offset
-        // bias in the shadow sampling handles the resulting self-shadow acne.
-        gl.Enable(EnableCap.DepthTest);
-        gl.Enable(EnableCap.DepthClamp);
-        gl.DepthFunc(DepthFunction.Less);
-        gl.ClearDepth(1.0f);
-        gl.Disable(EnableCap.CullFace);
-        for (int c = 0; c < CascadeCount; c++)
-        {
-            csm.BindLayer(c);
-            gl.Clear(ClearBufferMask.DepthBufferBit);
-            _shadowMapRenderer?.Render(world, _cascades.LightSpaceMatrices[c]);
-        }
-        csm.Unbind();
-        gl.Enable(EnableCap.CullFace);
-        gl.CullFace(TriangleFace.Back);
-
-        // Restore the reversed-Z main-pass depth policy (near→1, far→0).
-        gl.Disable(EnableCap.DepthClamp);
-        gl.DepthFunc(DepthFunction.Greater);
-        gl.ClearDepth(0.0f);
+        _shadowPass.Execute(world, context, _targets);
 
         // === DEPTH PRE-PASS + GTAO (research §7) ===
         // Render opaque terrain depth at screen res (reuses the shadow shader with the main VP). It
         // feeds GTAO, SSR, and contact shadows (the opaque scene depth they all march against).
-        if (context.Effects.UseSsao || context.Effects.UseSsr || context.Effects.UseContactShadows)
+        if (_depthPrepassPass.Enabled(context))
         {
-            if (_depthPrepass == null || _depthPrepass.Width != context.Camera.ScreenWidth || _depthPrepass.Height != context.Camera.ScreenHeight)
-            {
-                _depthPrepass?.Dispose();
-                _depthPrepass = new Framebuffer(gl, context.Camera.ScreenWidth, context.Camera.ScreenHeight, hdr: false);
-            }
-
-            _depthPrepass.Bind();
-            gl.Viewport(0, 0, width, height);
-            gl.Clear(ClearBufferMask.DepthBufferBit);
-            _shadowMapRenderer?.Render(world, _mainViewProj);
-            _depthPrepass.Unbind();
-            _targets.SceneDepthTexture = _depthPrepass.DepthTextureHandle;
-
-            if (context.Effects.UseSsao)
-            {
-                _gtao ??= new GtaoRenderer(gl);
-                _targets.GtaoTexture = _gtao.Render(_depthPrepass.DepthTextureHandle, _mainProjection,
-                    context.Camera.ScreenWidth, context.Camera.ScreenHeight, context.Effects.SsaoRadius, context.Effects.SsaoIntensity);
-            }
+            _depthPrepassPass.Execute(world, context, _targets);
+        }
+        if (_gtaoPass.Enabled(context))
+        {
+            _gtaoPass.Execute(world, context, _targets);
         }
 
         // Inverse of the main (jittered) VP — used to reconstruct world position from depth in SSR.
@@ -187,52 +139,26 @@ public class DefaultRenderPipeline(
         gl.Disable(EnableCap.Blend);
 
         // Sky fills the background (depth test off, no depth write).
-        gl.Disable(EnableCap.DepthTest);
-        _skyboxRenderer.Render(context, _targets);
-        gl.Enable(EnableCap.DepthTest);
+        _skyboxPass.Execute(world, context, _targets);
 
-        // Opaque, forward-lit terrain. Bind the clustered light buffers for the shading pass.
+        // Opaque, forward-lit terrain + torch models. Bind the clustered light buffers for shading.
         _clustered.BindForShading();
-        terrainRenderer.Render(world, context, _targets);
-
-        // Placed torch models (opaque, forward-lit, emissive head). Drawn after terrain so they
-        // depth-test against it.
-        torchRenderer.Render(context);
+        _terrainPass.Execute(world, context, _targets);
 
         // Sun disc at the far plane (occluded by terrain via GEqual).
-        _sunRenderer.Render(context);
+        _sunPass.Execute(world, context, _targets);
 
         // Snapshot the opaque HDR scene so the water SSR pass can sample it (a surface can't read
-        // the colour attachment it is drawing into). Reuses the pre-pass depth as the scene depth.
-        if (context.Effects.UseSsr && _targets.SceneDepthTexture != 0)
+        // the color attachment it is drawing into).
+        if (_ssrSnapshotPass.Enabled(context))
         {
-            if (_opaqueColor == null || _opaqueColor.Width != context.Camera.ScreenWidth || _opaqueColor.Height != context.Camera.ScreenHeight)
-            {
-                _opaqueColor?.Dispose();
-                _opaqueColor = new Framebuffer(gl, context.Camera.ScreenWidth, context.Camera.ScreenHeight, hdr: true);
-            }
-            gl.BlitNamedFramebuffer(_framebuffer.Handle, _opaqueColor.Handle,
-                0, 0, context.Camera.ScreenWidth, context.Camera.ScreenHeight,
-                0, 0, context.Camera.ScreenWidth, context.Camera.ScreenHeight,
-                ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
-            _framebuffer.Bind();
-            gl.Viewport(0, 0, width, height);
-            _targets.OpaqueColorTexture = _opaqueColor.TextureHandle;
+            _ssrSnapshotPass.Execute(world, context, _targets);
         }
 
-        // Transparent water (forward, blended). The fix for the z-fighting spikes was depth-WRITE
-        // off (test against the opaque scene, don't write). Culling stays OFF: the water mesh has no
-        // bottom faces (culled against the lake bed at mesh time), so there's nothing to double-
-        // blend, and culling would instead leave seams where edge faces face away.
-        gl.Enable(EnableCap.Blend);
-        gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-        gl.Disable(EnableCap.CullFace);
-        gl.DepthMask(false);
+        // Transparent water (forward, blended). Binds the clustered light buffers, then the pass owns
+        // its blend/cull/depth-write state.
         _clustered.BindForShading();
-        waterRenderer.Render(world, context, _targets);
-        gl.DepthMask(true);
-        gl.Enable(EnableCap.CullFace);
-        gl.Disable(EnableCap.Blend);
+        _waterPass.Execute(world, context, _targets);
 
         _framebuffer.Unbind();
 
@@ -240,21 +166,9 @@ public class DefaultRenderPipeline(
         // Half-res ray-march of height fog + sun shafts against the CSM, then composite into the HDR
         // scene (scene·T + inscatter) BEFORE the TAA resolve, so the half-res march noise is cleaned
         // up temporally. Marches against the main pass depth + the (already-current) CsmData UBO.
-        if (postProcessingRenderer.VolumetricEnabled && postProcessingRenderer.VolumetricIntensity > 0f)
+        if (_volumetricPass.Enabled(context))
         {
-            _volumetric ??= new VolumetricRenderer(gl);
-            _volumetric.Render(
-                _framebuffer.DepthTextureHandle, csm.DepthArray, context, invMainViewProj,
-                postProcessingRenderer.DensityMultiplier, postProcessingRenderer.ExtinctionMultiplier,
-                postProcessingRenderer.VolumetricIntensity, postProcessingRenderer.VolumetricSamples,
-                postProcessingRenderer.ScatteringG, ShadowDistance);
-
-            _framebuffer.Bind();
-            // Reversed-Z near plane lives in proj M43 (same recovery ShadowCascades uses); needed to
-            // linearize depth for the bilateral upsample that suppresses terrain-edge fog halos.
-            _volumetric.Composite(context.Camera.ScreenWidth, context.Camera.ScreenHeight,
-                _framebuffer.DepthTextureHandle, context.Camera.Projection.M43);
-            _framebuffer.Unbind();
+            _volumetricPass.Execute(world, context, _targets);
         }
 
         // === TEMPORAL AA RESOLVE (research §9) ===
@@ -266,6 +180,7 @@ public class DefaultRenderPipeline(
                 _framebuffer.TextureHandle, _framebuffer.DepthTextureHandle,
                 _mainViewProj, context.Camera.ScreenWidth, context.Camera.ScreenHeight);
         }
+        _targets.ResolvedScene = sceneTexture;
 
         // === AUTO-EXPOSURE (research §5.2) ===
         // Histogram the resolved HDR radiance and adapt the exposure before the output transform.
@@ -275,28 +190,26 @@ public class DefaultRenderPipeline(
 
         // === BLOOM (research §5.6) ===
         // Build the dual-filter pyramid from the resolved HDR scene; composited in the output pass.
-        uint bloomTexture = 0;
-        var bloomStrength = context.Effects.UseBloom ? postProcessingRenderer.BloomIntensity : 0f;
-        if (bloomStrength > 0f)
+        if (_bloomPass.Enabled(context))
         {
-            _bloom ??= new BloomRenderer(gl);
-            bloomTexture = _bloom.Render(sceneTexture, context.Camera.ScreenWidth, context.Camera.ScreenHeight, postProcessingRenderer.BloomThreshold);
+            _bloomPass.Execute(world, context, _targets);
         }
 
         // === OUTPUT TRANSFORM (HDR fp16 → SDR sRGB) ===
         // TAA already resolved spatial aliasing, so skip the FXAA edge filter when it's on.
         _autoExposure.BindForOutput();
-        postProcessingRenderer.Gamma = context.Exposure.Gamma;
-        postProcessingRenderer.Render(
-            sceneTexture,
-            context.Camera.ScreenWidth,
-            context.Camera.ScreenHeight,
-            context.IsUnderwater,
-            context.Time,
-            context.Exposure.Exposure,
-            useFxaa: !context.Effects.UseTaa,
-            bloomTexture: bloomTexture,
-            bloomStrength: bloomStrength);
+        _outputPass.Execute(world, context, _targets);
+    }
+
+    private RenderPassPipeline BuildPipeline()
+    {
+        return new RenderPassPipeline(
+        [
+            _iblPass, _shadowPass, _depthPrepassPass, _gtaoPass,
+            _skyboxPass, _terrainPass, _sunPass, _ssrSnapshotPass, _waterPass,
+            _volumetricPass, _bloomPass, _outputPass,
+        ],
+        new HashSet<RenderResource> { RenderResource.InvViewProj, RenderResource.ResolvedScene });
     }
 
     private void UpdateUbos(RenderContext context)
@@ -309,6 +222,7 @@ public class DefaultRenderPipeline(
         _cascades = ShadowCascades.Compute(
             context.Camera.View, context.Camera.Projection, lightDirection,
             ShadowDistance, ShadowMapSize, CascadeCount);
+        _targets.CascadeLightMatrices = _cascades.LightSpaceMatrices;
 
         var m = _cascades.LightSpaceMatrices;
         var s = _cascades.SplitDepths;
@@ -369,28 +283,16 @@ public class DefaultRenderPipeline(
 
         if (disposing)
         {
+            (_pipeline ?? BuildPipeline()).Dispose();
             _sceneUbo.Dispose();
             _lightingUbo.Dispose();
             _csmUbo.Dispose();
-            _sunRenderer.Dispose();
-            _skyboxRenderer.Dispose();
             cache.Dispose();
-            terrainRenderer.Dispose();
-            waterRenderer.Dispose();
-            torchRenderer.Dispose();
             postProcessingRenderer.Dispose();
             _framebuffer?.Dispose();
-            _csm?.Dispose();
-            _shadowMapRenderer?.Dispose();
-            _iblBaker?.Dispose();
             _clustered?.Dispose();
             _autoExposure?.Dispose();
             _taa?.Dispose();
-            _depthPrepass?.Dispose();
-            _opaqueColor?.Dispose();
-            _gtao?.Dispose();
-            _bloom?.Dispose();
-            _volumetric?.Dispose();
         }
         _disposed = true;
     }
