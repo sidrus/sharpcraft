@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using SharpCraft.Engine.Rendering;
+using SharpCraft.Engine.Rendering.Pipeline;
 using SharpCraft.Engine.Rendering.Lighting;
 using SharpCraft.Sdk.UI;
 using System.Numerics;

@@ -2,6 +2,8 @@
 using SharpCraft.Client.Input;
 using SharpCraft.Client.UI.Chat;
 using SharpCraft.Engine.Rendering;
+using SharpCraft.Engine.Rendering.Chunks;
+using SharpCraft.Engine.Rendering.PostProcessing;
 using SharpCraft.Engine.Rendering.Lighting;
 using SharpCraft.Engine.UI;
 using SharpCraft.Engine.Universe;

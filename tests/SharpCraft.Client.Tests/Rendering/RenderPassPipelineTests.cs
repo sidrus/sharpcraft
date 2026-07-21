@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using NSubstitute;
 using SharpCraft.Engine.Rendering;
+using SharpCraft.Engine.Rendering.Pipeline;
 using SharpCraft.Sdk.Universe;
 
 namespace SharpCraft.Client.Tests.Rendering;

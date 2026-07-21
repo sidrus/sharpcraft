@@ -1,0 +1,96 @@
+﻿using SharpCraft.Engine.Rendering.Shaders;
+using System.Numerics;
+
+namespace SharpCraft.Engine.Rendering.Renderers;
+
+public sealed class SkyboxRenderer : IDisposable
+{
+    private readonly GL _gl;
+    private readonly ShaderProgram _shader;
+    private readonly uint _vao;
+    private readonly uint _vbo;
+
+    public SkyboxRenderer(GL gl)
+    {
+        _gl = gl;
+        _shader = new ShaderProgram(_gl, Shaders.Shaders.SkyboxVertex, Shaders.Shaders.SkyboxFragment);
+        _shader.BindUniformBlock("SceneData", 0);
+
+        // Fullscreen triangle (clip space). The fragment reconstructs the per-pixel view ray, so no
+        // skybox cube / interpolation crease.
+        float[] vertices = {
+            -1.0f, -1.0f,
+             3.0f, -1.0f,
+            -1.0f,  3.0f
+        };
+
+        _vao = _gl.GenVertexArray();
+        _vbo = _gl.GenBuffer();
+
+        _gl.BindVertexArray(_vao);
+        _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vbo);
+        unsafe
+        {
+            fixed (float* v = vertices)
+            {
+                _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertices.Length * sizeof(float)), v, BufferUsageARB.StaticDraw);
+            }
+        }
+
+        _gl.EnableVertexAttribArray(0);
+        unsafe
+        {
+            _gl.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), (void*)0);
+        }
+
+        _gl.BindVertexArray(0);
+    }
+
+    public void Render(RenderContext context, RenderTargets targets)
+    {
+        // Reversed-Z: the sky sits at the far plane (depth 0), so GEqual lets it pass where
+        // it equals the cleared depth and lose to any nearer geometry (research §12.2).
+        _gl.DepthFunc(DepthFunction.Gequal);
+        _gl.Disable(EnableCap.CullFace);
+
+        _shader.Use();
+
+        // Pass Sun and Moon data
+        var sunDir = context.Lighting.Sun?.Direction ?? new Vector3(0, -1, 0);
+        var sunColor = context.Lighting.Sun?.Color ?? Vector3.One;
+        var sunIntensity = context.Lighting.Sun?.Intensity ?? 0f;
+
+        // Simple Moon (opposite to Sun)
+        var moonDir = -sunDir;
+        var moonColor = new Vector3(0.5f, 0.6f, 1.0f);
+        var moonIntensity = 1.0f - sunIntensity;
+
+        _shader.SetUniform("sunDir", sunDir);
+        _shader.SetUniform("sunColor", sunColor);
+        _shader.SetUniform("sunIntensity", sunIntensity);
+
+        _shader.SetUniform("moonDir", moonDir);
+        _shader.SetUniform("moonColor", moonColor);
+        _shader.SetUniform("moonIntensity", moonIntensity);
+
+        // Atmosphere parameters from UI
+        _shader.SetUniform("atmosphereRayleighScale", context.Atmosphere.RayleighScale);
+        _shader.SetUniform("atmosphereMieScale", context.Atmosphere.MieScale);
+        _shader.SetUniform("atmosphereOzoneScale", context.Atmosphere.OzoneScale);
+        _shader.SetUniform("atmosphereMieG", context.Atmosphere.MieG);
+        _shader.SetUniform("InvViewProj", targets.InvViewProj);
+
+        _gl.BindVertexArray(_vao);
+        _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
+
+        _gl.Enable(EnableCap.CullFace);
+        _gl.DepthFunc(DepthFunction.Greater);
+    }
+
+    public void Dispose()
+    {
+        _shader.Dispose();
+        _gl.DeleteVertexArray(_vao);
+        _gl.DeleteBuffer(_vbo);
+    }
+}

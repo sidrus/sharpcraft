@@ -1,4 +1,11 @@
-﻿global using SharpCraft.Sdk;
+﻿global using SharpCraft.Engine.Rendering.Chunks;
+global using SharpCraft.Engine.Rendering.Lighting;
+global using SharpCraft.Engine.Rendering.Passes;
+global using SharpCraft.Engine.Rendering.Pipeline;
+global using SharpCraft.Engine.Rendering.PostProcessing;
+global using SharpCraft.Engine.Rendering.Renderers;
+global using SharpCraft.Engine.Rendering.Shadows;
+global using SharpCraft.Sdk;
 global using SharpCraft.Sdk.Blocks;
 global using SharpCraft.Sdk.Lifecycle;
 global using SharpCraft.Sdk.Rendering;

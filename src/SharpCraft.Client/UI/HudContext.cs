@@ -1,5 +1,7 @@
 ﻿using SharpCraft.Client.Controllers;
 using SharpCraft.Engine.Rendering;
+using SharpCraft.Engine.Rendering.Chunks;
+using SharpCraft.Engine.Rendering.PostProcessing;
 using SharpCraft.Engine.Rendering.Lighting;
 using SharpCraft.Sdk;
 using SharpCraft.Sdk.Diagnostics;
