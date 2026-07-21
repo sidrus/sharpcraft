@@ -5,15 +5,8 @@ namespace SharpCraft.Engine.Rendering.Passes;
 /// depth without writing it (the z-fighting fix) and draws double-sided (the water mesh has no bottom
 /// faces). Samples the opaque-color snapshot for SSR. Sets and restores its own blend/cull/depth state.
 /// </summary>
-public sealed class WaterPass(GL gl, WaterRenderer water) : IRenderPass
+public sealed class WaterPass(GL gl, WaterRenderer water) : IDisposable
 {
-    public string Name => "Water";
-
-    public IReadOnlyList<RenderResource> Reads =>
-        [RenderResource.OpaqueColor, RenderResource.SceneDepth, RenderResource.ShadowMap];
-
-    public IReadOnlyList<RenderResource> Writes => [RenderResource.HdrScene];
-
     public bool Enabled(RenderContext context)
     {
         return true;

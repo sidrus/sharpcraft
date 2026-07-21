@@ -55,25 +55,17 @@ public class ChunkRenderCache(GL gl) : IDisposable
 
     public void Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposed)
+        if (_disposed)
         {
-            if (disposing)
-            {
-                foreach (var entry in _cache.Values)
-                {
-                    entry.RenderChunk.Dispose();
-                }
-                _cache.Clear();
-            }
-
-            _disposed = true;
+            return;
         }
+
+        foreach (var entry in _cache.Values)
+        {
+            entry.RenderChunk.Dispose();
+        }
+        _cache.Clear();
+        _disposed = true;
     }
 
     private bool _disposed;

@@ -7,18 +7,12 @@ namespace SharpCraft.Engine.Rendering.Passes;
 /// depth that GTAO, SSR, and contact shadows march against. Runs only when one of those effects is on.
 /// Owns its own depth-only <see cref="ShadowMapRenderer"/> (position-only shader) and framebuffer.
 /// </summary>
-public sealed class DepthPrepassPass(GL gl, ChunkRenderCache cache) : IRenderPass
+public sealed class DepthPrepassPass(GL gl, ChunkRenderCache cache) : IDisposable
 {
     private readonly ShadowMapRenderer _depthRenderer =
         new(gl, cache, new ShaderProgram(gl, Shaders.Shaders.ShadowVertex, Shaders.Shaders.ShadowFragment));
 
     private Framebuffer? _depth;
-
-    public string Name => "DepthPrepass";
-
-    public IReadOnlyList<RenderResource> Reads => [];
-
-    public IReadOnlyList<RenderResource> Writes => [RenderResource.SceneDepth];
 
     public bool Enabled(RenderContext context)
     {

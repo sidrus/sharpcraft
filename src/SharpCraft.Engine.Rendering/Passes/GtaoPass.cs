@@ -4,15 +4,9 @@ namespace SharpCraft.Engine.Rendering.Passes;
 /// Ground-truth ambient occlusion from the scene depth, multiplied into ambient by the forward pass.
 /// Runs only when SSAO is enabled; requires the depth pre-pass to have produced scene depth first.
 /// </summary>
-public sealed class GtaoPass(GL gl) : IRenderPass
+public sealed class GtaoPass(GL gl) : IDisposable
 {
     private readonly GtaoRenderer _gtao = new(gl);
-
-    public string Name => "Gtao";
-
-    public IReadOnlyList<RenderResource> Reads => [RenderResource.SceneDepth];
-
-    public IReadOnlyList<RenderResource> Writes => [RenderResource.Gtao];
 
     public bool Enabled(RenderContext context)
     {

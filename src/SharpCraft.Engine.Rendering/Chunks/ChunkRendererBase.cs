@@ -103,27 +103,16 @@ public abstract class ChunkRendererBase : IDisposable
 
     public void Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
         if (_disposed)
         {
             return;
         }
 
-        DisposeShader(disposing);
+        DisposeShader();
         Gl.DeleteVertexArray(_vao);
         _disposed = true;
     }
 
     /// <summary>Disposes the renderer's shader if it owns it; renderers with a shared shader do nothing.</summary>
-    protected abstract void DisposeShader(bool disposing);
-
-    ~ChunkRendererBase()
-    {
-        Dispose(false);
-    }
+    protected abstract void DisposeShader();
 }

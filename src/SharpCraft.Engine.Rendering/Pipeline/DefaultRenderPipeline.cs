@@ -48,8 +48,6 @@ public class DefaultRenderPipeline(
     private readonly SsrSnapshotPass _ssrSnapshotPass = new(gl);
     private readonly WaterPass _waterPass = new(gl, waterRenderer);
 
-    private RenderPassPipeline? _pipeline;
-
     // Cascaded shadow map config (research §8).
     private const int CascadeCount = 8;
     private const uint ShadowMapSize = 2048;
@@ -64,7 +62,6 @@ public class DefaultRenderPipeline(
             return;
         }
 
-        _pipeline ??= BuildPipeline();
         _targets.Reset();
 
         if (_framebuffer == null || _lastWidth != context.Camera.ScreenWidth || _lastHeight != context.Camera.ScreenHeight)
@@ -199,17 +196,6 @@ public class DefaultRenderPipeline(
         _outputPass.Execute(world, context, _targets);
     }
 
-    private RenderPassPipeline BuildPipeline()
-    {
-        return new RenderPassPipeline(
-        [
-            _iblPass, _shadowPass, _depthPrepassPass, _gtaoPass,
-            _skyboxPass, _terrainPass, _sunPass, _ssrSnapshotPass, _waterPass,
-            _volumetricPass, _bloomPass, _outputPass,
-        ],
-        new HashSet<RenderResource> { RenderResource.InvViewProj, RenderResource.ResolvedScene });
-    }
-
     private void UpdateUbos(RenderContext context)
     {
         var lightDirection = context.Lighting.Sun?.Direction ?? Vector3.Normalize(new Vector3(0.8f, -0.5f, 0.1f));
@@ -268,30 +254,32 @@ public class DefaultRenderPipeline(
 
     public void Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
         if (_disposed)
         {
             return;
         }
 
-        if (disposing)
-        {
-            (_pipeline ?? BuildPipeline()).Dispose();
-            _sceneUbo.Dispose();
-            _lightingUbo.Dispose();
-            _csmUbo.Dispose();
-            cache.Dispose();
-            postProcessingRenderer.Dispose();
-            _framebuffer?.Dispose();
-            _clustered?.Dispose();
-            _autoExposure?.Dispose();
-            _taa?.Dispose();
-        }
+        _iblPass.Dispose();
+        _shadowPass.Dispose();
+        _depthPrepassPass.Dispose();
+        _gtaoPass.Dispose();
+        _skyboxPass.Dispose();
+        _terrainPass.Dispose();
+        _sunPass.Dispose();
+        _ssrSnapshotPass.Dispose();
+        _waterPass.Dispose();
+        _volumetricPass.Dispose();
+        _bloomPass.Dispose();
+        _outputPass.Dispose();
+        _sceneUbo.Dispose();
+        _lightingUbo.Dispose();
+        _csmUbo.Dispose();
+        cache.Dispose();
+        postProcessingRenderer.Dispose();
+        _framebuffer?.Dispose();
+        _clustered?.Dispose();
+        _autoExposure?.Dispose();
+        _taa?.Dispose();
         _disposed = true;
     }
 

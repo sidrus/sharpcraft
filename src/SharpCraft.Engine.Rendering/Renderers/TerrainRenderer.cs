@@ -86,7 +86,7 @@ public sealed class TerrainRenderer : ChunkRendererBase
         RenderChunks(world, context, renderChunk => renderChunk.BindAndDrawOpaque());
     }
 
-    protected override void DisposeShader(bool disposing)
+    protected override void DisposeShader()
     {
     }
 }

@@ -5,14 +5,8 @@ namespace SharpCraft.Engine.Rendering.Passes;
 /// compositing bloom and (when TAA is off) FXAA. Owns no GPU resources — wraps the shared
 /// <see cref="PostProcessingRenderer"/>, whose lifetime the pipeline manages.
 /// </summary>
-public sealed class OutputPass(PostProcessingRenderer postProcessing) : IRenderPass
+public sealed class OutputPass(PostProcessingRenderer postProcessing) : IDisposable
 {
-    public string Name => "Output";
-
-    public IReadOnlyList<RenderResource> Reads => [RenderResource.ResolvedScene, RenderResource.BloomTexture];
-
-    public IReadOnlyList<RenderResource> Writes => [RenderResource.Output];
-
     public bool Enabled(RenderContext context)
     {
         return true;

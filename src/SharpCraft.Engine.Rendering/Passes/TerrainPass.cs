@@ -6,16 +6,8 @@ namespace SharpCraft.Engine.Rendering.Passes;
 /// does so through the clustered point lights, not this pass. Shades against the shadow map, GTAO,
 /// and IBL produced by earlier passes.
 /// </summary>
-public sealed class TerrainPass(TerrainRenderer terrain, StaticMeshRenderer staticMeshes) : IRenderPass
+public sealed class TerrainPass(TerrainRenderer terrain, StaticMeshRenderer staticMeshes) : IDisposable
 {
-    public string Name => "Terrain";
-
-    public IReadOnlyList<RenderResource> Reads =>
-        [RenderResource.ShadowMap, RenderResource.SceneDepth, RenderResource.Gtao,
-         RenderResource.IrradianceMap, RenderResource.PrefilterMap, RenderResource.BrdfLut];
-
-    public IReadOnlyList<RenderResource> Writes => [RenderResource.HdrScene];
-
     public bool Enabled(RenderContext context)
     {
         return true;

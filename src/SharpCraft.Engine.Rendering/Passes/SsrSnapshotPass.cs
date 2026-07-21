@@ -5,15 +5,9 @@ namespace SharpCraft.Engine.Rendering.Passes;
 /// sample it for screen-space reflections (a surface can't read the attachment it draws into). Runs
 /// only when SSR is enabled and the scene depth is available.
 /// </summary>
-public sealed class SsrSnapshotPass(GL gl) : IRenderPass
+public sealed class SsrSnapshotPass(GL gl) : IDisposable
 {
     private Framebuffer? _opaqueColor;
-
-    public string Name => "SsrSnapshot";
-
-    public IReadOnlyList<RenderResource> Reads => [RenderResource.HdrScene];
-
-    public IReadOnlyList<RenderResource> Writes => [RenderResource.OpaqueColor];
 
     public bool Enabled(RenderContext context)
     {

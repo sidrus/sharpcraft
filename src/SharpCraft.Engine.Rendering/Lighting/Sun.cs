@@ -33,12 +33,8 @@ public class Sun(IWorldTime worldTime, ILightingSystem lightingSystem) : ILifecy
         // 7 AM is angle = PI + (PI/12)
         // 5:30 PM is angle = 2PI - (PI/24)
 
-        // We can use normalized angle to make it easier [0, 2PI] where PI is 6AM
-        var normalizedAngle = angle % (MathF.PI * 2);
-        if (normalizedAngle < 0)
-        {
-            normalizedAngle += MathF.PI * 2;
-        }
+        // worldTime.SunAngle already returns a normalized [0, 2PI) angle where PI is 6AM.
+        var normalizedAngle = angle;
 
         // Shift so 12 AM (midnight) is 0
         // PI is 6 AM, so shift by PI to get 6 AM at PI, then subtract 0.5PI to get 12 AM at 0?

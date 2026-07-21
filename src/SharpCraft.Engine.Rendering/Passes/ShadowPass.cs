@@ -7,18 +7,12 @@ namespace SharpCraft.Engine.Rendering.Passes;
 /// Uses conventional (non-reversed) depth with depth-clamped casters and no face culling, then restores
 /// the reversed-Z main-pass policy on exit so later passes see the expected depth state. Always runs.
 /// </summary>
-public sealed class ShadowPass(GL gl, ChunkRenderCache cache, uint shadowMapSize, int cascadeCount) : IRenderPass
+public sealed class ShadowPass(GL gl, ChunkRenderCache cache, uint shadowMapSize, int cascadeCount) : IDisposable
 {
     private readonly CascadedShadowMap _csm = new(gl, shadowMapSize, cascadeCount);
 
     private readonly ShadowMapRenderer _renderer =
         new(gl, cache, new ShaderProgram(gl, Shaders.Shaders.ShadowVertex, Shaders.Shaders.ShadowFragment));
-
-    public string Name => "Shadow";
-
-    public IReadOnlyList<RenderResource> Reads => [];
-
-    public IReadOnlyList<RenderResource> Writes => [RenderResource.ShadowMap];
 
     public bool Enabled(RenderContext context)
     {

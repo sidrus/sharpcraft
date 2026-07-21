@@ -60,11 +60,8 @@ public sealed class WaterRenderer : ChunkRendererBase
         RenderChunks(world, context, renderChunk => renderChunk.BindAndDrawTransparent());
     }
 
-    protected override void DisposeShader(bool disposing)
+    protected override void DisposeShader()
     {
-        if (disposing)
-        {
-            Shader.Dispose();
-        }
+        Shader.Dispose();
     }
 }

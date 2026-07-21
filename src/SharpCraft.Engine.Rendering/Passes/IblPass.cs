@@ -8,15 +8,9 @@ namespace SharpCraft.Engine.Rendering.Passes;
 /// from the current sun/atmosphere, exposing the maps to the forward pass. Throttled internally, so
 /// most frames the update is a no-op. Disabled when IBL is off.
 /// </summary>
-public sealed class IblPass(GL gl) : IRenderPass
+public sealed class IblPass(GL gl) : IDisposable
 {
     private readonly IblBaker _baker = new(gl);
-
-    public string Name => "IblBake";
-
-    public IReadOnlyList<RenderResource> Reads => [];
-
-    public IReadOnlyList<RenderResource> Writes => [RenderResource.IrradianceMap, RenderResource.PrefilterMap, RenderResource.BrdfLut];
 
     public bool Enabled(RenderContext context)
     {

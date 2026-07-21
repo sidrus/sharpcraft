@@ -28,7 +28,7 @@ public partial class MessageChannel(string name, ILogger<MessageChannel> logger)
             {
                 try
                 {
-                    ((Delegate)handler).DynamicInvoke(message);
+                    ((Action<object>)handler).Invoke(message);
                 }
                 catch (Exception e)
                 {
@@ -42,13 +42,14 @@ public partial class MessageChannel(string name, ILogger<MessageChannel> logger)
     {
         var type = typeof(T);
         var handlers = _handlers.GetOrAdd(type, _ => []);
+        Action<object> invoke = message => handler((T)message);
 
         lock (handlers)
         {
-            handlers.Add(handler);
+            handlers.Add(invoke);
         }
 
-        return new Unsubscriber(handlers, handler);
+        return new Unsubscriber(handlers, invoke);
     }
 
     private sealed class Unsubscriber(List<object> handlers, object handler) : IDisposable

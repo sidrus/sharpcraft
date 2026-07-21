@@ -4,15 +4,9 @@ namespace SharpCraft.Engine.Rendering.Passes;
 /// Half-res ray-march of height fog + sun shafts against the CSM, composited into the HDR scene
 /// (scene·T + inscatter) before the TAA resolve. Disabled when volumetrics are off or zero-intensity.
 /// </summary>
-public sealed class VolumetricPass(GL gl, PostProcessingRenderer postProcessing, float maxShadowDistance) : IRenderPass
+public sealed class VolumetricPass(GL gl, PostProcessingRenderer postProcessing, float maxShadowDistance) : IDisposable
 {
     private readonly VolumetricRenderer _renderer = new(gl);
-
-    public string Name => "Volumetrics";
-
-    public IReadOnlyList<RenderResource> Reads => [RenderResource.HdrScene, RenderResource.ShadowMap, RenderResource.InvViewProj];
-
-    public IReadOnlyList<RenderResource> Writes => [RenderResource.HdrScene];
 
     public bool Enabled(RenderContext context)
     {

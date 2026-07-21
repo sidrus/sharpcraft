@@ -5,15 +5,9 @@ namespace SharpCraft.Engine.Rendering.Passes;
 /// sky loses to any geometry via the reversed-Z clear), reading the inverse view-projection to
 /// reconstruct per-pixel view rays.
 /// </summary>
-public sealed class SkyboxPass(GL gl) : IRenderPass
+public sealed class SkyboxPass(GL gl) : IDisposable
 {
     private readonly SkyboxRenderer _renderer = new(gl);
-
-    public string Name => "Skybox";
-
-    public IReadOnlyList<RenderResource> Reads => [RenderResource.InvViewProj];
-
-    public IReadOnlyList<RenderResource> Writes => [RenderResource.HdrScene];
 
     public bool Enabled(RenderContext context)
     {
